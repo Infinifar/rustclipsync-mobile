@@ -14,6 +14,8 @@ if ! command -v python3 >/dev/null || [[ ! -d /usr/lib/jvm/java-17-openjdk-amd64
 fi
 export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 export PATH="$JAVA_HOME/bin:$PATH"
+# Resolve the Gradle distribution/plugins before spending time compiling native code.
+(cd android && ./gradlew --no-daemon help)
 if [[ ! -x "$CARGO_HOME/bin/rustup" ]]; then
   rustup_url=https://static.rust-lang.org/rustup/dist/x86_64-unknown-linux-gnu/rustup-init
   curl -fsSL --retry 2 --connect-timeout 15 --max-time 180 "$rustup_url" -o "$ci_tools/rustup-init"
