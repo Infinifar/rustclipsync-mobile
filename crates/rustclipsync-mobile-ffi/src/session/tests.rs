@@ -527,3 +527,99 @@ fn background_write_binding_requires_opt_in_and_reads_no_platform_snapshot() {
         s.shutdown().await.unwrap();
     });
 }
+
+#[test]
+fn configured_filter_survives_sensitive_policy_changes_and_rejects_invalid_rules() {
+    block_on(async {
+        let platform = Arc::new(FakePlatform::default());
+        let remote = Remote::default();
+        let s = start(&platform, &remote, SensitivePolicy::Disabled);
+        let cfg = crate::FilterConfig {
+            mode: crate::TextFilterMode::Blacklist,
+            patterns: vec!["^blocked".into()],
+            downloads: true,
+        };
+        s.update_filter(cfg.clone()).await.unwrap();
+        s.update_policy(SensitivePolicy::EncryptedInbox)
+            .await
+            .unwrap();
+        *platform.clipboard.lock().unwrap() = Some(text("blocked synthetic text", false));
+        assert_eq!(s.send_clipboard().await.unwrap(), SyncOutcome::Filtered);
+        assert!(remote.data.lock().unwrap().sends.is_empty());
+        let invalid = crate::FilterConfig {
+            patterns: vec!["[".into()],
+            ..cfg
+        };
+        assert!(matches!(
+            s.update_filter(invalid).await,
+            Err(MobileError::InvalidInput)
+        ));
+        *platform.clipboard.lock().unwrap() = Some(text("blocked again", false));
+        assert_eq!(s.send_clipboard().await.unwrap(), SyncOutcome::Filtered);
+        remote.publish("blocked remote text", false);
+        assert_eq!(s.receive().await.unwrap(), SyncOutcome::Filtered);
+        assert_eq!(platform.writes.load(Ordering::SeqCst), 0);
+        remote.publish("blocked sensitive", true);
+        assert_eq!(s.receive().await.unwrap(), SyncOutcome::Filtered);
+        assert!(s.status().await.unwrap().inbox.is_none());
+        s.shutdown().await.unwrap();
+    });
+}
+
+#[test]
+fn filter_sample_uses_core_semantics_and_device_uuid_survives_reopen() {
+    let cfg = crate::FilterConfig {
+        mode: crate::TextFilterMode::Whitelist,
+        patterns: vec!["^allowed".into()],
+        downloads: false,
+    };
+    assert!(!crate::test_filter(cfg.clone(), "other".into(), false).unwrap());
+    assert!(crate::test_filter(cfg, "other".into(), true).unwrap());
+    block_on(async {
+        let platform = Arc::new(FakePlatform::default());
+        let remote = Remote::default();
+        let s = start(&platform, &remote, SensitivePolicy::Disabled);
+        s.check().await.unwrap();
+        let id = s.status().await.unwrap().device_id;
+        assert!(!id.is_empty());
+        s.shutdown().await.unwrap();
+        let reopened = start(&platform, &remote, SensitivePolicy::Disabled);
+        assert_eq!(id, reopened.status().await.unwrap().device_id);
+        reopened.shutdown().await.unwrap();
+    });
+}
+
+#[test]
+fn directions_block_disallowed_transfers_and_never_retry_a_receive_only_upload() {
+    block_on(async {
+        let platform = Arc::new(FakePlatform::default());
+        let remote = Remote::default();
+        let s = start(&platform, &remote, SensitivePolicy::Disabled);
+        s.check().await.unwrap();
+        s.update_direction(crate::SyncDirection::Upload)
+            .await
+            .unwrap();
+        remote.publish("remote synthetic", false);
+        assert_eq!(s.receive().await.unwrap(), SyncOutcome::Paused);
+        assert_eq!(
+            s.receive_background(true).await.unwrap(),
+            SyncOutcome::Paused
+        );
+        assert_eq!(platform.writes.load(Ordering::SeqCst), 0);
+        *platform.clipboard.lock().unwrap() = Some(text("queued synthetic", false));
+        remote.fail_next_send.store(true, Ordering::SeqCst);
+        assert!(matches!(
+            s.send_clipboard().await,
+            Err(MobileError::Network)
+        ));
+        let attempts = remote.data.lock().unwrap().attempts.len();
+        s.update_direction(crate::SyncDirection::Download)
+            .await
+            .unwrap();
+        assert_eq!(s.send_clipboard().await.unwrap(), SyncOutcome::Paused);
+        s.retry_pending().await.unwrap();
+        assert_eq!(remote.data.lock().unwrap().attempts.len(), attempts);
+        assert_eq!(s.receive().await.unwrap(), SyncOutcome::Downloaded);
+        s.shutdown().await.unwrap();
+    });
+}

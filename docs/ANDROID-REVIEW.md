@@ -18,3 +18,12 @@
 - [Android 16 SystemUI 点击处理源码](https://github.com/aosp-mirror/platform_frameworks_base/blob/android-16.0.0_r1/packages/SystemUI/src/com/android/systemui/statusbar/phone/StatusBarRemoteInputCallback.java)。
 - [Notification.Action.Builder 认证标志](https://developer.android.com/reference/android/app/Notification.Action.Builder#setAuthenticationRequired(boolean))。
 - [Compose Material 3 明暗和动态色](https://developer.android.com/develop/ui/compose/designsystems/material3)。
+
+## 0.1.3 增补
+
+- 通知副标题已移除；隐藏星号随屏幕宽度／字体变化，约占卡片宽度 2/3，与真实正文长度无关。
+- 依次选双向、仅发送、仅接收，检查前台按钮和后台接收授权；仅发送不接收，切仅接收后旧上传不会重发。
+- 过滤页测试关闭、黑名单、白名单与“同时过滤接收”；无效正则保存失败，旧配置保留；规则不会回溯清空已保存的收件项。
+- 同步页 UUID 可选中，重连后保持不变；无需展示任何 token。
+- 外观页选中文／English／跟随系统，检查三页、提示、通知及系统应用语言入口，重启后保持。
+- 关于页检查更新及项目地址。私有仓库／未发布提示应区别于“暂无更高版本”；不会自动安装更新。

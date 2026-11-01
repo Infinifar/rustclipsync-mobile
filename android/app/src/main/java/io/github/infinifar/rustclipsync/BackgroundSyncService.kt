@@ -76,6 +76,11 @@ class BackgroundSyncService : Service() {
         return START_NOT_STICKY
     }
 
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        session.notifications.mask()
+    }
+
     override fun onTimeout(startId: Int, fgsType: Int) {
         session.serviceTimedOut()
         stopForeground(STOP_FOREGROUND_REMOVE)

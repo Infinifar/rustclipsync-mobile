@@ -10,7 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 
-internal enum class ThemeMode(val title: String) { SYSTEM("跟随系统"), LIGHT("浅色"), DARK("深色") }
+internal enum class ThemeMode(val title: Int) { SYSTEM(R.string.theme_system), LIGHT(R.string.theme_light), DARK(R.string.theme_dark) }
 
 @Composable
 internal fun AppTheme(content: @Composable (ThemeMode, (ThemeMode) -> Unit) -> Unit) {

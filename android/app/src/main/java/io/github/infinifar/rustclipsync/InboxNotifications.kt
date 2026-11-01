@@ -103,14 +103,14 @@ internal class InboxNotifications(
         val nonce = ticket ?: return
         if (!authorized()) { clear(); return }
         if (locked()) body = null
-        val text = body ?: "**"
+        val hidden = NotificationMask.text(context)
+        val text = body ?: hidden
         val toggle = if (body == null) SHOW else HIDE
         val public = Notification.Builder(context, INBOX_CHANNEL)
-            .setSmallIcon(R.drawable.ic_stat_clipboard).setContentTitle("加密收件箱").setContentText("**").build()
+            .setSmallIcon(R.drawable.ic_stat_clipboard).setContentTitle(context.translated(R.string.inbox_title)).setContentText(hidden).build()
         val open = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), FLAGS)
         val notification = Notification.Builder(context, INBOX_CHANNEL)
-            .setSmallIcon(R.drawable.ic_stat_clipboard).setContentTitle("加密收件箱")
-            .setSubText("展开可显示／隐藏、复制")
+            .setSmallIcon(R.drawable.ic_stat_clipboard).setContentTitle(context.translated(R.string.inbox_title))
             // Keep this single card out of the automatic group with the FGS status notification.
             .setGroup("encrypted-inbox-card")
             .setContentText(text).setStyle(Notification.BigTextStyle().bigText(text))
@@ -119,9 +119,9 @@ internal class InboxNotifications(
             .setDeleteIntent(track(serviceIntent(context, DISMISS, id, nonce)))
             // Authentication requests close the shade, even when already unlocked.
             // Toggle stays in the service; action() still rejects locked Show requests.
-            .addAction(Notification.Action.Builder(null, if (body == null) "显示" else "隐藏",
+            .addAction(Notification.Action.Builder(null, if (body == null) context.translated(R.string.show) else context.translated(R.string.hide),
                 track(serviceIntent(context, toggle, id, nonce))).setAuthenticationRequired(false).build())
-            .addAction(Notification.Action.Builder(null, "复制", track(serviceIntent(context, COPY, id, nonce)))
+            .addAction(Notification.Action.Builder(null, context.translated(R.string.copy), track(serviceIntent(context, COPY, id, nonce)))
                 .setAuthenticationRequired(true).build())
             .build()
         try { manager.notify(INBOX_ID, notification) }
@@ -147,8 +147,8 @@ internal class InboxNotifications(
 
         fun channels(context: Context) {
             context.getSystemService(NotificationManager::class.java).createNotificationChannels(listOf(
-                NotificationChannel(SERVICE_CHANNEL, "后台监听", NotificationManager.IMPORTANCE_LOW),
-                NotificationChannel(INBOX_CHANNEL, "加密收件箱", NotificationManager.IMPORTANCE_LOW)
+                NotificationChannel(SERVICE_CHANNEL, context.translated(R.string.background_listening), NotificationManager.IMPORTANCE_LOW),
+                NotificationChannel(INBOX_CHANNEL, context.translated(R.string.inbox_title), NotificationManager.IMPORTANCE_LOW)
                     .apply { lockscreenVisibility = Notification.VISIBILITY_PRIVATE },
             ))
         }
@@ -163,12 +163,12 @@ internal class InboxNotifications(
         fun serviceNotification(context: Context, write: Boolean): Notification {
             channels(context)
             return Notification.Builder(context, SERVICE_CHANNEL)
-                .setSmallIcon(R.drawable.ic_stat_clipboard).setContentTitle("RustClipSync 后台监听")
-                .setContentText(if (write) "后台接收与写入已启用；敏感内容遵循所选策略" else "后台接收加密收件箱；不读写系统剪贴板")
+                .setSmallIcon(R.drawable.ic_stat_clipboard).setContentTitle(context.translated(R.string.notification_listener_title))
+                .setContentText(if (write) context.translated(R.string.notification_background_write) else context.translated(R.string.notification_background_readonly))
                 .setOngoing(true).setOnlyAlertOnce(true).setLocalOnly(true)
                 .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
                 .setContentIntent(PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), FLAGS))
-                .addAction(Notification.Action.Builder(null, "停止监听", serviceIntent(context, STOP)).build())
+                .addAction(Notification.Action.Builder(null, context.translated(R.string.stop_listening), serviceIntent(context, STOP)).build())
                 .build()
         }
 

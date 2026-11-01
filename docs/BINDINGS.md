@@ -126,3 +126,16 @@ Android 服务测试通过真实 Kotlin → Rust → core HTTPS 调用，剪贴�
 仍只在显式 Show 时读取，Copy 的 item / ticket / version / 权限及解锁检查保持不变。
 验证通过实际 SystemUI 层级和 adb 输入点击；CLI 1.1 返回底层应用窗口时，使用 SDK
 UiAutomator 的当前窗口 XML 回退，并保存原始层级。此路径不触碰真实剪贴板。
+
+## 同步方向、过滤与设备身份
+
+0.1.3 增加 `updateDirection`、`updateFilter`、`FilterConfig`、`TextFilterMode`、`SyncDirection`
+和 `SessionStatus.deviceId`，同一 UniFFI facade 重新生成双端绑定，不手改生成代码。
+方向在执行线程上拦截相反操作。Download 撤销上传候选，Retry 先委托 core.record_clear
+再 flush，因此只撤销／完成确认；不会把已有上传偷偷重发。已开始提交的操作不能撤回。
+Android 在配置成功后保存非敏感偏好，不改 RCS1。
+
+过滤仅做有界输入转换（32 条、每条 512 字节），core::Filter 编译及判定。无效配置返回
+InvalidInput，保留原规则；敏感策略更新保留当前过滤器。过滤配置变化通过 core.record_clear
+撤销旧本地候选。`testFilter` 同步 API 必须在后台线程调用，限制样例 8192 字节，不记录样例。
+UUID 直接从 core.persisted.state.device_id 返回，不返回 token、密码或密钥。

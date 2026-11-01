@@ -49,6 +49,8 @@ pub struct InboxMetadata {
 /// Metadata returned after a serialized operation.
 #[derive(Clone, Debug, PartialEq, Eq, uniffi::Record)]
 pub struct SessionStatus {
+    /// Stable core device UUID, not the registration token or credentials.
+    pub device_id: String,
     /// Whether device registration has completed.
     pub paired: bool,
     /// Latest durable consumed revision.
@@ -146,4 +148,16 @@ pub enum MobileError {
     /// An internal failure stopped the executor.
     #[error("session failed; reopen session")]
     Internal,
+}
+
+/// Desktop-compatible admission of new clipboard transfers.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, uniffi::Enum)]
+pub enum SyncDirection {
+    /// Send and receive.
+    #[default]
+    Both,
+    /// Send only; no remote content is consumed.
+    Upload,
+    /// Receive only; old upload candidates are cleared through core.
+    Download,
 }

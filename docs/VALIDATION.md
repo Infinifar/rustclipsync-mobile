@@ -301,3 +301,25 @@ NotificationSafetyTest 增加 toggle 与 copy 认证标志断言，本轮只编�
 [Android APK 构建](https://github.com/Infinifar/rustclipsync-mobile/actions/runs/41337695083)
 已统一触发；本次记录时正在编译 / lint，完成后在该页面下载产物。
 不启动持续监控，不把构建中记为平台验证通过。用户视觉验收清单见 ANDROID-REVIEW.md。
+
+## Android 0.1.3：方向、过滤、设备 UUID 与本地化
+
+本轮补齐 Android 双向/仅发送/仅接收、core 正则过滤编辑与样例测试、设备 UUID、检查更新
+和项目入口、中英文与跟随系统语言；原生通知移除副标题，独立于正文长度的星号占位按宽度
+和字体重算。界面按“同步/收件箱/设置”，设置再分“同步/过滤/外观/关于”。
+
+共享 facade 增加 API，UniFFI 生成文件需重新生成；没有修改 core、vendor、协议或 RCS1。
+方向在 Rust 串行执行器上拦截；只接收下重试只取消旧发送候选/完成确认，不发送旧上传。
+过滤复用 core::Filter，保留敏感策略切换时的规则，无效规则不覆盖现有配置。
+
+验证：
+
+- 本地 Rust fmt、Clippy all-targets/all-features -D warnings、15 项全特性测试、rustdoc 通过。
+- 新过滤/UUID 测试先因 API 缺失失败，实现后通过；方向负向控制断言反转，明确报告 Paused != Downloaded，恢复后通过。
+- 167 个英/中文资源键与格式占位符、XML、diff、Python 语法检查通过。
+- Android 增加纯 JVM 单元测试（版本比较、方向）；instrumentation 断言适配动态星号与本地化，但本轮不运行设备测试。
+- 检查更新不使用任何同步凭据；私有/未发布与已是最新版分开报告。测试不访问实际网络、剪贴板或用户账户。
+- 前一轮 0.1.2 的 Rust / Android GitHub 两项构建已通过，本轮新 Android / FFI 编译结果另行记录，不能复用旧结果。
+- 用户明确耗时视觉测试交其执行，本轮不启动模拟器或截图，不宣称 MyUI/Android 16 真机、本轮 iOS 编译通过。
+
+Rust 原始记录见 [本轮证据目录](evidence/android-client-settings-2026-11-01/)。

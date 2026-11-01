@@ -40,7 +40,7 @@ def layout(android, adb, serial, output, environment=None):
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(document, ensure_ascii=False, indent=2) + '\n')
     entries = list(nodes(document))
-    if any('加密收件箱' in entry.get('text', '') for entry, _ in entries):
+    if any(any(title in entry.get('text', '') for title in ['加密收件箱', 'Encrypted inbox']) for entry, _ in entries):
         return entries
     # CLI 1.1 can return the underlying application while the shade is open.
     # Reopen it and read the SDK's active SystemUI hierarchy as a fallback.
@@ -75,7 +75,7 @@ def layout(android, adb, serial, output, environment=None):
 
 def button(entries, title):
     for node, parents in entries:
-        if node.get('text') == title:
+        if node.get('text') in {'显示': {'显示', 'Show'}, '隐藏': {'隐藏', 'Hide'}, '复制': {'复制', 'Copy'}}.get(title, {title}):
             for candidate in (node, *parents):
                 if 'CLICKABLE' in candidate.get('interactions', []) and candidate.get('center'):
                     return candidate
@@ -90,7 +90,7 @@ def prepare(android, adb, serial, output, environment=None):
         entries = layout(android, adb, serial, output, environment)
         if button(entries, '复制') and (button(entries, '显示') or button(entries, '隐藏')):
             return entries
-        titles = [node for node, _ in entries if node.get('text', '').startswith('加密收件箱')]
+        titles = [node for node, _ in entries if node.get('text', '').startswith(('加密收件箱', 'Encrypted inbox'))]
         expanders = [node for node, _ in entries
                      # The clickable expandableNotificationRow opens the app;
                      # only the native header button expands its text actions.

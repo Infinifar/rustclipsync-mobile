@@ -5,6 +5,9 @@ import android.content.Intent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import io.github.infinifar.rustclipsync.bindings.FilterConfig
+import io.github.infinifar.rustclipsync.bindings.TextFilterMode
+import io.github.infinifar.rustclipsync.bindings.testFilter
 import io.github.infinifar.rustclipsync.bindings.MobileConfig
 import io.github.infinifar.rustclipsync.bindings.MobileException
 import io.github.infinifar.rustclipsync.bindings.MobileSession
@@ -30,6 +33,7 @@ internal class SessionController(
 ) {
     private val application = context.applicationContext
     private val preferences = application.getSharedPreferences("background-listening", Context.MODE_PRIVATE)
+    private val syncPreferences = application.getSharedPreferences("sync-settings", Context.MODE_PRIVATE)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val cleanup = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     internal val notifications = InboxNotifications(application)
@@ -49,7 +53,52 @@ internal class SessionController(
     var busy by mutableStateOf(false); private set
     var connected by mutableStateOf(false); private set
     var status by mutableStateOf<SessionStatus?>(null); private set
-    var message by mutableStateOf("仅在前台手动同步"); private set
+    var direction by mutableStateOf(SyncDirection.entries.firstOrNull { it.key == syncPreferences.getString("direction", "both") } ?: SyncDirection.BOTH); private set
+    var filterMode by mutableStateOf(TextFilterMode.entries.firstOrNull { it.name == syncPreferences.getString("filter-mode", "OFF") } ?: TextFilterMode.OFF); private set
+    var filterRules by mutableStateOf(syncPreferences.getString("filter-rules", "") ?: ""); private set
+    var filterDownloads by mutableStateOf(syncPreferences.getBoolean("filter-downloads", false)); private set
+    fun filterConfig() = FilterConfig(filterMode, filterRules.lines().map { it.trim() }.filter { it.isNotEmpty() }, filterDownloads)
+
+    // Native direction admission and generation invalidation remain serialized in the facade.
+    fun configureDirection(value: SyncDirection) {
+        if (value == direction || busy) return
+        fun save() {
+            direction = value
+            syncPreferences.edit().putString("direction", value.key).apply()
+            if (!value.receives) { configureBackgroundListening(false); configureBackgroundWrites(false) }
+            updateWriteAccess()
+        }
+        if (connected) command {
+            updateDirection(io.github.infinifar.rustclipsync.bindings.SyncDirection.valueOf(value.name))
+            save()
+            UiMessage(R.string.status_direction_changed)
+        } else { save(); statusText = UiMessage(R.string.status_direction_changed) }
+    }
+
+    fun configureFilter(value: FilterConfig) {
+        fun save() {
+            filterMode = value.mode; filterRules = value.patterns.joinToString("\n"); filterDownloads = value.downloads
+            syncPreferences.edit().putString("filter-mode", filterMode.name).putString("filter-rules", filterRules)
+                .putBoolean("filter-downloads", filterDownloads).apply()
+        }
+        if (busy) return
+        if (connected) command {
+            try { updateFilter(value); save(); UiMessage(R.string.status_filter_updated) }
+            catch (_: MobileException.InvalidInput) { UiMessage(R.string.filter_invalid_syntax) }
+        }
+        else scope.launch {
+            busy = true
+            try { withContext(Dispatchers.Default) { testFilter(value, "", false) }; save(); statusText = UiMessage(R.string.status_filter_saved) }
+            catch (error: Exception) {
+                if (error is CancellationException) throw error
+                statusText = UiMessage(R.string.filter_invalid_limits)
+            }
+            finally { busy = false }
+        }
+    }
+
+    val message: String get() = statusText.resolve(application)
+    private var statusText by mutableStateOf(UiMessage(R.string.status_idle)); private set
 
     fun connect(server: String, username: String, password: String, policy: SensitivePolicy) {
         if (busy || native != null || !foreground || !focused) return
@@ -65,15 +114,17 @@ internal class SessionController(
                     finally { key.fill(0) }
                 platform = adapter; native = session
                 adapter.focus(focused); adapter.observe(session)
+                session.updateDirection(io.github.infinifar.rustclipsync.bindings.SyncDirection.valueOf(direction.name))
+                session.updateFilter(filterConfig())
                 session.check()
                 val value = session.status()
                 if (version == epoch) {
-                    status = value; connected = true; message = "已连接"
+                    status = value; connected = true; statusText = UiMessage(R.string.status_connected)
                     startBackgroundIfEnabled()
                 }
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
-                if (version == epoch) { close(); message = safeError(error) }
+                if (version == epoch) { close(); statusText = safeError(error) }
             } finally { if (version == epoch) busy = false }
         }
     }
@@ -118,23 +169,23 @@ internal class SessionController(
     }
 
     private fun updateWriteAccess() {
-        platform?.backgroundWrite(backgroundEnabled && backgroundRunning && backgroundWritesEnabled && !foreground)
+        platform?.backgroundWrite(direction.receives && backgroundEnabled && backgroundRunning && backgroundWritesEnabled && !foreground)
     }
 
     private fun startBackgroundIfEnabled() {
-        if (!backgroundEnabled || !connected || !foreground || backgroundRunning || startingService) return
+        if (!direction.receives || !backgroundEnabled || !connected || !foreground || backgroundRunning || startingService) return
         startingService = true
         try { application.startForegroundService(Intent(application, BackgroundSyncService::class.java).setAction(InboxNotifications.START)) }
         catch (_: RuntimeException) {
             startingService = false
-            message = "系统未允许启动后台监听；请在前台重试"
+            statusText = UiMessage(R.string.status_service_denied)
             if (!foreground) close()
         }
     }
 
     fun serviceStarted(): Boolean {
         startingService = false
-        backgroundRunning = backgroundEnabled && connected
+        backgroundRunning = direction.receives && backgroundEnabled && connected
         updateWriteAccess()
         syncNotification()
         return backgroundRunning
@@ -149,19 +200,20 @@ internal class SessionController(
 
     fun serviceTimedOut() {
         configureBackgroundListening(false)
-        message = "后台监听已达到系统时限并停止；可回到前台重新启用"
+        statusText = UiMessage(R.string.status_service_timeout)
     }
 
-    fun notificationEligible(): Boolean = backgroundEnabled && backgroundRunning && connected && selectedPolicy == SensitivePolicy.ENCRYPTED_INBOX
+    fun notificationEligible(): Boolean = direction.receives && backgroundEnabled && backgroundRunning && connected && selectedPolicy == SensitivePolicy.ENCRYPTED_INBOX
 
     val inboxNotificationReady: Boolean get() = notificationEligible() && notificationAuthorized && status?.inbox != null
     val inboxNotificationHint: String get() = when {
-        !connected -> "连接后可显示加密收件箱通知"
-        !backgroundEnabled || !backgroundRunning -> "请先启用后台监听并等待服务启动"
-        selectedPolicy != SensitivePolicy.ENCRYPTED_INBOX -> "当前未选择加密收件箱策略"
-        status?.inbox == null -> "收件箱为空：等待已明确标记的敏感消息；普通文本不会自动进入收件箱"
-        !notificationAuthorized -> "收件箱已有消息，但通知权限或频道未开启"
-        else -> "收件箱已有消息；展开通知栏的“加密收件箱”可显示／隐藏、复制"
+        !connected -> application.translated(R.string.hint_connect_notification)
+        !direction.receives -> application.translated(R.string.status_upload_only)
+        !backgroundEnabled || !backgroundRunning -> application.translated(R.string.hint_start_listening)
+        selectedPolicy != SensitivePolicy.ENCRYPTED_INBOX -> application.translated(R.string.hint_wrong_policy)
+        status?.inbox == null -> application.translated(R.string.hint_empty_inbox)
+        !notificationAuthorized -> application.translated(R.string.hint_notification_denied)
+        else -> application.translated(R.string.hint_inbox_ready)
     }
 
     private fun syncNotification() = notifications.sync(status?.inbox?.id, notificationEligible())
@@ -180,9 +232,9 @@ internal class SessionController(
     /** A scheduling tick, not an upload retry loop. Core owns all receive/ack rules. */
     suspend fun pollInbox() {
         refreshNotificationAuthorization()
-        if (!backgroundEnabled || !backgroundRunning || !connected || foreground || busy) return
+        if (!direction.receives || !backgroundEnabled || !backgroundRunning || !connected || foreground || busy) return
         if (!backgroundWritesEnabled && selectedPolicy != SensitivePolicy.ENCRYPTED_INBOX) return
-        perform { receiveBackground(backgroundWritesEnabled); "后台接收已检查" }
+        perform { receiveBackground(backgroundWritesEnabled); UiMessage(R.string.status_background_checked) }
     }
 
     suspend fun notificationAction(intent: Intent) = notifications.action(intent, ::notificationEligible) { id ->
@@ -203,30 +255,30 @@ internal class SessionController(
         // One explicit operation, bound to this item. Recheck authorization,
         // lifecycle, current ticket and lock state inside the main-thread write.
         adapter.explicitCopy(id) { version == epoch && notificationEligible() && notifications.claimCopy(intent) == permit }
-        try { perform { copyInbox(id); notifications.mask(); "已显式复制敏感内容" } }
+        try { perform { copyInbox(id); notifications.mask(); UiMessage(R.string.status_copied) } }
         finally { adapter.explicitCopy(null) { false } }
     }
 
-    fun send() { if (focused) command { sendClipboard().toString() } }
-    fun receive() { if (focused) command { receive().toString() } }
-    fun retry() { if (focused) command { retryPending().toString() } }
+    fun send() { if (focused && direction.sends) command { UiMessage.outcome(sendClipboard()) } }
+    fun receive() { if (focused && direction.receives) command { UiMessage.outcome(receive()) } }
+    fun retry() { if (focused) command { UiMessage.outcome(retryPending()) } }
     fun policy(value: SensitivePolicy) = command {
-        updatePolicy(value); selectedPolicy = value; notifications.clear(); "敏感策略已更新"
+        updatePolicy(value); selectedPolicy = value; notifications.clear(); UiMessage(R.string.status_policy_saved)
     }
     fun copyInbox() {
         val id = status?.inbox?.id ?: return
-        if (focused) command { copyInbox(id); "已显式复制敏感内容" }
+        if (focused) command { copyInbox(id); UiMessage(R.string.status_copied) }
     }
-    fun clearInbox() { val id = status?.inbox?.id ?: return; command { clearInbox(id); notifications.clear(); "收件箱已清空" } }
-    private fun command(operation: suspend MobileSession.() -> String) { scope.launch { perform(operation) } }
-    private suspend fun perform(operation: suspend MobileSession.() -> String) {
+    fun clearInbox() { val id = status?.inbox?.id ?: return; command { clearInbox(id); notifications.clear(); UiMessage(R.string.status_inbox_cleared) } }
+    private fun command(operation: suspend MobileSession.() -> UiMessage) { scope.launch { perform(operation) } }
+    private suspend fun perform(operation: suspend MobileSession.() -> UiMessage) {
         val session = native ?: return
         if (busy || !connected) return
         val version = epoch
         busy = true
         try {
             val result = session.operation(); val value = session.status()
-            if (version == epoch) { message = result; status = value }
+            if (version == epoch) { statusText = result; status = value }
         } catch (error: Exception) {
             if (error is CancellationException) throw error
             if (version == epoch) {
@@ -236,7 +288,7 @@ internal class SessionController(
                     if (version != epoch) return
                     status = value
                 }
-                message = safeError(error)
+                statusText = safeError(error)
             }
         } finally { if (version == epoch) { busy = false; syncNotification() } }
     }
@@ -248,7 +300,7 @@ internal class SessionController(
         application.stopService(Intent(application, BackgroundSyncService::class.java))
         platform?.revoke(); platform = null
         val session = native; native = null
-        connected = false; busy = false; status = null; message = "已关闭；回到前台后可重新连接"
+        connected = false; busy = false; status = null; statusText = UiMessage(R.string.status_closed)
         if (session != null) {
             session.requestClose()
             val previous = retiring
@@ -260,8 +312,18 @@ internal class SessionController(
             }
         }
     }
-    private fun safeError(error: Exception): String = when (error) {
-        is MobileException -> error.message ?: "同步失败"
-        else -> "平台或安全存储不可用；请检查配置后重试"
-    }
+    private fun safeError(error: Exception): UiMessage = UiMessage(when (error) {
+        is MobileException.Closed -> R.string.error_closed
+        is MobileException.Busy -> R.string.error_busy
+        is MobileException.InvalidInput -> R.string.error_invalid
+        is MobileException.Storage -> R.string.error_storage
+        is MobileException.Clipboard -> R.string.error_clipboard
+        is MobileException.Pairing -> R.string.error_pairing
+        is MobileException.Conflict -> R.string.error_conflict
+        is MobileException.Expired -> R.string.error_expired
+        is MobileException.Network -> R.string.error_network
+        is MobileException.Protocol -> R.string.error_protocol
+        is MobileException.Internal -> R.string.error_internal
+        else -> R.string.error_platform
+    })
 }

@@ -3,3 +3,5 @@ android/gradlew.bat text eol=crlf
 # Preserve captured terminal output and unified diffs byte-for-byte.
 docs/evidence/android-background-2026-11-01/** -text -whitespace
 docs/evidence/android-notification-ui-2026-11-01/** -text -whitespace
+
+docs/evidence/android-client-settings-2026-11-01/** -text -whitespace

@@ -39,6 +39,8 @@ enum Command {
     ReceiveInbox,
     ReceiveBackground(bool),
     Policy(SensitivePolicy),
+    Filter(crate::FilterConfig),
+    Direction(crate::SyncDirection),
     ReadInbox(String),
     CopyInbox(String),
     ClearInbox(String),
@@ -159,6 +161,34 @@ impl MobileSession {
     /// Returns closed or queue admission errors.
     pub async fn update_policy(&self, policy: SensitivePolicy) -> Result<(), MobileError> {
         self.request(Command::Policy(policy)).await.map(|_| ())
+    }
+
+    /// Change transfer admission on the owned executor.
+    ///
+    /// Selecting receive-only invalidates local upload candidates through core.
+    /// Already committed requests cannot be undone by this preference.
+    ///
+    /// # Errors
+    /// Returns core storage, lifecycle, or queue admission errors.
+    pub async fn update_direction(
+        &self,
+        direction: crate::SyncDirection,
+    ) -> Result<(), MobileError> {
+        self.clipboard_changed();
+        self.request(Command::Direction(direction))
+            .await
+            .map(|_| ())
+    }
+
+    /// Replace filtering rules through core on the session executor.
+    ///
+    /// Invalid rules leave the previous policy intact. Changed rules clear stale
+    /// local candidates through core rather than sending them under a new policy.
+    ///
+    /// # Errors
+    /// Returns invalid input, storage, lifecycle, or queue admission errors.
+    pub async fn update_filter(&self, config: crate::FilterConfig) -> Result<(), MobileError> {
+        self.request(Command::Filter(config)).await.map(|_| ())
     }
 
     /// Reads the sensitive inbox body only for an explicit UI request and matching identifier.
@@ -351,6 +381,9 @@ impl Drop for MobileSession {
 }
 
 struct Engine<R> {
+    direction: crate::SyncDirection,
+    filter_config: crate::FilterConfig,
+    policy: SensitivePolicy,
     session: CoreSession<R>,
     failure: Option<SyncError>,
 }
@@ -383,6 +416,9 @@ fn open<R: Transport, F: FnOnce(&MobileConfig) -> Result<R, Error>>(
     )?;
     apply_policy(&mut session, policy);
     Ok(Engine {
+        direction: crate::SyncDirection::Both,
+        filter_config: crate::FilterConfig::default(),
+        policy,
         session,
         failure: None,
     })
@@ -403,11 +439,27 @@ fn execute<R: Transport>(
     generation: &AtomicU64,
     command: Command,
 ) -> Result<Response, MobileError> {
+    if matches!(
+        (&command, engine.direction),
+        (Command::Send, crate::SyncDirection::Download)
+            | (
+                Command::Receive | Command::ReceiveInbox | Command::ReceiveBackground(_),
+                crate::SyncDirection::Upload
+            )
+    ) {
+        return Ok(Response::Outcome(SyncOutcome::Paused));
+    }
+    let mut prepared_filter = match &command {
+        Command::Filter(config) => Some(crate::filtering::compile(config)?),
+        Command::Policy(_) => Some(crate::filtering::compile(&engine.filter_config)?),
+        _ => None,
+    };
     let observed = generation.load(Ordering::SeqCst);
     let session = &mut engine.session;
     let result = (|| -> Result<Response, SyncError> {
         Ok(match command {
             Command::Status => Response::Status(SessionStatus {
+                device_id: session.persisted.state.device_id.clone(),
                 paired: session.persisted.paired,
                 cursor: session.persisted.state.cursor,
                 has_pending: session.has_pending(),
@@ -443,9 +495,41 @@ fn execute<R: Transport>(
             Command::ReceiveBackground(write) => {
                 Response::Outcome(outcome(session.pull_background(observed, write)?))
             }
-            Command::Retry => Response::Outcome(outcome(session.flush(observed)?)),
+            Command::Retry => {
+                if engine.direction == crate::SyncDirection::Download {
+                    session.record_clear()?;
+                }
+                Response::Outcome(outcome(session.flush(observed)?))
+            }
+            Command::Direction(direction) => {
+                if direction == crate::SyncDirection::Download && direction != engine.direction {
+                    session.record_clear()?;
+                }
+                engine.direction = direction;
+                Response::Done
+            }
             Command::Policy(policy) => {
-                apply_policy(session, policy);
+                session.update_policy(
+                    prepared_filter
+                        .take()
+                        .expect("policy command has a validated filter"),
+                    policy != SensitivePolicy::Disabled,
+                );
+                session.use_sensitive_inbox(policy == SensitivePolicy::EncryptedInbox);
+                engine.policy = policy;
+                Response::Done
+            }
+            Command::Filter(config) => {
+                if config != engine.filter_config {
+                    session.record_clear()?;
+                    session.update_policy(
+                        prepared_filter
+                            .take()
+                            .expect("filter command has a validated filter"),
+                        engine.policy != SensitivePolicy::Disabled,
+                    );
+                    engine.filter_config = config;
+                }
                 Response::Done
             }
             Command::ReadInbox(id) => Response::Text(

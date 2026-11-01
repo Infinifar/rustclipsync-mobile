@@ -2,6 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 python3 scripts/verify-vendor.py
+python3 scripts/check-translations.py
 cargo fmt --all --check
 cargo clippy --workspace --locked --all-targets --all-features -- -D warnings
 cargo test --workspace --locked --all-features

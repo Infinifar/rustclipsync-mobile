@@ -125,3 +125,13 @@ StatusBarRemoteInputCallback.handleRemoteViewClick，appRequestedAuth 分支会�
 0.1.2 实现提交 df37e1c；Rust run 41337695078 已通过，Android run 41337695083 在本次
 交接记录时构建中。可按用户需要读取最终结果，不开启轮询或恢复可视化测试。不要把
 0.1.1 的真机/模拟器结果复用于这次新界面或 MyUI 通知行为。
+
+## 0.1.3 同步规则和语言对齐
+
+用户补充：通知屏蔽字符按宽度约 2/3 自适应、移除副标题、对齐桌面双向/仅发送/仅接收、
+文本正则过滤（已明确确认）、设备 UUID、更新检查、项目入口、中英文与后续语言扩展。
+Android 已按同步/过滤/外观/关于分区，翻译位于 values 与 values-zh，共 167 个键，
+AppLanguage 和 locales_config 为语言登记入口。check-translations.py 校验完整性和格式参数。
+facade 新增过滤/方向命令及 UUID 元数据；不要在平台层实现正则或协议。core/vendor 不改。
+所有新增 Rust 测试用合成适配器，无实际账户/剪贴板；视觉测试仍交用户。Android 的检查更新
+只读公开 Release，私有/未发布不可当作最新；不要嵌入 GitHub 凭据。

@@ -150,28 +150,28 @@ class ServiceIntegrationTest {
             val second = "synthetic background inbox beta"
             publish(first, true)
             // Exercise the real service's 30-second scheduler for the first receive.
-            eventually("scheduled masked inbox") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == "**" }
+            eventually("scheduled masked inbox") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?.let { value -> value.length >= 7 && value.all { it == '*' } } == true }
             assertEquals(reads, b.reads.get()); assertEquals(0, b.writes.get())
             assertEncrypted(b, first)
             val hidden = inbox() ?: error("missing hidden inbox notification")
-            assertEquals(listOf("显示", "复制"), hidden.actions.map { it.title.toString() })
-            assertEquals("**", hidden.publicVersion.extras.getCharSequence(Notification.EXTRA_TEXT).toString())
+            assertEquals(listOf(context.translated(R.string.show), context.translated(R.string.copy)), hidden.actions.map { it.title.toString() })
+            assertTrue((hidden.publicVersion.extras.getCharSequence(Notification.EXTRA_TEXT).toString()).let { value -> value.length >= 7 && value.all { it == '*' } })
             assertTrue(hidden.actions.all { it.actionIntent.isImmutable })
             val staleShow = hidden.actions[0].actionIntent
             staleShow.send()
-            eventually("explicit show") { inbox()?.actions?.get(0)?.title?.toString() == "隐藏" }
+            eventually("explicit show") { inbox()?.actions?.get(0)?.title?.toString() == context.translated(R.string.hide) }
             assertEquals(first, inbox()!!.extras.getCharSequence(Notification.EXTRA_TEXT).toString())
             inbox()!!.actions[0].actionIntent.send()
-            eventually("explicit hide") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == "**" }
+            eventually("explicit hide") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?.let { value -> value.length >= 7 && value.all { it == '*' } } == true }
             publish(second, true)
             withContext(Dispatchers.Main) { controller.pollInbox() }
-            eventually("replacement masked") { inbox()?.actions?.get(0)?.title?.toString() == "显示" }
+            eventually("replacement masked") { inbox()?.actions?.get(0)?.title?.toString() == context.translated(R.string.show) }
             try { staleShow.send() } catch (_: android.app.PendingIntent.CanceledException) { }; delay(300)
-            assertEquals("**", inbox()!!.extras.getCharSequence(Notification.EXTRA_TEXT).toString())
+            assertTrue((inbox()!!.extras.getCharSequence(Notification.EXTRA_TEXT).toString()).let { value -> value.length >= 7 && value.all { it == '*' } })
             inbox()!!.actions[0].actionIntent.send()
             eventually("replacement reveal") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == second }
             instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_SLEEP").close()
-            eventually("screen-off remasks") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == "**" }
+            eventually("screen-off remasks") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?.let { value -> value.length >= 7 && value.all { it == '*' } } == true }
             instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_WAKEUP").close()
             instrumentation.uiAutomation.executeShellCommand("wm dismiss-keyguard").close()
             eventually("device unlocked for copy") {
@@ -182,7 +182,7 @@ class ServiceIntegrationTest {
             assertEquals(second, b.selection?.text); assertTrue(b.selection?.sensitive == true)
             assertTrue(main { !controller.foreground && !controller.backgroundWritesEnabled })
             assertFalse(b.backgroundWriteAllowed)
-            eventually("copy remasks") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == "**" }
+            eventually("copy remasks") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?.let { value -> value.length >= 7 && value.all { it == '*' } } == true }
             assertEquals(reads, b.reads.get())
 
             publish("synthetic ordinary background write", false)
@@ -200,7 +200,7 @@ class ServiceIntegrationTest {
             assertEquals("synthetic ordinary background write", b.selection?.text)
             assertEquals(reads, b.reads.get())
             assertNotNull(inbox()) // Returning to the app masks the saved inbox; it remains actionable.
-            assertEquals("**", inbox()!!.extras.getCharSequence(Notification.EXTRA_TEXT).toString())
+            assertTrue((inbox()!!.extras.getCharSequence(Notification.EXTRA_TEXT).toString()).let { value -> value.length >= 7 && value.all { it == '*' } })
 
             // Inbox still wins over the background-write switch for marked data.
             publish("synthetic marked inbox with writes enabled", true)
@@ -254,18 +254,18 @@ class ServiceIntegrationTest {
             }
             assertNotNull(main { controller.status?.inbox })
             main { controller.configureBackgroundListening(true) }
-            eventually("saved inbox restored to notification") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == "**" }
+            eventually("saved inbox restored to notification") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?.let { value -> value.length >= 7 && value.all { it == '*' } } == true }
             assertTrue(main { controller.foreground })
             File(root, "shade-ready").writeText("ready")
             // Host must click the actual SystemUI buttons; this method never sends a PendingIntent itself.
             shade("show clicked") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == text }
             File(root, "shade-shown").writeText("ready")
-            shade("hide clicked") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == "**" }
+            shade("hide clicked") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?.let { value -> value.length >= 7 && value.all { it == '*' } } == true }
             File(root, "shade-hidden").writeText("ready")
             shade("copy clicked") { b.writes.get() == 1 }
             assertEquals(text, b.selection?.text); assertTrue(b.selection?.sensitive == true)
             assertFalse(main { controller.backgroundWritesEnabled })
-            assertEquals(listOf("显示", "复制"), inbox()!!.actions.map { it.title.toString() })
+            assertEquals(listOf(context.translated(R.string.show), context.translated(R.string.copy)), inbox()!!.actions.map { it.title.toString() })
         } finally {
             main { controller.configureBackgroundListening(false); controller.close() }
             delay(300)

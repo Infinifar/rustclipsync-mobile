@@ -53,3 +53,11 @@ icon replaces the launcher image in notifications. Show/Hide no longer request t
 system authentication flow that closes the shade; service-side unlock checks remain.
 Copy retains that flow. MyUI / Android 16 visual validation is delegated to the user;
 see [device checklist](docs/ANDROID-REVIEW.md).
+
+Android 0.1.3 adds desktop-style two-way/send-only/receive-only directions, core-backed
+regex blocklist/allowlist rules and synthetic sample testing, plus the durable device UUID.
+Settings separates sync, filters, appearance and about. Follow-system, Simplified Chinese
+and English cover UI, status/errors and notifications through extensible Android resources.
+The notification mask adapts to display width; About links to the project and checks public
+release metadata without using sync credentials. Private/unpublished releases are reported
+as unavailable rather than up to date. Device and visual checks remain user-owned.
