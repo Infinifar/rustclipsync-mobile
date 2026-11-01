@@ -6,7 +6,7 @@
 Apple 客户端只面向 iPhone / iPad；macOS 客户端之后在桌面端仓库考虑。
 
 已建立 Cargo workspace、UniFFI 双端绑定、串行会话与主动关闭，并接入两端原生源码。
-Rust core 49 项、facade 12 项合成测试通过；Android 已在私有 GitLab 完成应用 / 测试 APK
+Rust core 49 项、facade 15 项合成测试通过；Android 已在私有 GitLab 完成应用 / 测试 APK
 编译、lint、16 KiB 静态对齐。Android 12 / API 31 与 Android 15 / API 35 各通过 10 项
 smoke，真实隔离服务覆盖发送 / 接收、敏感三策略、断网与重启恢复、后台通知及写入，
 两端均验证实际通知栏显示 / 隐藏 / 复制，API 35 另验证系统超时关闭。完整服务方法分别为 5 / 6 项，未完成探测单列。剪贴板为模拟适配器，状态使用
