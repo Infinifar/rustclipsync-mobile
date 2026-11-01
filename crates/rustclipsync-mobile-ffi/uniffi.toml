@@ -1,0 +1,8 @@
+[bindings.kotlin]
+package_name = "io.github.infinifar.rustclipsync.bindings"
+cdylib_name = "rustclipsync_mobile_ffi"
+android = true
+
+[bindings.swift]
+module_name = "RustClipSync"
+ffi_module_name = "RustClipSyncFFI"

@@ -1,6 +1,7 @@
 # 移动端架构
 
-状态：架构基线；实现尚未开始。
+状态：共享 facade 与平台源码已建立，Rust / host FFI 已验证；平台编译与真机待验证。
+实现契约见 [BINDINGS.md](BINDINGS.md)，构建见 [BUILD.md](BUILD.md)，结果见 [VALIDATION.md](VALIDATION.md)。
 
 ## 三层职责
 
@@ -26,9 +27,7 @@ core 继续负责 HTTPS 协议、状态机、outbox、游标、确认、重试�
 加密持久化格式。core 通过 Clipboard、StateStore、HistorySink 等边界使用适配器；
 文件落盘、权限、密钥保管及系统剪贴板调用本身不由 core 实现。
 
-## 拟采用的目录
-
-实现时按需要创建，初始化不生成空的可执行工程：
+## 当前目录
 
 ```text
 android/                         # Kotlin / Compose 应用与 Android 桥接
@@ -38,7 +37,7 @@ docs/                            # 架构、决策与构建 / 验证记录
 ```
 
 facade 作为独立 crate，避免给 core 加入 Android、iOS 或 UI 依赖。
-先评估 UniFFI 的类型表达、双端生成、回调和生命周期是否符合需要，再决定绑定方案。
+已采用 UniFFI 0.32.2，实际生成双端绑定；评估及 Kotlin close 名称冲突处理见 BINDINGS.md。
 不因会话持有状态就直接认定必须手写 JNI。剪贴板文本默认采用简单、可验证的数据传输；
 只有测量证明必要时才引入 direct buffer 或零拷贝设计。
 
