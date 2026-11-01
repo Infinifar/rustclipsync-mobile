@@ -164,6 +164,9 @@ def main():
 
         def shade_phase():
             nonlocal crash_process
+            # A preceding instrumentation method can retain UiAutomation through
+            # its target process. Release it before the host inspects SystemUI.
+            device('shell', 'am', 'force-stop', APP)
             method = 'restoredInboxActionsInNotificationShade'
             path = output / (method + '.txt')
             def marker(name):

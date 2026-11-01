@@ -1,5 +1,11 @@
 stages: [inspect, verify]
 
+# GitHub Actions is the default build host. Keep Rocky as an explicit fallback.
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "api"'
+    - when: never
+
 default:
   tags: [android]
   image: ghcr.io/cirruslabs/android-sdk:36-ndk@sha256:eba21147d4ca3860e020ef607e3072f188674227e3110eb1d5aeb659f9ce4140
