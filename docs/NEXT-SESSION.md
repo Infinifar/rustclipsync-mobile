@@ -135,3 +135,7 @@ AppLanguage 和 locales_config 为语言登记入口。check-translations.py 校
 facade 新增过滤/方向命令及 UUID 元数据；不要在平台层实现正则或协议。core/vendor 不改。
 所有新增 Rust 测试用合成适配器，无实际账户/剪贴板；视觉测试仍交用户。Android 的检查更新
 只读公开 Release，私有/未发布不可当作最新；不要嵌入 GitHub 凭据。
+
+0.1.3 最终实现 40dabea，Rust run 41341560187 已通过；Android run 41341560080 在本次
+交接记录时仍构建中。无需持续轮询，用户可从同页面下载构建产物。临时 Rust 编译目录和
+辅助翻译脚本已删除，保留证据。不能宣称新布局、语言切换或 Moto/MyUI 真机已验收。

@@ -323,3 +323,11 @@ NotificationSafetyTest 增加 toggle 与 copy 认证标志断言，本轮只编�
 - 用户明确耗时视觉测试交其执行，本轮不启动模拟器或截图，不宣称 MyUI/Android 16 真机、本轮 iOS 编译通过。
 
 Rust 原始记录见 [本轮证据目录](evidence/android-client-settings-2026-11-01/)。
+
+最终实现 `40dabeaedefd755ffc3e7952ec57709392080d43`（0.1.3）：
+[Rust CI 已通过](https://github.com/Infinifar/rustclipsync-mobile/actions/runs/41341560187)，
+[Android APK / JVM tests / lint 构建](https://github.com/Infinifar/rustclipsync-mobile/actions/runs/41341560080)
+在交接记录时仍在执行，不计为已通过平台编译；完成后可在同页面下载。
+本地临时 Rust target 与日志已清理，原始验证记录保留在证据目录；未安装本地 SDK，
+未启动模拟器、真实剪贴板或生产服务。支持 RTL 布局方向，但尚未提供其他语言翻译，
+也未做相应视觉验收。现有常驻通知会随返回前台刷新语言，服务配置变化会重算隐藏占位。
