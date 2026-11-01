@@ -18,7 +18,7 @@ See [中文开发说明](README-ZH.md), [build instructions](docs/BUILD.md),
 [binding/lifecycle contract](docs/BINDINGS.md), and [validation evidence](docs/VALIDATION.md).
 
 
-Android adds separate, default-off **background listening** and **background clipboard
+Android adds separate, default-off **background listening** and **automatic background clipboard
 writes** switches. Listening uses a user-started foreground service; background receives
 never read the clipboard. Writes require an additional explicit confirmation and obey the
 existing sensitive policy. With writes off, ordinary messages await foreground handling.

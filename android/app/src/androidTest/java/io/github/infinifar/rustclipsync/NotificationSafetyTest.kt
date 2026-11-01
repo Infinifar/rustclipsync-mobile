@@ -14,9 +14,19 @@ class NotificationSafetyTest {
     private val manager = context.getSystemService(NotificationManager::class.java)
     private fun inbox() = manager.activeNotifications.firstOrNull { it.id == InboxNotifications.INBOX_ID }?.notification
 
+    // NotificationManager enqueues publication/cancellation; its binder return is not completion.
+    private fun awaitInbox(present: Boolean): Notification? {
+        repeat(100) {
+            val value = inbox()
+            if ((value != null) == present) return value
+            Thread.sleep(20) // Instrumentation thread only.
+        }
+        error("notification manager did not settle; expected presence=" + present)
+    }
+
     @Test fun deniedAuthorizationNeverPublishesInbox() {
         val notifications = InboxNotifications(context) { false }
-        try { notifications.offer("synthetic-item"); assertNull(inbox()) }
+        try { notifications.offer("synthetic-item"); assertNull(awaitInbox(false)) }
         finally { notifications.clear() }
     }
 
@@ -25,10 +35,10 @@ class NotificationSafetyTest {
         val notifications = InboxNotifications(context) { allowed }
         try {
             notifications.offer("20000000-0000-4000-8000-000000000001")
-            assertNotNull(inbox())
+            assertNotNull(awaitInbox(true))
             allowed = false
             notifications.refreshAuthorization()
-            assertNull(inbox())
+            assertNull(awaitInbox(false))
         } finally { notifications.clear() }
     }
 
@@ -36,7 +46,7 @@ class NotificationSafetyTest {
         val notifications = InboxNotifications(context)
         try {
             notifications.offer("10000000-0000-4000-8000-000000000001")
-            val hidden = inbox() ?: error("fixture must grant notifications")
+            val hidden = awaitInbox(true) ?: error("fixture must grant notifications")
             assertEquals("**", hidden.extras.getCharSequence(Notification.EXTRA_TEXT).toString())
             assertEquals("**", hidden.publicVersion.extras.getCharSequence(Notification.EXTRA_TEXT).toString())
             assertEquals(Notification.VISIBILITY_PRIVATE, hidden.visibility)
@@ -45,7 +55,7 @@ class NotificationSafetyTest {
             notifications.mask()
             assertEquals("**", inbox()!!.extras.getCharSequence(Notification.EXTRA_TEXT).toString())
             notifications.clear()
-            assertNull(inbox())
+            assertNull(awaitInbox(false))
         } finally { notifications.clear() }
     }
 }
