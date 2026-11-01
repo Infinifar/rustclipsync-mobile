@@ -65,7 +65,10 @@ def main():
         proxy = None
         proxy_thread = None
         crash_process = None
+        emulator = None
+        emulator_log = (output / 'emulator.log').open('w')
         dropping = threading.Event()
+        deny_registration = threading.Event()
         backend_log = (output / 'server.log').open('w')
 
         def start_backend():
@@ -112,6 +115,11 @@ def main():
                 if not 0 <= length <= 10 * 1024 * 1024 + 4096:
                     self.send_error(413); return
                 body = self.rfile.read(length) if length else None
+                if self.command == 'POST' and self.path == '/api/devices' and deny_registration.is_set():
+                    deny_registration.clear()
+                    report['requests'].append({'method': 'POST', 'path': self.path, 'status': 503})
+                    self.send_error(503)
+                    return
                 connection = http.client.HTTPConnection('127.0.0.1', backend_port, timeout=32)
                 try:
                     headers = {key: value for key, value in self.headers.items() if key.lower() not in {'host', 'connection'}}
@@ -186,7 +194,12 @@ def main():
                  '--package', 'system-images;android-31;default;x86_64', '--device', 'pixel_5'], input='no\n', text=True)
             config = Path(environment['ANDROID_AVD_HOME']) / 'rcs-service-e2e.avd/config.ini'
             config.write_text(config.read_text() + '\nhw.gpu.enabled=yes\nhw.gpu.mode=swiftshader_indirect\nhw.ramSize=2048\n')
-            run([*android, 'emulator', 'start', '--cold', '--headless', 'rcs-service-e2e'])
+            # Android CLI 1.1 does not discover AVDs under a temporary ANDROID_AVD_HOME.
+            # The SDK emulator honors that isolation; CLI run/layout still use the explicit serial.
+            emulator = subprocess.Popen([str(sdk / 'emulator/emulator'), '-avd', 'rcs-service-e2e', '-port', '5554',
+                '-accel', 'on', '-no-window', '-no-audio', '-no-boot-anim', '-no-snapshot',
+                '-gpu', 'swiftshader_indirect', '-memory', '2048'], env=environment,
+                stdout=emulator_log, stderr=emulator_log)
             wait_boot()
             assert device('shell', 'getprop', 'ro.kernel.qemu').stdout.strip() == '1'
             report['android_api'] = device('shell', 'getprop', 'ro.build.version.sdk').stdout.strip()
@@ -212,6 +225,17 @@ def main():
             proxy.socket = tls.wrap_socket(proxy.socket, server_side=True)
             proxy_thread = threading.Thread(target=proxy.serve_forever, daemon=True); proxy_thread.start()
             reverse()
+            # Negative control: the same Android test must fail when registration is unavailable.
+            deny_registration.set()
+            negative = output / 'negative-registration-control.txt'
+            with negative.open('w') as log: instrument('sendReceiveAndSensitiveInbox', log)
+            negative_text = negative.read_text()
+            assert 'FAILURES!!!' in negative_text and 'OK (1 test)' not in negative_text
+            assert not deny_registration.is_set(), 'negative control did not reach the TLS fixture'
+            assert metadata()['revision'] == 0
+            device('shell', 'am', 'force-stop', APP)
+            assert device('shell', 'pm', 'clear', APP).stdout.strip() == 'Success'
+            report['negative_control'] = 'same Android scenario failed with injected registration 503'
             phase('sendReceiveAndSensitiveInbox')
             baseline = metadata(); assert baseline['revision'] == 3
             identities = {item['deviceId'] for item in metadata('/api/devices', basic=True)}
@@ -247,7 +271,11 @@ def main():
             if proxy is not None: proxy.shutdown(); proxy.server_close()
             if proxy_thread is not None: proxy_thread.join(timeout=5)
             stop_backend(); backend_log.close()
-            subprocess.run([*android, 'emulator', 'stop', SERIAL], env=environment, timeout=30, check=False)
+            if emulator is not None:
+                emulator.terminate()
+                try: emulator.wait(timeout=20)
+                except subprocess.TimeoutExpired: emulator.kill(); emulator.wait(timeout=5)
+            emulator_log.close()
             subprocess.run([adb, 'kill-server'], env=environment, timeout=10, check=False, stdout=subprocess.DEVNULL)
             shutil.rmtree(temporary)
             report['temporary_fixture_removed'] = True
