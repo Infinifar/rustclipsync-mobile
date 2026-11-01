@@ -160,7 +160,7 @@ class ServiceIntegrationTest {
             publish(second, true)
             withContext(Dispatchers.Main) { controller.pollInbox() }
             eventually { inbox()?.actions?.get(0)?.title?.toString() == "显示" }
-            staleShow.send(); delay(300)
+            try { staleShow.send() } catch (_: android.app.PendingIntent.CanceledException) { }; delay(300)
             assertEquals("**", inbox()!!.extras.getCharSequence(Notification.EXTRA_TEXT).toString())
             inbox()!!.actions[0].actionIntent.send()
             eventually { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == second }
@@ -198,7 +198,7 @@ class ServiceIntegrationTest {
             val obsolete = inbox()!!.actions[0].actionIntent
             main { controller.configureBackgroundListening(false) }
             eventually { inbox() == null && main { !controller.backgroundRunning && !controller.connected } }
-            obsolete.send(); delay(300)
+            try { obsolete.send() } catch (_: android.app.PendingIntent.CanceledException) { }; delay(300)
             assertNull(inbox())
         } finally {
             main { controller.configureBackgroundListening(false); controller.close() }

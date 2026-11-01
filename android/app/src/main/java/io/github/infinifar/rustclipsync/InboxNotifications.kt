@@ -25,6 +25,7 @@ internal class InboxNotifications(
     private var ticket: String? = null
     private var body: String? = null
     private var version = 0L
+    private val pending = mutableSetOf<PendingIntent>()
 
     init { channels(context) }
 
@@ -39,6 +40,7 @@ internal class InboxNotifications(
     fun clear() {
         ++version
         body = null; item = null; ticket = null
+        pending.forEach { it.cancel() }; pending.clear()
         manager.cancel(INBOX_ID)
     }
 
@@ -97,16 +99,18 @@ internal class InboxNotifications(
             .setContentText(text).setStyle(Notification.BigTextStyle().bigText(text))
             .setVisibility(Notification.VISIBILITY_PRIVATE).setPublicVersion(public)
             .setLocalOnly(true).setOnlyAlertOnce(true).setContentIntent(open)
-            .setDeleteIntent(serviceIntent(context, DISMISS, id, nonce))
+            .setDeleteIntent(track(serviceIntent(context, DISMISS, id, nonce)))
             .addAction(Notification.Action.Builder(null, if (body == null) "显示" else "隐藏",
-                serviceIntent(context, toggle, id, nonce)).setAuthenticationRequired(true).build())
-            .addAction(Notification.Action.Builder(null, "复制", PendingIntent.getActivity(context, 0,
-                itemIntent(context, InboxCopyActivity::class.java, COPY, id, nonce), FLAGS))
+                track(serviceIntent(context, toggle, id, nonce))).setAuthenticationRequired(true).build())
+            .addAction(Notification.Action.Builder(null, "复制", track(PendingIntent.getActivity(context, 0,
+                itemIntent(context, InboxCopyActivity::class.java, COPY, id, nonce), FLAGS)))
                 .setAuthenticationRequired(true).build())
             .build()
         try { manager.notify(INBOX_ID, notification) }
         catch (_: SecurityException) { clear() }
     }
+
+    private fun track(intent: PendingIntent): PendingIntent = intent.also { pending.add(it) }
 
     companion object {
         const val SERVICE_ID = 100
