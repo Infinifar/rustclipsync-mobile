@@ -238,6 +238,10 @@ def main():
             report['negative_control'] = 'same Android scenario failed with injected registration 503'
             phase('sendReceiveAndSensitiveInbox')
             baseline = metadata(); assert baseline['revision'] == 3
+            for revision in (2, 3):
+                acknowledgements = {item.get('result') for item in report['requests']
+                                    if item['path'] == '/api/ack' and item.get('revision') == revision}
+                assert acknowledgements == {'self', 'skipped'}, ('sensitive acknowledgement', revision)
             identities = {item['deviceId'] for item in metadata('/api/devices', basic=True)}
             assert len(identities) == 3
             device('reverse', '--remove', f'tcp:{DEVICE_PORT}')
@@ -260,6 +264,9 @@ def main():
             assert metadata()['revision'] == 7, 'uncertain upload created another revision'
             assert {item['deviceId'] for item in metadata('/api/devices', basic=True)} == identities
             assert any(item.get('revision') == 7 and item.get('duplicate') is True for item in report['requests'])
+            retried = [item for item in report['requests'] if item['method'] == 'PUT' and item.get('revision') == 7]
+            assert len(retried) == 2 and retried[0]['path'] == retried[1]['path']
+            assert [item['duplicate'] for item in retried] == [False, True]
             assert {item.get('result') for item in report['requests'] if item['path'] == '/api/ack'} >= {'applied', 'skipped', 'self'}
             report['final_revision'] = 7
             report['status'] = 'passed'

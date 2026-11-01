@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-01",
+  "pipeline": 116,
+  "job": 268,
+  "apk_source_revision": "b65e0adeba075b846523a103a39a60f5108d269a",
+  "script_sha256": "479095e1f51725c19f234068f96b00ed9ec0bc55b773d14285efa9c49f470b6a",
+  "tools": [
+    "479095e1f51725c19f234068f96b00ed9ec0bc55b773d14285efa9c49f470b6a  /work/scripts/test-android-service.py",
+    "1.1.16717390"
+  ],
+  "sdk_image": "ghcr.io/cirruslabs/android-sdk:36-ndk@sha256:eba21147d4ca3860e020ef607e3072f188674227e3110eb1d5aeb659f9ce4140",
+  "scope": "real Android Kotlin/Rust/HTTPS with pinned real server, synthetic clipboard and isolated RCS1 files; no real clipboard or Keystore"
+}

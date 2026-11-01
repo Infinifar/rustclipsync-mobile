@@ -134,6 +134,9 @@ iOS 会请求系统粘贴许可，不能承诺后台任意读取；离开 active
 - [Keychain 前台可访问性](https://developer.apple.com/documentation/security/ksecattraccessiblewhenunlockedthisdeviceonly)
 - [SwiftUI scene background](https://developer.apple.com/documentation/swiftui/scenephase/background)
 - [GitLab CI 语法](https://docs.gitlab.com/ci/yaml/)
+- [ADB 与 reverse](https://developer.android.com/tools/adb)
+- [命令行 instrumentation 测试](https://developer.android.com/studio/test/command-line)
+- [命令行模拟器](https://developer.android.com/studio/run/emulator-commandline)
 
 
 ## 隔离 HTTP 路由检查
@@ -143,3 +146,45 @@ iOS 会请求系统粘贴许可，不能承诺后台任意读取；离开 active
 一次性 TLS 证书与固定响应，分别检查根地址和无尾斜杠的部署子路径，共 14 个请求。
 只核对真实 HTTP 方法、路径、查询与响应解析，不实现服务端状态机；它不是服务互操作测试。
 仅该测试允许 loopback 自签名证书；产品的 core Client 继续校验证书。无真实账户或系统剪贴板。
+
+
+## Android 与真实隔离服务互操作（远端 Linux）
+
+构建继续在 GitLab 的 Android Runner 完成。现有任务先执行普通 Rust / Android 检查，
+再用 scripts/build-disposable-server.py 从固定的上游 GitHub 源码归档构建服务端，
+版本、提交和 SHA-256 在 tests/disposable-server-source.json。该脚本在临时目录构建，
+不依赖相邻仓库或运行中的服务；产物为 build/disposable-server。
+
+scripts/check-disposable-android.sh 保存普通 APK 和绑定后，临时启用 `disposable-tests`
+以及 Gradle 的 `-PdisposableIntegration=true`，生成 build/disposable 内的独立测试 APK。
+最终恢复普通 APK / 绑定的默认产物路径。CI 同时校验两种包的原生符号，确保普通包没有
+回环证书测试入口。build/disposable 仅供测试，不能作为正式客户端分发。
+
+在全新、无宿主数据挂载或公开端口的一次性测试容器中提供 /dev/kvm，安装 Android CLI，
+使用 SDK 镜像中已有许可安装 AOSP API 31 default x86_64 系统镜像，然后放入同一 CI job 的
+四个 APK、服务端二进制与来源记录、测试脚本，运行：
+
+```sh
+python3 scripts/test-android-service.py --android-cli /path/to/android
+```
+
+脚本拒绝已连接设备，自建临时 AVD。Android CLI 用于文档、应用启动及 UI layout；
+CLI 1.1 未发现 ANDROID_AVD_HOME 下的临时设备，AVD 启动使用 SDK emulator 并由脚本持有
+进程句柄。所有网络端点只监听容器 loopback，通过 adb reverse 接入；没有远程生产账号。
+脚本使用真实的固定服务端、临时 SQLCipher 数据库与自签名 TLS 代理，覆盖：
+
+- 正式构造函数拒绝自签名证书；注入注册 503 时，相同 Android 场景必须明确失败。
+- 普通 UTF-8 发送/接收、敏感跳过、加密收件箱、显式复制与自动写入策略。
+- 移除 adb reverse 产生连接失败，保存 first / latest，强制终止活跃进程并重启 Android。
+- 恢复同一设备身份、游标、收件箱及离线 latest-only 事务，确认不自动重放。
+- 真正提交 PUT 后丢弃响应，再强制终止进程、重启服务端，恢复时核对重复 UUID 仍对应
+  同一 revision，服务端不增加第二条提交。
+
+三项完整 instrumentation 方法验证业务结果；另两项准备阶段在保存标记后被故意 force-stop，
+其 instrumentation 中断是故障注入，不计为通过的 JUnit 测试。普通包六项 smoke 另行执行。
+结果、请求元数据、APK / server 哈希保存在 build/service-e2e；不会记录 Authorization 或正文。
+结束时停止 emulator / adb / TLS 代理 / 服务端，删除临时 AVD、证书与数据库。
+外层操作者仍需删除一次性容器及导出的 ZIP；保留证据和 GitLab 构建产物。
+
+这些是 Android 模拟器绑定、HTTPS 与隔离文件测试；不代替真实 OS 剪贴板、Keystore、
+连接界面交互、真机、iOS 或 16 KiB 设备运行验证。

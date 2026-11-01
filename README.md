@@ -9,7 +9,9 @@ The Apple client targets iPhone and iPad only. A macOS client belongs in the des
 The shared executor, encrypted state integration, binding generation and host smoke tests
 are implemented. Android debug/test APK compilation, lint and static 16 KiB alignment
 checks pass in private GitLab CI. Six synthetic tests and an empty Compose screen launch
-pass on an isolated Android 12 emulator. iOS compilation, real OS adapter behavior and
+pass on an isolated Android 12 emulator. Real-server integration also covers send/receive,
+sensitive policies, offline recovery and process/device/server restarts with a synthetic
+clipboard and isolated encrypted files. iOS compilation, real OS adapter behavior and
 physical-device validation remain pending.
 
 See [中文开发说明](README-ZH.md), [build instructions](docs/BUILD.md),

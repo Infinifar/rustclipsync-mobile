@@ -1,7 +1,8 @@
 # 移动端架构
 
 状态：共享 facade、双端原生源码已建立；Rust / host FFI 与 Android APK 编译、lint、
-16 KiB 静态对齐已通过。iOS 编译、真机与服务互操作待验证。
+16 KiB 静态对齐已通过。Android 模拟器与真实隔离服务的同步和重启恢复已验证；
+iOS 编译、真实 OS 适配器与真机待验证。
 实现契约见 [BINDINGS.md](BINDINGS.md)，构建见 [BUILD.md](BUILD.md)，结果见 [VALIDATION.md](VALIDATION.md)。
 
 本仓库的产品范围仅为 Android 与 iOS / iPadOS 移动端，不增加 macOS 或 Mac Catalyst

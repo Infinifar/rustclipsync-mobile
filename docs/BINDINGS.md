@@ -33,7 +33,7 @@ UniFFI 可以表达对象、record、枚举、Result、异步方法和可由两�
 一个 MobileSession 只有一个 core Session 所有者。16 个命令的有界队列使用 try_send；
 满时返回 Busy，不堵塞调用线程。构造只校验 key 长度并创建线程；初始化、Client 构造和
 StateStore.load/save 也在执行线程。status() 等待初始化完成；构造/状态查询没有网络调用。
-check、sendClipboard、receive 才执行 core 的网络方法。
+check、sendClipboard、retryPending、receive 才执行 core 的网络方法。
 
 Platform 是 UniFFI foreign trait：clipboardSnapshot、clipboardWrite、loadState、saveState
 都返回带固定安全文案的 AdapterError；UnexpectedUniFFICallbackError 转成 Platform 错误。
@@ -48,7 +48,9 @@ core 的 applying journal 按歧义写入恢复，不能当作成功确认。平
 不保留 Activity / View；监听器只递增 clipboardChanged 计数，不读正文。
 
 core 在网络前后的快照检查和 generation 检查保持原样，facade 不缓存剪贴板快照。
-发送只 record_local + flush，冲突不被自动重置或覆盖。没有重新实现协议、重试、确认、
+发送只 record_local + flush，冲突不被自动重置或覆盖。retryPending 只委托 core::Session::flush，
+不生成新复制事件或 UUID；取消未决旧请求后，core 可能仍有待发最新项，需要再次显式重试。
+Android 在网络错误后刷新本地状态，显示待处理事务与重试入口。没有重新实现协议、重试、确认、
 游标、过滤或冲突解决逻辑；也没有给首版增加长轮询或自己的自动重试循环。
 
 取消一个等待中的 Kotlin coroutine / Swift Task / foreign future **不保证撤销已入队命令**，
@@ -89,3 +91,17 @@ AutoWrite → 显式启用，OS 实际接受写入后才 applied ack。手动复
 Android 使用官方 IS_SENSITIVE extras。iOS 只读取本应用的显式自定义标记，没有通用的
 密码检测接口；写入使用 localOnly，敏感写入设置 60 秒过期。平台提示/过期不构成阻止其他
 应用读取的安全边界。未标记文本按普通文本处理；不推断密码、TOTP 或特定复制来源。
+
+
+## 独立的隔离服务测试入口
+
+Cargo feature `disposable-tests` 默认关闭。仅开启时导出 `forDisposableTest`，并且只接受
+`https://127.0.0.1:<非零端口>/`；它调用同一 core Client 的自签名证书测试选项。
+普通构造函数继续严格验证 TLS。独立测试 APK 的 applicationId 以 `.disposable` 结尾，
+CI 检查普通包两个 Rust ABI 都没有该测试构造符号，测试包两个 ABI 都包含它。
+正式打包不要启用该 feature；测试包及其绑定不用于发布。
+
+Android 服务测试通过真实 Kotlin → Rust → core HTTPS 调用，剪贴板是内存 Platform，
+存储使用独立 noBackup 子目录内的原始 RCS1 与公开的合成 key，不调用生产 Keystore。
+在 Disabled 策略下，本地快照仍有敏感标记时，core 会报告 Clipboard 错误；测试先验证
+拒绝行为，再模拟普通本地复制，确认未标记六位文本按普通内容接收。
