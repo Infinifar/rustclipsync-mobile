@@ -121,3 +121,7 @@ StatusBarRemoteInputCallback.handleRemoteViewClick，appRequestedAuth 分支会�
 本轮只关闭 toggle 的 authenticationRequired，服务内解锁、票据、版本校验保留，复制仍 true。
 独立透明单色通知图标替代不透明 launcher 图标；三页原生 UI、持久化主题选择及 Material You
 明暗配色已实现。协议、core 与 RCS1 不变。真机验收清单见 ANDROID-REVIEW.md。
+
+0.1.2 实现提交 df37e1c；Rust run 41337695078 已通过，Android run 41337695083 在本次
+交接记录时构建中。可按用户需要读取最终结果，不开启轮询或恢复可视化测试。不要把
+0.1.1 的真机/模拟器结果复用于这次新界面或 MyUI 通知行为。

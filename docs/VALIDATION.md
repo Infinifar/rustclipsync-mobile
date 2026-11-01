@@ -295,3 +295,9 @@ API 35 系统超时仍采用 2,500 ms 注入并还原；两种镜像均为 4,096
 NotificationSafetyTest 增加 toggle 与 copy 认证标志断言，本轮只编译该测试，不宣称已运行。
 源码 XML 解析、diff 检查完成后统一触发 GitHub APK / lint 和 Rust CI。
 用户要求耗时视觉测试交其操作，故没有启动模拟器或截图，不宣称 MyUI 真机行为已通过。
+
+本轮提交：`df37e1ca1bdaf454b059fd581f9f4f6685a80af9`（0.1.2）。
+[Rust CI](https://github.com/Infinifar/rustclipsync-mobile/actions/runs/41337695078) 已通过。
+[Android APK 构建](https://github.com/Infinifar/rustclipsync-mobile/actions/runs/41337695083)
+已统一触发；本次记录时正在编译 / lint，完成后在该页面下载产物。
+不启动持续监控，不把构建中记为平台验证通过。用户视觉验收清单见 ANDROID-REVIEW.md。
