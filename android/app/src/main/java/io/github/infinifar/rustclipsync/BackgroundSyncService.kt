@@ -51,7 +51,7 @@ class BackgroundSyncService : Service() {
                     stopSelf()
                 }
             }
-            InboxNotifications.STOP -> { session.setBackgroundEnabled(false); stopSelf() }
+            InboxNotifications.STOP -> { session.configureBackgroundListening(false); stopSelf() }
             InboxNotifications.SHOW, InboxNotifications.HIDE, InboxNotifications.DISMISS -> {
                 if (session.backgroundRunning) scope.launch { session.notificationAction(intent) }
                 else stopSelf()
@@ -67,7 +67,7 @@ class BackgroundSyncService : Service() {
         stopSelf()
     }
     override fun onTaskRemoved(rootIntent: Intent?) {
-        session.setBackgroundEnabled(false)
+        session.configureBackgroundListening(false)
         stopSelf()
     }
     override fun onDestroy() {

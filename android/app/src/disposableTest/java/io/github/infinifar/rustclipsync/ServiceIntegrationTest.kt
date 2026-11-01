@@ -135,7 +135,7 @@ class ServiceIntegrationTest {
             eventually {
                 main { controller.connect(server, "synthetic-mobile", "synthetic-mobile-password", SensitivePolicy.ENCRYPTED_INBOX); controller.connected }
             }
-            main { controller.setBackgroundEnabled(true) }
+            main { controller.configureBackgroundListening(true) }
             eventually { main { controller.backgroundRunning } }
             instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
             eventually { main { !controller.foreground } }
@@ -181,7 +181,7 @@ class ServiceIntegrationTest {
                 context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             }
             eventually { main { controller.foreground && !controller.busy } }
-            main { controller.setBackgroundWritesEnabled(true) }
+            main { controller.configureBackgroundWrites(true) }
             instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
             eventually { main { !controller.foreground } }
             withContext(Dispatchers.Main) { controller.pollInbox() }
@@ -196,15 +196,52 @@ class ServiceIntegrationTest {
             eventually { inbox() != null }
             assertEquals(2, b.writes.get())
             val obsolete = inbox()!!.actions[0].actionIntent
-            main { controller.setBackgroundEnabled(false) }
+            main { controller.configureBackgroundListening(false) }
             eventually { inbox() == null && main { !controller.backgroundRunning && !controller.connected } }
             obsolete.send(); delay(300)
             assertNull(inbox())
         } finally {
-            main { controller.setBackgroundEnabled(false); controller.close() }
+            main { controller.configureBackgroundListening(false); controller.close() }
             delay(300)
             main { app.session = previous }
             close(sender)
+        }
+    }
+
+    @Test fun foregroundServiceTimeoutStopsAndRevokes() = runBlocking {
+        check(Build.VERSION.SDK_INT >= 35)
+        fun shell(command: String) = android.os.ParcelFileDescriptor.AutoCloseInputStream(
+            instrumentation.uiAutomation.executeShellCommand(command)).bufferedReader().use { it.readText().trim() }
+        val oldTimeout = shell("device_config get activity_manager data_sync_fgs_timeout_duration")
+        val app = context.applicationContext as SyncApplication
+        val adapter = platform("timeout-receiver")
+        val previous = main { app.session }
+        val controller = main {
+            previous.close()
+            context.getSharedPreferences("background-listening", 0).edit().clear().commit()
+            SessionController(context, { adapter to ByteArray(32) { 0x42 } }, MobileSession::forDisposableTest)
+                .also { app.session = it }
+        }
+        try {
+            assertEquals("", shell("device_config put activity_manager data_sync_fgs_timeout_duration 2500"))
+            assertEquals("2500", shell("device_config get activity_manager data_sync_fgs_timeout_duration"))
+            main { context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)) }
+            eventually { main { controller.foreground } }
+            eventually {
+                main { controller.connect(server, "synthetic-mobile", "synthetic-mobile-password", SensitivePolicy.ENCRYPTED_INBOX); controller.connected }
+            }
+            main { controller.configureBackgroundListening(true) }
+            eventually { main { controller.backgroundRunning } }
+            instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
+            eventually { main { !controller.backgroundEnabled && !controller.backgroundRunning && !controller.connected } }
+            assertFalse(adapter.backgroundWriteAllowed)
+            assertEquals(0, adapter.writes.get())
+        } finally {
+            main { controller.configureBackgroundListening(false); controller.close() }
+            delay(300)
+            main { app.session = previous }
+            if (oldTimeout == "null") shell("device_config delete activity_manager data_sync_fgs_timeout_duration")
+            else { check(oldTimeout.all { it.isDigit() }); shell("device_config put activity_manager data_sync_fgs_timeout_duration " + oldTimeout) }
         }
     }
 

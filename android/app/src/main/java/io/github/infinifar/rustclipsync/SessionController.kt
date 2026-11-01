@@ -95,7 +95,7 @@ internal class SessionController(
         native?.clipboardChanged()
     }
 
-    fun setBackgroundEnabled(value: Boolean) {
+    fun configureBackgroundListening(value: Boolean) {
         backgroundEnabled = value
         native?.clipboardChanged()
         updateWriteAccess()
@@ -108,7 +108,7 @@ internal class SessionController(
         }
     }
 
-    fun setBackgroundWritesEnabled(value: Boolean) {
+    fun configureBackgroundWrites(value: Boolean) {
         backgroundWritesEnabled = value
         preferences.edit().putBoolean("write", value).apply()
         native?.clipboardChanged()
@@ -146,7 +146,7 @@ internal class SessionController(
     }
 
     fun serviceTimedOut() {
-        setBackgroundEnabled(false)
+        configureBackgroundListening(false)
         message = "后台监听已达到系统时限并停止；可回到前台重新启用"
     }
 

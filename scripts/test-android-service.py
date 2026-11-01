@@ -212,7 +212,7 @@ def main():
                            ','.join(NORMAL + '.' + name for name in ['BindingSmokeTest', 'MainThreadGateTest', 'SecureStateTest', 'NotificationSafetyTest']),
                            NORMAL + '.test/androidx.test.runner.AndroidJUnitRunner', timeout=120).stdout
             (output / 'production-smoke.txt').write_text(smoke)
-            assert 'OK (8 tests)' in smoke and 'INSTRUMENTATION_CODE: -1' in smoke
+            assert 'OK (9 tests)' in smoke and 'INSTRUMENTATION_CODE: -1' in smoke
             run([*android, 'run', '--apks', str(apks[0]), '--activity', NORMAL + '.MainActivity', '--device', SERIAL])
             with (output / 'empty-ui-layout.json').open('w') as layout:
                 run([*android, 'layout', '--device', SERIAL], stdout=layout)
@@ -275,6 +275,8 @@ def main():
                 device('shell', 'pm', 'grant', APP, 'android.permission.POST_NOTIFICATIONS')
             phase('backgroundNotificationsAndOptionalWrites')
             assert metadata()['revision'] == 11
+            if args.api >= 35:
+                phase('foregroundServiceTimeoutStopsAndRevokes')
             report['final_revision'] = 11
             report['status'] = 'passed'
             print('PASS: real server send/receive, three sensitive policies, offline latest-only, process/device/server restart, unknown-commit deduplication, background inbox notification toggle/copy and optional writes', flush=True)

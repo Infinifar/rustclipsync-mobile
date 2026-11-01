@@ -18,7 +18,7 @@ import kotlinx.coroutines.CancellationException
 /** Plaintext is read only for an explicit, unlocked Show action; it is never placed in an Intent. */
 internal class InboxNotifications(
     private val context: Context,
-    private val authorized: () -> Boolean = { authorized(context) },
+    private val authorized: () -> Boolean = { InboxNotifications.authorized(context) },
 ) {
     private val manager = context.getSystemService(NotificationManager::class.java)
     private var item: String? = null

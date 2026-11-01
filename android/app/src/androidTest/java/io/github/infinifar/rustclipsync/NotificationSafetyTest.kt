@@ -20,6 +20,18 @@ class NotificationSafetyTest {
         finally { notifications.clear() }
     }
 
+    @Test fun lostAuthorizationRemovesTheExistingNotification() {
+        var allowed = true
+        val notifications = InboxNotifications(context) { allowed }
+        try {
+            notifications.offer("20000000-0000-4000-8000-000000000001")
+            assertNotNull(inbox())
+            allowed = false
+            notifications.refreshAuthorization()
+            assertNull(inbox())
+        } finally { notifications.clear() }
+    }
+
     @Test fun defaultNotificationIsMaskedPrivateAndUsesImmutableActions() {
         val notifications = InboxNotifications(context)
         try {
