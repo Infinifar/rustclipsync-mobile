@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # Source this file: installs build tools only inside the disposable CI container.
 set -euo pipefail
+# Docker uses separate helper/build containers. Apply the same project-only
+# fallback here if the build container inherited the unavailable resolver too.
+if [[ "${CI:-}" == "true" && -f /.dockerenv && -n "${CI_JOB_IMAGE:-}" ]] && ! getent hosts "$CI_SERVER_HOST" >/dev/null; then
+  printf 'nameserver 223.5.5.5\nnameserver 1.1.1.1\n' > /etc/resolv.conf
+fi
 ci_tools="$CI_PROJECT_DIR/.ci-tools"
 mkdir -p "$ci_tools"
 export CARGO_HOME="$ci_tools/cargo"
