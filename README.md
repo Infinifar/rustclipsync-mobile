@@ -46,3 +46,10 @@ Version 0.1.1 displays its build revision in the app. Saved inbox notifications 
 foreground entry with their body masked; the app provides **Show inbox notification**
 to restore a dismissed card and explains an empty inbox or blocked channel. Native
 text actions appear after expanding the notification.
+
+Android 0.1.2 separates Sync, Inbox, and Settings. Appearance supports persistent
+system/light/dark selection with Material You colors. A transparent monochrome status
+icon replaces the launcher image in notifications. Show/Hide no longer request the
+system authentication flow that closes the shade; service-side unlock checks remain.
+Copy retains that flow. MyUI / Android 16 visual validation is delegated to the user;
+see [device checklist](docs/ANDROID-REVIEW.md).

@@ -69,6 +69,8 @@ class NotificationSafetyTest {
             assertEquals("**", hidden.publicVersion.extras.getCharSequence(Notification.EXTRA_TEXT).toString())
             assertEquals(Notification.VISIBILITY_PRIVATE, hidden.visibility)
             assertEquals(listOf("显示", "复制"), hidden.actions.map { it.title.toString() })
+            assertFalse(hidden.actions[0].isAuthenticationRequired)
+            assertTrue(hidden.actions[1].isAuthenticationRequired)
             assertTrue(hidden.actions.all { it.actionIntent.isImmutable && it.actionIntent.creatorPackage == context.packageName })
             notifications.mask()
             assertEquals("**", inbox()!!.extras.getCharSequence(Notification.EXTRA_TEXT).toString())

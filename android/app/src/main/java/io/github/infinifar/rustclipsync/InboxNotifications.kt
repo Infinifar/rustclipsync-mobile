@@ -106,10 +106,10 @@ internal class InboxNotifications(
         val text = body ?: "**"
         val toggle = if (body == null) SHOW else HIDE
         val public = Notification.Builder(context, INBOX_CHANNEL)
-            .setSmallIcon(R.drawable.ic_launcher).setContentTitle("加密收件箱").setContentText("**").build()
+            .setSmallIcon(R.drawable.ic_stat_clipboard).setContentTitle("加密收件箱").setContentText("**").build()
         val open = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), FLAGS)
         val notification = Notification.Builder(context, INBOX_CHANNEL)
-            .setSmallIcon(R.drawable.ic_launcher).setContentTitle("加密收件箱")
+            .setSmallIcon(R.drawable.ic_stat_clipboard).setContentTitle("加密收件箱")
             .setSubText("展开可显示／隐藏、复制")
             // Keep this single card out of the automatic group with the FGS status notification.
             .setGroup("encrypted-inbox-card")
@@ -117,8 +117,10 @@ internal class InboxNotifications(
             .setVisibility(Notification.VISIBILITY_PRIVATE).setPublicVersion(public)
             .setLocalOnly(true).setOnlyAlertOnce(true).setContentIntent(open)
             .setDeleteIntent(track(serviceIntent(context, DISMISS, id, nonce)))
+            // Authentication requests close the shade, even when already unlocked.
+            // Toggle stays in the service; action() still rejects locked Show requests.
             .addAction(Notification.Action.Builder(null, if (body == null) "显示" else "隐藏",
-                track(serviceIntent(context, toggle, id, nonce))).setAuthenticationRequired(true).build())
+                track(serviceIntent(context, toggle, id, nonce))).setAuthenticationRequired(false).build())
             .addAction(Notification.Action.Builder(null, "复制", track(serviceIntent(context, COPY, id, nonce)))
                 .setAuthenticationRequired(true).build())
             .build()
@@ -161,7 +163,7 @@ internal class InboxNotifications(
         fun serviceNotification(context: Context, write: Boolean): Notification {
             channels(context)
             return Notification.Builder(context, SERVICE_CHANNEL)
-                .setSmallIcon(R.drawable.ic_launcher).setContentTitle("RustClipSync 后台监听")
+                .setSmallIcon(R.drawable.ic_stat_clipboard).setContentTitle("RustClipSync 后台监听")
                 .setContentText(if (write) "后台接收与写入已启用；敏感内容遵循所选策略" else "后台接收加密收件箱；不读写系统剪贴板")
                 .setOngoing(true).setOnlyAlertOnce(true).setLocalOnly(true)
                 .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)

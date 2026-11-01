@@ -111,3 +111,13 @@ Android CLI / SDK 查询受并发 UiAutomation 所有限制，手工模式可据
 Rocky 最终运行使用 7117940 / CI292，GitHub 编译源 f9428b1 的应用实现代码相同、构建号不同；
 GitHub 产物未另行运行模拟器。证据与完整清理记录见 android-notification-ui-2026-11-01。
 临时容器、AVD、证书、数据库、ZIP 与本地 actionlint 工具已清理；依赖缓存和 GitHub 构建产物按配置保留。
+
+## 最新工作方式与 Android 0.1.2
+
+用户明确：耗时可视化测试交由用户；不要自动启动模拟器、截图或反复监控。
+全部修改完成后统一推 GitHub 构建。设备：moto razr 60 u / Android 16 / MyUI。
+显示/隐藏应保持通知栏，复制才收起。依据 Android 16 SystemUI 的
+StatusBarRemoteInputCallback.handleRemoteViewClick，appRequestedAuth 分支会关闭 shade；
+本轮只关闭 toggle 的 authenticationRequired，服务内解锁、票据、版本校验保留，复制仍 true。
+独立透明单色通知图标替代不透明 launcher 图标；三页原生 UI、持久化主题选择及 Material You
+明暗配色已实现。协议、core 与 RCS1 不变。真机验收清单见 ANDROID-REVIEW.md。

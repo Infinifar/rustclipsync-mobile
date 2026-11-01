@@ -286,3 +286,12 @@ API 35 系统超时仍采用 2,500 ms 注入并还原；两种镜像均为 4,096
 - [API 31 报告](evidence/android-notification-ui-2026-11-01/api31/report.json)、[API 35 报告](evidence/android-notification-ui-2026-11-01/api35/report.json)。
 - [默认隐藏](evidence/android-notification-ui-2026-11-01/api35-hidden.png)、[显示正文与隐藏按钮](evidence/android-notification-ui-2026-11-01/api35-shown.png)、[再次隐藏](evidence/android-notification-ui-2026-11-01/api35-hidden-again.png)。
 - [探测范围与失败说明](evidence/android-notification-ui-2026-11-01/probes.json)、[通知权限与 Intent 安全记录及 diff](evidence/android-notification-ui-2026-11-01/security-alignment.md)。
+
+## Android 0.1.2 / MyUI 反馈修复
+
+本轮仅修改 Android：通知 toggle 不再请求系统认证以保持展开，复制保留认证路径；
+专用透明单色小图标；同步/收件箱/设置三页、可持久化的三态主题选择、动态明暗配色、
+安全区域和键盘滚动适配，收件箱删除增加确认。协议、Rust、vendor 不变。
+NotificationSafetyTest 增加 toggle 与 copy 认证标志断言，本轮只编译该测试，不宣称已运行。
+源码 XML 解析、diff 检查完成后统一触发 GitHub APK / lint 和 Rust CI。
+用户要求耗时视觉测试交其操作，故没有启动模拟器或截图，不宣称 MyUI 真机行为已通过。
