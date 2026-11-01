@@ -7,6 +7,7 @@ default:
 
 variables:
   CARGO_TERM_COLOR: always
+  RCS_GRADLE_DISTRIBUTION_URL: https://repo.huaweicloud.com/gradle/gradle-8.13-bin.zip
 
 toolchain:
   stage: inspect

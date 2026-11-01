@@ -14,6 +14,22 @@ if ! command -v python3 >/dev/null || [[ ! -d /usr/lib/jvm/java-17-openjdk-amd64
 fi
 export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 export PATH="$JAVA_HOME/bin:$PATH"
+# An optional network mirror still uses the wrapper's committed official SHA-256.
+if [[ -n "${RCS_GRADLE_DISTRIBUTION_URL:-}" ]]; then
+  python3 - <<'PYTHON'
+import os, re, urllib.parse
+from pathlib import Path
+url = os.environ['RCS_GRADLE_DISTRIBUTION_URL']
+parsed = urllib.parse.urlsplit(url)
+if parsed.scheme != 'https' or parsed.username or parsed.password:
+    raise SystemExit('Gradle mirror must be credential-free HTTPS')
+p = Path('android/gradle/wrapper/gradle-wrapper.properties')
+text = p.read_text()
+if 'distributionSha256Sum=20f1b1176237254a6fc204d8434196fa11a4cfb387567519c61556e8710aed78' not in text:
+    raise SystemExit('Gradle mirror requires the expected official checksum')
+p.write_text(re.sub(r'^distributionUrl=.*$', lambda _: 'distributionUrl=' + url, text, flags=re.MULTILINE))
+PYTHON
+fi
 # Resolve the Gradle distribution/plugins before spending time compiling native code.
 (cd android && ./gradlew --no-daemon help)
 if [[ ! -x "$CARGO_HOME/bin/rustup" ]]; then
