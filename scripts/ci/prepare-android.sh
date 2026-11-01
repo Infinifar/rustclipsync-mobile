@@ -3,8 +3,9 @@
 set -euo pipefail
 # Docker uses separate helper/build containers. Use the same reachable resolvers
 # for this disposable job; a GitLab-only DNS probe can miss later GitHub failures.
-if [[ "${CI:-}" == "true" && -f /.dockerenv && -n "${CI_JOB_IMAGE:-}" ]]; then
+if [[ "${CI:-}" == "true" && -n "${CI_JOB_IMAGE:-}" ]]; then
   printf 'nameserver 223.5.5.5\nnameserver 1.1.1.1\n' > /etc/resolv.conf
+  echo 'Configured DNS for this disposable image job'
 fi
 ci_tools="$CI_PROJECT_DIR/.ci-tools"
 mkdir -p "$ci_tools"

@@ -9,8 +9,9 @@ default:
       - |
         # Rocky job containers can inherit an intermittently unreachable Tailscale resolver.
         # Only this disposable Docker container may use the fallback, never the host/runner.
-        if [ -f /.dockerenv ] && [ -n "${CI_JOB_IMAGE:-}" ]; then
+        if [ -n "${CI_JOB_IMAGE:-}" ]; then
           printf 'nameserver 223.5.5.5\nnameserver 1.1.1.1\n' > /etc/resolv.conf
+          echo 'Configured DNS for this disposable image job'
         fi
 
 variables:
