@@ -119,6 +119,9 @@ class ServiceIntegrationTest {
             assertEquals(1, b.writes.get())
             receiver.clearInbox(inbox.id)
             assertNull(receiver.status().inbox)
+            // Core first cancels the uncertain first copy, then flushes the saved latest copy.
+            assertEquals(SyncOutcome.CURRENT, sender.retryPending())
+            assertTrue(sender.status().hasPending)
             assertEquals(SyncOutcome.UPLOADED, sender.retryPending()); sender.retryPending()
             assertEquals(4uL, sender.status().cursor)
             assertEquals(SyncOutcome.DOWNLOADED, receiver.receive()); receiver.retryPending()
