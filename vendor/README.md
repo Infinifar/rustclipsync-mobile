@@ -6,7 +6,10 @@ keep the original Git revision; .cargo/config.toml uses Cargo source replacement
 normal build does not fetch this Git repository. Other locked crates still use crates.io.
 
 Do not edit this source snapshot. Make core changes upstream, validate them there, update
-the revision in Cargo.toml and .cargo/config.toml, then regenerate with Python 3.11+:
+the revision in Cargo.toml and .cargo/config.toml. Temporarily disable the source replacement
+while running `cargo update -p rustclipsync-core`, then restore it: Cargo requires the new
+Git revision in Cargo.lock before it can resolve that revision from a directory source.
+Regenerate the snapshot with Python 3.11+:
 
 ```sh
 python3 scripts/vendor-core.py

@@ -1027,8 +1027,8 @@ checksum = "6b1e7f9a428571be2dc5bc0505c13fb6bf936822b894ec87abf8a08a4e51742d"
 
 [[package]]
 name = "rustclipsync-core"
-version = "0.2.0"
-source = "git+https://github.com/Infinifar/rustclipsync-core.git?rev=a13298c550fa4ebb287e55fe7a229486a36f22f5#a13298c550fa4ebb287e55fe7a229486a36f22f5"
+version = "0.3.0"
+source = "git+https://github.com/Infinifar/rustclipsync-core.git?rev=5816bb5d18bc38bd26cca1ed6e7c5c093bfacd92#5816bb5d18bc38bd26cca1ed6e7c5c093bfacd92"
 dependencies = [
  "base64 0.22.1",
  "regex",

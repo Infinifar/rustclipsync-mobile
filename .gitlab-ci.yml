@@ -36,4 +36,5 @@ android:
       - build/android-zipalign.txt
       - build/android-elf-alignment.txt
       - build/APK-SHA256SUMS
+      - build/core-api-routes.txt
       - build/bindings/

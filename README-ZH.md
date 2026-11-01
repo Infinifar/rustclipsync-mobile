@@ -16,10 +16,12 @@ Apple 客户端只面向 iPhone / iPad；macOS 客户端之后在桌面端仓库
 | Android 12+ / Compose | 界面、系统剪贴板、Keystore、权限与生命周期 |
 | iOS 18+ / SwiftUI | 界面、系统剪贴板、Keychain、权限与生命周期 |
 | 同一 Rust facade | UniFFI 接口、串行执行线程、错误映射、幂等关闭 |
-| core 0.2.0 | 协议、同步状态机、RCS1 格式、重试、确认与冲突 |
+| core 0.3.0 | 协议、同步状态机、RCS1 格式、重试、确认与冲突 |
 
-core 固定到 Git 提交 `a13298c550fa4ebb287e55fe7a229486a36f22f5`，Cargo.lock 固定传递依赖，
+core 固定到 Git 提交 `5816bb5d18bc38bd26cca1ed6e7c5c093bfacd92`，Cargo.lock 固定传递依赖，
 通过 Cargo source replacement 使用同提交的带校验 vendor，不依赖相邻目录。
+当前 HTTP 接口统一为 `/api/...`，需要配套服务端；服务器配置填部署根地址（可含子路径），
+不额外附加 `/api` 或 `/v1`。端点全部由 core 维护。
 首版为前台手动发送/接收；敏感默认跳过，另有加密收件箱和显式自动写入。
 未标记文本无法保证识别为敏感内容。账户密码仅保存在会话内存，离开前台关闭会话。
 
@@ -27,7 +29,7 @@ core 固定到 Git 提交 `a13298c550fa4ebb287e55fe7a229486a36f22f5`，Cargo.loc
 scripts/check.sh
 ```
 
-运行需要 Rustup、C 编译器、Git 和 Python 3。Android 按要求使用 GitLab 开发构建；
+运行需要 Rustup、C 编译器、Git、Python 3 和 OpenSSL（隔离 HTTPS 测试）。Android 按要求使用 GitLab 开发构建；
 iOS 需要 macOS / Xcode，Linux 不提供 iOS 编译验证。
 
 - [构建与开发](docs/BUILD.md)

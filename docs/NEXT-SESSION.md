@@ -6,12 +6,14 @@ Rust / host FFI、平台编译、模拟器、真实 OS 适配器和真机结果�
 
 ## 已完成
 
-- Cargo workspace；core 0.2.0 固定 Git rev a13298c550fa4ebb287e55fe7a229486a36f22f5，锁文件。
+- Cargo workspace；core 0.3.0 固定 Git rev 5816bb5d18bc38bd26cca1ed6e7c5c093bfacd92，锁文件。
   Cargo source replacement 使用该提交完整未改动的 vendor，逐文件校验及来源见 vendor/。
 - UniFFI 0.32.2，同一 facade 生成 Kotlin / Swift；额外 Python 绑定仅用于 host ABI smoke。
 - 单执行线程 / 16 命令有界队列，非阻塞 requestClose 与重复 await shutdown，存储失败停止。
 - core Session 的 check / record_local / flush / pull / 敏感收件箱复用，无协议重写。
 - 8 项 Rust synthetic mock 测试、4 项实际 host FFI smoke 通过；fmt / Clippy / rustdoc 通过。
+- core 0.3.0 统一 `/api/...`；隔离 TLS 路由 smoke 检查 7 类操作及根路径 / 子路径共 14 个请求。
+  升级前已确认旧 core 的 `/v1/devices` 请求使测试失败，升级后通过。
 - Android Compose 工程、Keystore 包装 key、RCS1 原子落盘、剪贴板标记、UI 回调撤销。
   #107 / #249 完整编译、lint、16 KiB 静态对齐通过；API 31 AVD 6 项合成测试和空界面启动通过。
 - SwiftUI 源码、Keychain、原子落盘、剪贴板与 scene 生命周期；XcodeGen / XCFramework 脚本。

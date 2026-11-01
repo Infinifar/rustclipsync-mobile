@@ -6,7 +6,7 @@
 
 ## Linux / macOS 共享层
 
-需要 Git、C 编译器、Rustup、Python 3。rust-toolchain.toml 固定 Rust 1.99.1；
+需要 Git、C 编译器、Rustup、Python 3 与 OpenSSL CLI（隔离 HTTPS 测试）。rust-toolchain.toml 固定 Rust 1.99.1；
 Cargo.lock 固定依赖，包括 core 的完整提交。core 使用同一提交的完整 vendor 快照，
 来源、Git tree 和 SHA-256 见 vendor/core-provenance.json 与逐文件清单；常规构建不再拉取
 GitHub core 仓库，其余依赖仍通过 crates.io。不得直接改 vendor，更新方法见 vendor/README.md。
@@ -16,7 +16,8 @@ cargo test --workspace --locked
 scripts/check.sh
 ```
 
-check.sh 先验证 vendor 未漂移，再依次执行 fmt、Clippy、Rust 测试、rustdoc、双端绑定生成和 host UniFFI ABI smoke。
+check.sh 先验证 vendor 未漂移，再依次执行 fmt、Clippy、Rust 测试、隔离 HTTPS 路由检查、
+rustdoc、双端绑定生成和 host UniFFI ABI smoke。
 生成文件在忽略的 build/bindings；不要手改生成代码。host smoke 额外生成 Python 绑定，
 验证跨 FFI 回调/错误/资源释放，不是 Android 或 iOS 平台运行验证。
 
@@ -57,6 +58,10 @@ BindingSmokeTest 只用内存 Platform，通过 Kotlin → Rust → Kotlin 验�
 或生产服务。平台适配器的 Keystore、实际剪贴板、
 断网/重启和权限行为需要后续独立测试设备验证，不能用这项 smoke 替代。
 
+当前 core 0.3.0 使用 `/api/...`，要求服务端提供同一套接口；不回退到 `/v1`。
+服务器配置输入部署根地址（例如 `https://example.test/` 或 `https://example.test/sync/`），
+不附加 `/api` 或 `/v1`；端点拼接由 core 完成。
+
 使用行为：输入 HTTPS 地址与账户，点击连接（首次注册以当前服务端版本为基线），然后
 显式发送/接收。敏感默认跳过；加密收件箱与自动写入分开选择，自动写入有确认。
 离开前台立即请求关闭，不在后台监听剪贴板。回到前台重新连接；首版不保存账户密码。
@@ -74,6 +79,7 @@ executor；没有修改 Runner 全局配置。项目 Auto DevOps 已关闭，仅
 
 .gitlab-ci.yml 使用固定 digest 的 Cirrus Android SDK 36-ndk 镜像，临时容器中安装 JDK 17、
 Rust 1.99.1、NDK 28.2。先验证 Gradle 配置，再跑 scripts/check.sh 与 scripts/check-android.sh。
+core-api-routes.txt 保留当前锁定 core 对根路径及部署子路径的 14 次真实 HTTPS 请求报告。
 镜像原有 SDK 许可用于所需包；脚本不会自动接受新增许可。CI 使用可达的 Gradle 分发镜像，
 wrapper 仍强制校验已从官方核对的 SHA-256；开发者本地的默认下载地址保持官方地址。
 
@@ -128,3 +134,12 @@ iOS 会请求系统粘贴许可，不能承诺后台任意读取；离开 active
 - [Keychain 前台可访问性](https://developer.apple.com/documentation/security/ksecattraccessiblewhenunlockedthisdeviceonly)
 - [SwiftUI scene background](https://developer.apple.com/documentation/swiftui/scenephase/background)
 - [GitLab CI 语法](https://docs.gitlab.com/ci/yaml/)
+
+
+## 隔离 HTTP 路由检查
+
+`python3 scripts/test-core-api.py` 编译 workspace 的 core_api_smoke 示例，使用同一锁定 core
+依次执行注册、状态、长轮询、正文、发送、取消和确认。测试夹具在 127.0.0.1 随机端口提供
+一次性 TLS 证书与固定响应，分别检查根地址和无尾斜杠的部署子路径，共 14 个请求。
+只核对真实 HTTP 方法、路径、查询与响应解析，不实现服务端状态机；它不是服务互操作测试。
+仅该测试允许 loopback 自签名证书；产品的 core Client 继续校验证书。无真实账户或系统剪贴板。

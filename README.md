@@ -2,6 +2,8 @@
 
 Independent Kotlin/Jetpack Compose Android and Swift/SwiftUI iOS clients sharing one
 Rust/UniFFI facade over a pinned rustclipsync-core revision.
+The core uses the current `/api/...` endpoints; configure the deployment base URL without
+appending `/api` or `/v1`.
 The Apple client targets iPhone and iPad only. A macOS client belongs in the desktop repository.
 
 The shared executor, encrypted state integration, binding generation and host smoke tests
