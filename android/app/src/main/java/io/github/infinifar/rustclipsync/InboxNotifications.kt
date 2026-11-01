@@ -111,6 +111,8 @@ internal class InboxNotifications(
         val notification = Notification.Builder(context, INBOX_CHANNEL)
             .setSmallIcon(R.drawable.ic_launcher).setContentTitle("加密收件箱")
             .setSubText("展开可显示／隐藏、复制")
+            // Keep this single card out of the automatic group with the FGS status notification.
+            .setGroup("encrypted-inbox-card")
             .setContentText(text).setStyle(Notification.BigTextStyle().bigText(text))
             .setVisibility(Notification.VISIBILITY_PRIVATE).setPublicVersion(public)
             .setLocalOnly(true).setOnlyAlertOnce(true).setContentIntent(open)

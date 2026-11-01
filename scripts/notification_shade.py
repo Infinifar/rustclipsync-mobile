@@ -18,7 +18,8 @@ def walk(node, parents=()):
 
 
 def nodes(document):
-    for window in document.get('windows', []):
+    windows = document if isinstance(document, list) else document.get('windows', [])
+    for window in windows:
         if window.get('type') == 'SYSTEM':
             for entry, parents in walk(window.get('content', [])):
                 if not entry.get('hidden', False):

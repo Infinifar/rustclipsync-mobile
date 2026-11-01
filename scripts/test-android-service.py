@@ -30,6 +30,7 @@ TOKEN = '44' * 32
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--shade-only', action='store_true', help='Focused saved-inbox/SystemUI check; excludes service recovery scenarios')
     parser.add_argument('--manual-shade', action='store_true', help='Pause the SystemUI scenario for manual layout/screenshot/button checks')
     parser.add_argument('--api', type=int, choices=[31, 35, 36], default=31)
     parser.add_argument('--android-cli', default=str(Path.home() / '.local/bin/android'))
@@ -264,6 +265,13 @@ def main():
             proxy.socket = tls.wrap_socket(proxy.socket, server_side=True)
             proxy_thread = threading.Thread(target=proxy.serve_forever, daemon=True); proxy_thread.start()
             reverse()
+            if args.shade_only:
+                report['scope'] = 'notification-shade-only'
+                shade_phase()
+                assert metadata()['revision'] == 1
+                report['final_revision'] = 1
+                report['status'] = 'passed'
+                return
             # Negative control: the same Android test must fail when registration is unavailable.
             deny_registration.set()
             negative = output / 'negative-registration-control.txt'
