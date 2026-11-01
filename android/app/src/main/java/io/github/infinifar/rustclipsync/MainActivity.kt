@@ -57,6 +57,9 @@ private fun SyncScreen(session: SessionController) {
                     Button(onClick = session::send, enabled = !session.busy) { Text("发送当前剪贴板") }
                     Button(onClick = session::receive, enabled = !session.busy) { Text("接收") }
                 }
+                if (session.status?.hasPending == true) {
+                    OutlinedButton(onClick = session::retry, enabled = !session.busy) { Text("重试待处理事务") }
+                }
                 OutlinedButton(onClick = session::close) { Text("关闭会话") }
             } else {
                 Button(onClick = { session.connect(server.trim(), username, password, policy); password = "" }, enabled = !session.busy && server.isNotBlank()) { Text("连接并注册设备") }

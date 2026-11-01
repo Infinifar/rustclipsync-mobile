@@ -23,6 +23,8 @@ android:
   script:
     - scripts/check.sh
     - scripts/check-android.sh
+    - python3 scripts/build-disposable-server.py
+    - scripts/check-disposable-android.sh | tee build/disposable-artifacts.txt
     - sha256sum android/app/build/outputs/apk/debug/app-debug.apk > build/APK-SHA256SUMS
   after_script:
     - rm -rf .ci-tools target build/python build/apk-inspect
@@ -37,4 +39,7 @@ android:
       - build/android-elf-alignment.txt
       - build/APK-SHA256SUMS
       - build/core-api-routes.txt
+      - build/disposable/
+      - build/disposable-server/
+      - build/disposable-artifacts.txt
       - build/bindings/

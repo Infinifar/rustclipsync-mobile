@@ -34,6 +34,7 @@ enum Command {
     Status,
     Check,
     Send,
+    Retry,
     Receive,
     Policy(SensitivePolicy),
     ReadInbox(String),
@@ -105,6 +106,14 @@ impl MobileSession {
     /// Returns clipboard, storage, network, conflict, or lifecycle errors.
     pub async fn send_clipboard(&self) -> Result<SyncOutcome, MobileError> {
         self.outcome(Command::Send).await
+    }
+
+    /// Retries core's saved transaction without recording another clipboard event or UUID.
+    ///
+    /// # Errors
+    /// Returns network, conflict, expiry, clipboard, storage, or lifecycle errors from core.
+    pub async fn retry_pending(&self) -> Result<SyncOutcome, MobileError> {
+        self.outcome(Command::Retry).await
     }
 
     /// Receives through core, including its journal and sensitive policy rules.
@@ -179,6 +188,35 @@ impl MobileSession {
     pub async fn shutdown(&self) -> Result<(), MobileError> {
         self.request_close();
         self.finished.clone().await
+    }
+}
+
+#[cfg(feature = "disposable-tests")]
+#[uniffi::export]
+impl MobileSession {
+    /// Opens an isolated loopback TLS fixture; omitted from ordinary builds and bindings.
+    ///
+    /// Only `https://127.0.0.1:<nonzero-port>/` is accepted. The self-signed
+    /// certificate exception belongs exclusively to the disposable test artifact.
+    ///
+    /// # Errors
+    /// Returns invalid input for other destinations, invalid keys, or internal on spawn failure.
+    #[uniffi::constructor]
+    pub fn for_disposable_test(
+        config: MobileConfig,
+        platform: Arc<dyn Platform>,
+    ) -> Result<Arc<Self>, MobileError> {
+        let port = config
+            .server
+            .strip_prefix("https://127.0.0.1:")
+            .and_then(|value| value.strip_suffix('/'))
+            .and_then(|value| value.parse::<std::num::NonZeroU16>().ok());
+        if port.is_none() {
+            return Err(MobileError::InvalidInput);
+        }
+        Self::spawn(config, platform, |c| {
+            Client::new(&c.server, c.username.clone(), c.password.clone(), true)
+        })
     }
 }
 
@@ -372,6 +410,7 @@ fn execute<R: Transport>(
                 }))
             }
             Command::Receive => Response::Outcome(outcome(session.pull(observed, Instant::now())?)),
+            Command::Retry => Response::Outcome(outcome(session.flush(observed)?)),
             Command::Policy(policy) => {
                 apply_policy(session, policy);
                 Response::Done

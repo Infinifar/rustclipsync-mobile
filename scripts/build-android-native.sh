@@ -16,8 +16,10 @@ export CC_x86_64_linux_android="$CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER"
 export AR_x86_64_linux_android="$ndk/bin/llvm-ar"
 export CARGO_TARGET_AARCH64_LINUX_ANDROID_RUSTFLAGS='-C link-arg=-Wl,-z,max-page-size=16384'
 export CARGO_TARGET_X86_64_LINUX_ANDROID_RUSTFLAGS='-C link-arg=-Wl,-z,max-page-size=16384'
+features=()
+if [[ "${RCS_DISPOSABLE_INTEGRATION:-0}" == 1 ]]; then features=(--features disposable-tests); fi
 for target in aarch64-linux-android x86_64-linux-android; do
-  cargo build --locked --release -p rustclipsync-mobile-ffi --target "$target"
+  cargo build --locked --release -p rustclipsync-mobile-ffi --target "$target" "${features[@]}"
   case "$target" in aarch64*) abi=arm64-v8a ;; x86_64*) abi=x86_64 ;; esac
   mkdir -p "android/app/src/main/jniLibs/$abi"
   cp "target/$target/release/librustclipsync_mobile_ffi.so" "android/app/src/main/jniLibs/$abi/"

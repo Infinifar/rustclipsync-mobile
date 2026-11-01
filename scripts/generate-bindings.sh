@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-cargo build --locked -p rustclipsync-mobile-ffi
+features=()
+if [[ "${RCS_DISPOSABLE_INTEGRATION:-0}" == 1 ]]; then features=(--features disposable-tests); fi
+cargo build --locked -p rustclipsync-mobile-ffi "${features[@]}"
 case "$(uname -s)" in
   Darwin) lib=target/debug/librustclipsync_mobile_ffi.dylib ;;
   Linux) lib=target/debug/librustclipsync_mobile_ffi.so ;;

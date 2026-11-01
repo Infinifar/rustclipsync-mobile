@@ -3,23 +3,25 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
+val disposableIntegration = providers.gradleProperty("disposableIntegration").orNull == "true"
 android {
     namespace = "io.github.infinifar.rustclipsync"
     compileSdk = 36
     ndkVersion = "28.2.13676358"
     buildToolsVersion = "36.0.0"
     defaultConfig {
-        applicationId = "io.github.infinifar.rustclipsync"
+        applicationId = "io.github.infinifar.rustclipsync" + if (disposableIntegration) ".disposable" else ""
         minSdk = 31
         targetSdk = 36
         versionCode = 1
-        versionName = "0.1.0"
+        versionName = if (disposableIntegration) "0.1.0-disposable" else "0.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
     }
     buildFeatures { compose = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     sourceSets["main"].java.srcDir("../../build/bindings")
+    if (disposableIntegration) sourceSets["androidTest"].java.srcDir("src/disposableTest/java")
     packaging { jniLibs.useLegacyPackaging = false }
 }
 kotlin { jvmToolchain(17) }

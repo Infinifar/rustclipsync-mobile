@@ -57,6 +57,7 @@ internal class SessionController(context: Context) {
     }
     fun send() = command { sendClipboard().toString() }
     fun receive() = command { receive().toString() }
+    fun retry() = command { retryPending().toString() }
     fun policy(value: SensitivePolicy) = command { updatePolicy(value); "敏感策略已更新" }
     fun copyInbox() { val id = status?.inbox?.id ?: return; command { copyInbox(id); "已显式复制敏感内容" } }
     fun clearInbox() { val id = status?.inbox?.id ?: return; command { clearInbox(id); "收件箱已清空" } }
@@ -73,6 +74,11 @@ internal class SessionController(context: Context) {
                 if (error is CancellationException) throw error
                 if (version == epoch) {
                     if (error is MobileException.Storage || error is MobileException.Closed || error is MobileException.Internal) close()
+                    else {
+                        val value = try { session.status() } catch (_: Exception) { null }
+                        if (version != epoch) return@launch
+                        status = value
+                    }
                     message = safeError(error)
                 }
             } finally { if (version == epoch) busy = false }

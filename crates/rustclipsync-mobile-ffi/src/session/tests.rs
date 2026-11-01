@@ -50,6 +50,7 @@ struct Data {
     current: Option<(Message, String)>,
     acks: Vec<String>,
     sends: Vec<String>,
+    attempts: Vec<String>,
 }
 type StateGate = (Sender<()>, Receiver<()>);
 
@@ -57,6 +58,7 @@ type StateGate = (Sender<()>, Receiver<()>);
 struct Remote {
     data: Arc<Mutex<Data>>,
     gate: Arc<Mutex<Option<StateGate>>>,
+    fail_next_send: Arc<AtomicBool>,
 }
 const EPOCH: &str = "10000000-0000-4000-8000-000000000001";
 impl Remote {
@@ -124,6 +126,10 @@ impl Transport for Remote {
     }
     fn send(&self, _: &Persisted, outbox: &Outbox) -> Result<u64, Error> {
         let mut d = self.data.lock().unwrap();
+        d.attempts.push(outbox.copy.id.clone());
+        if self.fail_next_send.swap(false, Ordering::SeqCst) {
+            return Err(Error::Io(std::io::Error::other("synthetic disconnect")));
+        }
         d.sends.push(outbox.copy.text.clone());
         d.revision += 1;
         Ok(d.revision)
@@ -134,6 +140,63 @@ impl Transport for Remote {
     fn acknowledge(&self, _: &Persisted, ack: &Ack) -> Result<(), Error> {
         self.data.lock().unwrap().acks.push(ack.result.clone());
         Ok(())
+    }
+}
+
+#[test]
+fn retry_pending_preserves_the_existing_request_instead_of_recording_another_copy() {
+    block_on(async {
+        let platform = Arc::new(FakePlatform::default());
+        let remote = Remote::default();
+        let session = start(&platform, &remote, SensitivePolicy::Disabled);
+        *platform.clipboard.lock().unwrap() = Some(text("synthetic pending", false));
+        remote.fail_next_send.store(true, Ordering::SeqCst);
+        assert!(matches!(
+            session.send_clipboard().await,
+            Err(MobileError::Network)
+        ));
+        assert!(session.status().await.unwrap().has_pending);
+        assert_eq!(
+            session.retry_pending().await.unwrap(),
+            SyncOutcome::Uploaded
+        );
+        session.retry_pending().await.unwrap();
+        assert!(!session.status().await.unwrap().has_pending);
+        {
+            let data = remote.data.lock().unwrap();
+            assert_eq!(data.attempts.len(), 2);
+            assert_eq!(
+                data.attempts[0], data.attempts[1],
+                "retry must retain its UUID"
+            );
+            assert_eq!(data.sends, ["synthetic pending"]);
+        }
+        session.shutdown().await.unwrap();
+    });
+}
+
+#[cfg(feature = "disposable-tests")]
+#[test]
+fn disposable_constructor_rejects_every_non_loopback_root_destination() {
+    for server in [
+        "https://example.test/",
+        "http://127.0.0.1:8443/",
+        "https://localhost:8443/",
+        "https://127.0.0.1:0/",
+        "https://127.0.0.1:65536/",
+        "https://127.0.0.1:8443/path/",
+        "https://127.0.0.1:8443@evil.test/",
+        "https://127.0.0.1:8443/?query=1",
+    ] {
+        let mut value = config(SensitivePolicy::Disabled);
+        value.server = server.into();
+        assert!(
+            matches!(
+                MobileSession::for_disposable_test(value, Arc::new(FakePlatform::default())),
+                Err(MobileError::InvalidInput)
+            ),
+            "destination {server}"
+        );
     }
 }
 fn config(policy: SensitivePolicy) -> MobileConfig {
