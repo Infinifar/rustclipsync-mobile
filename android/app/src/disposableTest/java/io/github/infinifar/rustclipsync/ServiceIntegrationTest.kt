@@ -1,5 +1,13 @@
 package io.github.infinifar.rustclipsync
 
+import android.app.Notification
+import android.app.NotificationManager
+import android.content.Intent
+import android.os.Build
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.infinifar.rustclipsync.bindings.*
@@ -22,12 +30,26 @@ class ServiceIntegrationTest {
     }
     private val root = File(context.noBackupFilesDir, "disposable-service-e2e")
     private val server = InstrumentationRegistry.getArguments().getString("server") ?: error("fixture URL required")
-    private class FilePlatform(directory: File) : Platform {
+    private class FilePlatform(directory: File) : SessionPlatform {
         val store = SecureState(directory)
         @Volatile var selection: ClipboardText? = null
         val writes = AtomicInteger()
-        override fun clipboardSnapshot() = selection
-        override fun clipboardWrite(value: ClipboardText) { selection = value; writes.incrementAndGet() }
+        val reads = AtomicInteger()
+        @Volatile var focused = true
+        @Volatile var backgroundWriteAllowed = false
+        override fun observe(session: MobileSession) { }
+        override fun focus(value: Boolean) { focused = value }
+        override fun backgroundWrite(value: Boolean) { backgroundWriteAllowed = value }
+        override fun revoke() { focused = false; backgroundWriteAllowed = false }
+        override fun clipboardSnapshot(): ClipboardText? {
+            check(focused) { "background clipboard read attempted" }
+            reads.incrementAndGet()
+            return selection
+        }
+        override fun clipboardWrite(value: ClipboardText) {
+            check(focused || backgroundWriteAllowed) { "unauthorized background write attempted" }
+            selection = value; writes.incrementAndGet()
+        }
         override fun loadState() = store.load()
         override fun saveState(ciphertext: ByteArray) = store.save(ciphertext)
     }
@@ -81,6 +103,109 @@ class ServiceIntegrationTest {
             assertEquals(1, b.writes.get())
             assertEncrypted(b, PRIVATE)
         } finally { close(sender, receiver) }
+    }
+
+    private suspend fun eventually(predicate: suspend () -> Boolean) {
+        withTimeout(45_000) { while (!predicate()) delay(100) }
+    }
+    private suspend fun <T> main(operation: () -> T): T = withContext(Dispatchers.Main) { operation() }
+
+    @Test fun backgroundNotificationsAndOptionalWrites() = runBlocking {
+        val app = context.applicationContext as SyncApplication
+        val a = platform("background-sender"); val b = platform("background-receiver")
+        val sender = open(a)
+        val notifications = context.getSystemService(NotificationManager::class.java)
+        val previous = main { app.session }
+        val controller = main {
+            previous.close()
+            context.getSharedPreferences("background-listening", 0).edit().clear().commit()
+            SessionController(context, { b to ByteArray(32) { 0x42 } }, MobileSession::forDisposableTest)
+                .also { app.session = it }
+        }
+        fun inbox() = notifications.activeNotifications.firstOrNull { it.id == InboxNotifications.INBOX_ID }?.notification
+        suspend fun publish(text: String, sensitive: Boolean) {
+            a.selection = copy(text, sensitive)
+            assertEquals(SyncOutcome.UPLOADED, sender.sendClipboard()); sender.retryPending()
+        }
+        try {
+            sender.check()
+            main { context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)) }
+            eventually { main { controller.foreground } }
+            // Wait for the actual window focus callback before starting a foreground connection.
+            eventually {
+                main { controller.connect(server, "synthetic-mobile", "synthetic-mobile-password", SensitivePolicy.ENCRYPTED_INBOX); controller.connected }
+            }
+            main { controller.setBackgroundEnabled(true) }
+            eventually { main { controller.backgroundRunning } }
+            instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
+            eventually { main { !controller.foreground } }
+            val reads = b.reads.get()
+            val first = "synthetic background inbox alpha"
+            val second = "synthetic background inbox beta"
+            publish(first, true)
+            // Exercise the real service's 30-second scheduler for the first receive.
+            eventually { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == "**" }
+            assertEquals(reads, b.reads.get()); assertEquals(0, b.writes.get())
+            assertEncrypted(b, first)
+            val hidden = inbox() ?: error("missing hidden inbox notification")
+            assertEquals(listOf("显示", "复制"), hidden.actions.map { it.title.toString() })
+            assertEquals("**", hidden.publicVersion.extras.getCharSequence(Notification.EXTRA_TEXT).toString())
+            assertTrue(hidden.actions.all { it.actionIntent.isImmutable })
+            val staleShow = hidden.actions[0].actionIntent
+            staleShow.send()
+            eventually { inbox()?.actions?.get(0)?.title?.toString() == "隐藏" }
+            assertEquals(first, inbox()!!.extras.getCharSequence(Notification.EXTRA_TEXT).toString())
+            inbox()!!.actions[0].actionIntent.send()
+            eventually { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == "**" }
+            publish(second, true)
+            withContext(Dispatchers.Main) { controller.pollInbox() }
+            eventually { inbox()?.actions?.get(0)?.title?.toString() == "显示" }
+            staleShow.send(); delay(300)
+            assertEquals("**", inbox()!!.extras.getCharSequence(Notification.EXTRA_TEXT).toString())
+            inbox()!!.actions[0].actionIntent.send()
+            eventually { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == second }
+            instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_SLEEP").close()
+            eventually { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == "**" }
+            instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_WAKEUP").close()
+            instrumentation.uiAutomation.executeShellCommand("wm dismiss-keyguard").close()
+            inbox()!!.actions[1].actionIntent.send()
+            eventually { b.writes.get() == 1 }
+            assertEquals(second, b.selection?.text); assertTrue(b.selection?.sensitive == true)
+            eventually { inbox() == null && main { !controller.foreground } }
+            assertEquals(reads, b.reads.get())
+
+            publish("synthetic ordinary background write", false)
+            withContext(Dispatchers.Main) { controller.pollInbox() }
+            assertEquals(1, b.writes.get()) // Write switch is off: leave ordinary message unconsumed.
+            main {
+                context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }
+            eventually { main { controller.foreground && !controller.busy } }
+            main { controller.setBackgroundWritesEnabled(true) }
+            instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
+            eventually { main { !controller.foreground } }
+            withContext(Dispatchers.Main) { controller.pollInbox() }
+            eventually { b.writes.get() == 2 }
+            assertEquals("synthetic ordinary background write", b.selection?.text)
+            assertEquals(reads, b.reads.get())
+            assertNull(inbox())
+
+            // Inbox still wins over the background-write switch for marked data.
+            publish("synthetic marked inbox with writes enabled", true)
+            withContext(Dispatchers.Main) { controller.pollInbox() }
+            eventually { inbox() != null }
+            assertEquals(2, b.writes.get())
+            val obsolete = inbox()!!.actions[0].actionIntent
+            main { controller.setBackgroundEnabled(false) }
+            eventually { inbox() == null && main { !controller.backgroundRunning && !controller.connected } }
+            obsolete.send(); delay(300)
+            assertNull(inbox())
+        } finally {
+            main { controller.setBackgroundEnabled(false); controller.close() }
+            delay(300)
+            main { app.session = previous }
+            close(sender)
+        }
     }
 
     @Test fun persistOfflineQueueUntilKilled() = runBlocking {

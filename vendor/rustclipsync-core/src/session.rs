@@ -95,6 +95,13 @@ pub struct Session<C, S, H, R = Client> {
     sensitive_inbox: bool,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ReceiveTarget {
+    Foreground,
+    InboxOnly,
+    BackgroundClipboard,
+}
+
 impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H, R> {
     pub fn open(
         config: SessionConfig,
@@ -470,10 +477,72 @@ impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H,
         if self.persisted.state.pending.is_some() || self.persisted.state.applying.is_some() {
             return Ok(Outcome::Skipped);
         }
-        let before = self
-            .clipboard
-            .snapshot(self.allow_sensitive)
-            .map_err(SyncError::Clipboard)?;
+        self.pull_target(observed, ReceiveTarget::Foreground)
+    }
+
+    /// Receive only marked sensitive content into the enabled encrypted inbox.
+    ///
+    /// This never reads or writes the platform clipboard. An ordinary message is
+    /// left unconsumed for a foreground receive (the server still retains only
+    /// its latest message). Registration and restored outbox validation must
+    /// first complete in the foreground via [`Self::check`]. Disabled inboxes,
+    /// unchecked restored state and pending uploads return [`Outcome::Skipped`].
+    ///
+    /// # Errors
+    /// Returns transport, epoch, validation or durable storage errors, exactly
+    /// as [`Self::pull`]. Stored messages retain the existing skipped ack rules.
+    pub fn pull_inbox(&mut self, observed: u64) -> Result<Outcome, SyncError> {
+        self.pull_background(observed, false)
+    }
+
+    /// Receive without reading the clipboard, with an explicit background-write opt-in.
+    ///
+    /// With `write_clipboard = false`, this is [`Self::pull_inbox`]. With `true`,
+    /// ordinary messages may be written; marked messages still obey the existing
+    /// skip/inbox/auto-write policy. The host must enforce its own write permission.
+    /// Since no clipboard snapshot can be compared, external clipboard changes
+    /// are protected only by the host's observed generation counter. Callers must
+    /// explain that this opt-in may replace another app's recent clipboard value.
+    /// Registration, restored-state validation and pending uploads remain foreground work.
+    ///
+    /// # Errors
+    /// Returns the same transport, storage, clipboard, epoch and validation errors as [`Self::pull`].
+    pub fn pull_background(
+        &mut self,
+        observed: u64,
+        write_clipboard: bool,
+    ) -> Result<Outcome, SyncError> {
+        if (!write_clipboard && !self.sensitive_inbox)
+            || !self.persisted.paired
+            || self.needs_pending_check
+        {
+            return Ok(Outcome::Skipped);
+        }
+        if self.persisted.state.pending.is_some() || self.persisted.state.applying.is_some() {
+            return Ok(Outcome::Skipped);
+        }
+        // There is no outbox here: flush only the durable acknowledgement,
+        // including one whose previous response was lost. Never retry an upload
+        // while the platform clipboard is unavailable in the background.
+        self.flush(observed)?;
+        let target = if write_clipboard {
+            ReceiveTarget::BackgroundClipboard
+        } else {
+            ReceiveTarget::InboxOnly
+        };
+        let result = self.pull_target(observed, target)?;
+        self.flush(observed)?;
+        Ok(result)
+    }
+
+    fn pull_target(&mut self, observed: u64, target: ReceiveTarget) -> Result<Outcome, SyncError> {
+        let before = if target != ReceiveTarget::Foreground {
+            None
+        } else {
+            self.clipboard
+                .snapshot(self.allow_sensitive)
+                .map_err(SyncError::Clipboard)?
+        };
         let remote = self.remote.state(&self.persisted)?;
         if remote.epoch != self.persisted.state.epoch
             || remote.revision < self.persisted.state.cursor
@@ -496,6 +565,9 @@ impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H,
                 .acknowledge_self(message)
                 .map_err(invalid_state)?;
             self.save()?;
+            return Ok(Outcome::Skipped);
+        }
+        if target == ReceiveTarget::InboxOnly && !message.sensitive {
             return Ok(Outcome::Skipped);
         }
         if message.sensitive && !self.allow_sensitive {
@@ -531,11 +603,12 @@ impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H,
             return Ok(Outcome::Skipped);
         }
         if self.generation.load(Ordering::SeqCst) != observed
-            || self
-                .clipboard
-                .snapshot(self.allow_sensitive)
-                .map_err(SyncError::Clipboard)?
-                != before
+            || (target == ReceiveTarget::Foreground
+                && self
+                    .clipboard
+                    .snapshot(self.allow_sensitive)
+                    .map_err(SyncError::Clipboard)?
+                    != before)
         {
             return Ok(Outcome::Skipped);
         }
@@ -559,12 +632,14 @@ impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H,
             .prepare_apply(message.clone())
             .map_err(invalid_state)?;
         self.save()?;
-        let unchanged = if self.generation.load(Ordering::SeqCst) == observed {
+        let unchanged = if self.generation.load(Ordering::SeqCst) != observed {
+            Ok(false)
+        } else if target == ReceiveTarget::Foreground {
             self.clipboard
                 .snapshot(self.allow_sensitive)
                 .map(|snapshot| snapshot == before)
         } else {
-            Ok(false)
+            Ok(true)
         };
         if !matches!(unchanged, Ok(true)) {
             // No write was attempted: release the journal even if the final

@@ -185,3 +185,12 @@ Android CLI 1.1 未发现临时 ANDROID_AVD_HOME 的设备，启动改用 SDK em
 普通 APK SHA-256：`5b624d37d35444af1c85503c3dbc07f2258002a79cd035bcc896529c3b7da676`。
 
 独立测试 APK SHA-256：`bc94dc26618b0d48de29dfb34a592578c420b2b96633fec9260e901f8e40b5a9`。
+
+## 后台监听、写入与收件箱通知（实施中，2026-11-01）
+
+core 固定到 `1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e`，从上游源码仓库的
+`codex/mobile-background-inbox` 分支导出完整校验快照；core 公共远端尚未发布该提交。
+本地 core 49 项合成测试、mobile facade 12 项测试及 fmt / Clippy 已通过。
+Android 新增实现与 instrumentation 场景已编写，平台构建和模拟器结果等待远端验证；
+不得将之前的 6 项手动同步 smoke 或 3 项服务互操作结果算作此功能验证。
+iOS 后台推送后续实施，未做本功能的 iOS 平台编译或真机验证。

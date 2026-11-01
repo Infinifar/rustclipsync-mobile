@@ -36,6 +36,8 @@ enum Command {
     Send,
     Retry,
     Receive,
+    ReceiveInbox,
+    ReceiveBackground(bool),
     Policy(SensitivePolicy),
     ReadInbox(String),
     CopyInbox(String),
@@ -122,6 +124,33 @@ impl MobileSession {
     /// Returns sanitized core or lifecycle errors.
     pub async fn receive(&self) -> Result<SyncOutcome, MobileError> {
         self.outcome(Command::Receive).await
+    }
+
+    /// Receives marked messages into core's enabled inbox without accessing the clipboard.
+    ///
+    /// Ordinary messages and pending uploads await foreground handling. Pairing
+    /// and restored-state validation must finish via `check` while foregrounded.
+    ///
+    /// # Errors
+    /// Returns sanitized core transport, storage, validation, or lifecycle errors.
+    pub async fn receive_inbox(&self) -> Result<SyncOutcome, MobileError> {
+        self.outcome(Command::ReceiveInbox).await
+    }
+
+    /// Receives in the background without reading the clipboard.
+    ///
+    /// A separate platform opt-in must authorize `write_clipboard = true`.
+    /// Marked messages still obey core's skip/inbox/auto-write policy. The host
+    /// must revoke writes and invalidate generation on lifecycle/policy changes.
+    ///
+    /// # Errors
+    /// Returns sanitized core transport, clipboard, storage, validation or lifecycle errors.
+    pub async fn receive_background(
+        &self,
+        write_clipboard: bool,
+    ) -> Result<SyncOutcome, MobileError> {
+        self.outcome(Command::ReceiveBackground(write_clipboard))
+            .await
     }
 
     /// Updates explicit policy without replaying previously consumed messages.
@@ -410,6 +439,10 @@ fn execute<R: Transport>(
                 }))
             }
             Command::Receive => Response::Outcome(outcome(session.pull(observed, Instant::now())?)),
+            Command::ReceiveInbox => Response::Outcome(outcome(session.pull_inbox(observed)?)),
+            Command::ReceiveBackground(write) => {
+                Response::Outcome(outcome(session.pull_background(observed, write)?))
+            }
             Command::Retry => Response::Outcome(outcome(session.flush(observed)?)),
             Command::Policy(policy) => {
                 apply_policy(session, policy);

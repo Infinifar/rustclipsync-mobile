@@ -206,10 +206,10 @@ def main():
             report['page_size'] = device('shell', 'getconf', 'PAGESIZE').stdout.strip()
             for apk in apks: device('install', '-r', str(apk), timeout=90)
             smoke = device('shell', 'am', 'instrument', '-w', '-r', '-e', 'class',
-                           ','.join(NORMAL + '.' + name for name in ['BindingSmokeTest', 'MainThreadGateTest', 'SecureStateTest']),
+                           ','.join(NORMAL + '.' + name for name in ['BindingSmokeTest', 'MainThreadGateTest', 'SecureStateTest', 'NotificationSafetyTest']),
                            NORMAL + '.test/androidx.test.runner.AndroidJUnitRunner', timeout=120).stdout
             (output / 'production-smoke.txt').write_text(smoke)
-            assert 'OK (6 tests)' in smoke and 'INSTRUMENTATION_CODE: -1' in smoke
+            assert 'OK (8 tests)' in smoke and 'INSTRUMENTATION_CODE: -1' in smoke
             run([*android, 'run', '--apks', str(apks[0]), '--activity', NORMAL + '.MainActivity', '--device', SERIAL])
             with (output / 'empty-ui-layout.json').open('w') as layout:
                 run([*android, 'layout', '--device', SERIAL], stdout=layout)
@@ -268,9 +268,11 @@ def main():
             assert len(retried) == 2 and retried[0]['path'] == retried[1]['path']
             assert [item['duplicate'] for item in retried] == [False, True]
             assert {item.get('result') for item in report['requests'] if item['path'] == '/api/ack'} >= {'applied', 'skipped', 'self'}
-            report['final_revision'] = 7
+            phase('backgroundNotificationsAndOptionalWrites')
+            assert metadata()['revision'] == 11
+            report['final_revision'] = 11
             report['status'] = 'passed'
-            print('PASS: real server send/receive, three sensitive policies, offline latest-only, process/device/server restart, unknown-commit deduplication', flush=True)
+            print('PASS: real server send/receive, three sensitive policies, offline latest-only, process/device/server restart, unknown-commit deduplication, background inbox notification toggle/copy and optional writes', flush=True)
         finally:
             if crash_process is not None and crash_process.poll() is None:
                 device('shell', 'am', 'force-stop', APP, check=False)

@@ -15,15 +15,20 @@ struct FakePlatform {
     bytes: Mutex<Option<Vec<u8>>>,
     clipboard: Mutex<Option<ClipboardText>>,
     writes: AtomicU64,
+    reads: AtomicU64,
+    forbid_clipboard: AtomicBool,
     fail_save: AtomicBool,
     fail_write: AtomicBool,
     threads: Mutex<Vec<thread::ThreadId>>,
 }
 impl Platform for FakePlatform {
     fn clipboard_snapshot(&self) -> Result<Option<ClipboardText>, AdapterError> {
+        self.reads.fetch_add(1, Ordering::SeqCst);
+        assert!(!self.forbid_clipboard.load(Ordering::SeqCst));
         Ok(self.clipboard.lock().unwrap().clone())
     }
     fn clipboard_write(&self, value: ClipboardText) -> Result<(), AdapterError> {
+        assert!(!self.forbid_clipboard.load(Ordering::SeqCst));
         if self.fail_write.load(Ordering::SeqCst) {
             return Err(AdapterError::Unavailable);
         }
@@ -465,6 +470,60 @@ fn unmarked_text_is_not_heuristically_treated_as_sensitive() {
         r.publish("123456", false);
         assert_eq!(s.receive().await.unwrap(), SyncOutcome::Downloaded);
         assert!(!p.clipboard.lock().unwrap().as_ref().unwrap().sensitive);
+        s.shutdown().await.unwrap();
+    });
+}
+
+#[test]
+fn background_binding_stores_only_marked_inbox_without_platform_clipboard_calls() {
+    block_on(async {
+        let platform = Arc::new(FakePlatform::default());
+        let remote = Remote::default();
+        let s = start(&platform, &remote, SensitivePolicy::EncryptedInbox);
+        s.check().await.unwrap();
+        let reads = platform.reads.load(Ordering::SeqCst);
+        platform.forbid_clipboard.store(true, Ordering::SeqCst);
+        remote.publish("synthetic notification body", true);
+        assert_eq!(s.receive_inbox().await.unwrap(), SyncOutcome::Stored);
+        assert_eq!(platform.reads.load(Ordering::SeqCst), reads);
+        assert_eq!(platform.writes.load(Ordering::SeqCst), 0);
+        let status = s.status().await.unwrap();
+        let id = status.inbox.unwrap().id;
+        assert_eq!(
+            s.read_inbox(id).await.unwrap().unwrap(),
+            "synthetic notification body"
+        );
+        assert_eq!(remote.data.lock().unwrap().acks, ["skipped"]);
+        remote.publish("ordinary foreground text", false);
+        assert_eq!(s.receive_inbox().await.unwrap(), SyncOutcome::Skipped);
+        assert_eq!(s.status().await.unwrap().cursor, status.cursor);
+        s.update_policy(SensitivePolicy::AutoWrite).await.unwrap();
+        remote.publish("marked but no inbox", true);
+        assert_eq!(s.receive_inbox().await.unwrap(), SyncOutcome::Skipped);
+        s.shutdown().await.unwrap();
+    });
+}
+
+#[test]
+fn background_write_binding_requires_opt_in_and_reads_no_platform_snapshot() {
+    block_on(async {
+        let platform = Arc::new(FakePlatform::default());
+        let remote = Remote::default();
+        let s = start(&platform, &remote, SensitivePolicy::EncryptedInbox);
+        s.check().await.unwrap();
+        let reads = platform.reads.load(Ordering::SeqCst);
+        remote.publish("synthetic ordinary background write", false);
+        assert_eq!(
+            s.receive_background(false).await.unwrap(),
+            SyncOutcome::Skipped
+        );
+        assert_eq!(platform.writes.load(Ordering::SeqCst), 0);
+        assert_eq!(
+            s.receive_background(true).await.unwrap(),
+            SyncOutcome::Downloaded
+        );
+        assert_eq!(platform.reads.load(Ordering::SeqCst), reads);
+        assert_eq!(platform.writes.load(Ordering::SeqCst), 1);
         s.shutdown().await.unwrap();
     });
 }

@@ -1,9 +1,13 @@
 package io.github.infinifar.rustclipsync
 
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -22,8 +26,12 @@ class MainActivity : ComponentActivity() {
         session = (application as SyncApplication).session
         setContent { MaterialTheme { SyncScreen(session) } }
     }
-    override fun onPause() { session.close(); super.onPause() }
-    override fun onDestroy() { session.close(); super.onDestroy() }
+    override fun onResume() { super.onResume(); session.uiVisible(true) }
+    override fun onPause() { session.uiVisible(false); super.onPause() }
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (::session.isInitialized) session.clipboardFocus(hasFocus)
+    }
 }
 
 @Composable
@@ -31,13 +39,15 @@ private fun SyncScreen(session: SessionController) {
     var server by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var policy by remember { mutableStateOf(SensitivePolicy.DISABLED) }
+    var policy by remember { mutableStateOf(session.policySelection) }
     var confirmAutoWrite by remember { mutableStateOf(false) }
+    var confirmBackgroundWrite by remember { mutableStateOf(false) }
     val editable = !session.connected && !session.busy
+    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { session.refreshNotificationAuthorization() }
     Surface(Modifier.fillMaxSize()) {
         Column(Modifier.safeDrawingPadding().padding(24.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("RustClipSync", style = MaterialTheme.typography.headlineLarge)
-            Text("Android 独立客户端 · 前台手动同步")
+            Text("Android 独立客户端 · 手动同步与可选后台收件箱")
             OutlinedTextField(server, { server = it }, label = { Text("HTTPS 服务器地址") }, enabled = editable, singleLine = true)
             OutlinedTextField(username, { username = it }, label = { Text("账户") }, enabled = editable, singleLine = true)
             OutlinedTextField(password, { password = it }, label = { Text("密码（仅本次内存会话）") }, enabled = editable, singleLine = true, visualTransformation = PasswordVisualTransformation())
@@ -52,6 +62,25 @@ private fun SyncScreen(session: SessionController) {
                 }
             }
             Text("未标记的文本无法保证识别为敏感内容。系统敏感提示不能阻止其他应用读取当前剪贴板。")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Switch(checked = session.backgroundEnabled, enabled = !session.busy, onCheckedChange = { enabled ->
+                    session.setBackgroundEnabled(enabled)
+                    if (enabled && Build.VERSION.SDK_INT >= 33 && !session.notificationAuthorized) permission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                })
+                Text("后台监听（可选）", Modifier.padding(top = 12.dp))
+            }
+            Text("后台不读取系统剪贴板。关闭后台写入时，仅接收加密收件箱，普通消息留待前台。约每 30 秒检查，系统可能延迟或停止。")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Switch(checked = session.backgroundWritesEnabled, enabled = session.backgroundEnabled && !session.busy, onCheckedChange = { value ->
+                    if (value) confirmBackgroundWrite = true else session.setBackgroundWritesEnabled(false)
+                })
+                Text("允许后台写入剪贴板", Modifier.padding(top = 12.dp))
+            }
+            if (session.backgroundEnabled) {
+                Text(if (session.backgroundRunning) "后台监听服务运行中" else "连接后从前台启动监听服务")
+                Text(if (session.notificationAuthorized) "收件箱通知默认 **；可显示／隐藏、复制" else "通知未授权或频道关闭：继续保存收件箱，不展示消息通知")
+                if (Build.VERSION.SDK_INT >= 33 && !session.notificationAuthorized) TextButton(onClick = { permission.launch(Manifest.permission.POST_NOTIFICATIONS) }) { Text("允许收件箱通知") }
+            }
             if (session.connected) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = session::send, enabled = !session.busy) { Text("发送当前剪贴板") }
@@ -74,7 +103,7 @@ private fun SyncScreen(session: SessionController) {
                     OutlinedButton(onClick = session::clearInbox, enabled = !session.busy) { Text("删除") }
                 }
             }
-            Text("离开前台即关闭；不在后台监视剪贴板。首次注册以服务器当前版本为基线，不回放旧消息。")
+            Text("后台监听默认关闭；未启用时离开前台即关闭会话。服务受系统时限约束，不在开机或进程重启后自动连接。首次注册不回放旧消息。")
         }
     }
     if (confirmAutoWrite) AlertDialog(onDismissRequest = { confirmAutoWrite = false },
@@ -82,4 +111,9 @@ private fun SyncScreen(session: SessionController) {
         text = { Text("接收的已标记敏感内容会替换系统剪贴板，其他应用可能读取。") },
         confirmButton = { TextButton(onClick = { confirmAutoWrite = false; policy = SensitivePolicy.AUTO_WRITE; if (session.connected) session.policy(policy) }) { Text("启用") } },
         dismissButton = { TextButton(onClick = { confirmAutoWrite = false }) { Text("取消") } })
+    if (confirmBackgroundWrite) AlertDialog(onDismissRequest = { confirmBackgroundWrite = false },
+        title = { Text("允许后台覆盖系统剪贴板？") },
+        text = { Text("后台接收会替换剪贴板，可能覆盖你在其他应用刚复制的内容。后台无法读取并比较当前值；敏感内容仍遵循跳过、加密收件箱或显式自动写入策略。") },
+        confirmButton = { TextButton(onClick = { confirmBackgroundWrite = false; session.setBackgroundWritesEnabled(true) }) { Text("允许写入") } },
+        dismissButton = { TextButton(onClick = { confirmBackgroundWrite = false }) { Text("取消") } })
 }

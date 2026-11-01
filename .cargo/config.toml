@@ -1,6 +1,6 @@
 [source.core-upstream]
 git = "https://github.com/Infinifar/rustclipsync-core.git"
-rev = "5816bb5d18bc38bd26cca1ed6e7c5c093bfacd92"
+rev = "1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e"
 replace-with = "core-vendor"
 
 [source.core-vendor]
