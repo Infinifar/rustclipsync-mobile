@@ -88,7 +88,9 @@ internal class SessionController(context: Context) {
             val previous = retiring
             retiring = cleanup.launch {
                 previous?.join()
-                try { session.shutdown() } finally { session.destroy() }
+                try { session.shutdown() }
+                catch (_: Exception) { /* Already revoked; a failed executor must still release its binding. */ }
+                finally { session.destroy() }
             }
         }
     }

@@ -18,9 +18,10 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 /** Only exact RCS1 ciphertext goes in the state file; key wrapping is a platform concern. */
-internal class SecureState(context: Context) {
-    private val directory = File(context.noBackupFilesDir, "sync").apply {
-        if (!isDirectory && !mkdirs()) throw AdapterException.Storage()
+internal class SecureState(private val directory: File) {
+    constructor(context: Context) : this(File(context.noBackupFilesDir, "sync"))
+    init {
+        if (!directory.isDirectory && !directory.mkdirs()) throw AdapterException.Storage()
     }
     private val state = File(directory, "session.rcs")
     private val wrappedKey = File(directory, "state-key.wrap")
@@ -85,8 +86,11 @@ internal class SecureState(context: Context) {
                 output.fd.sync()
             }
             Os.rename(temporary.path, file.path)
-            val fd = Os.open(directory.path, OsConstants.O_RDONLY or OsConstants.O_DIRECTORY, 0)
-            try { Os.fsync(fd) } finally { Os.close(fd) }
+            val fd = Os.open(directory.path, OsConstants.O_RDONLY, 0)
+            try {
+                if (!OsConstants.S_ISDIR(Os.fstat(fd).st_mode)) throw AdapterException.Storage()
+                Os.fsync(fd)
+            } finally { Os.close(fd) }
         } finally { temporary.delete() }
     }
     private inline fun <T> guarded(operation: () -> T): T = try { operation() } catch (_: Exception) { throw AdapterException.Storage() }

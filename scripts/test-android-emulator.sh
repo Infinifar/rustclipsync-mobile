@@ -32,13 +32,13 @@ done
 adb shell getprop ro.build.version.sdk
 adb install -r "$app"
 adb install -r "$tests"
-adb shell am instrument -w -r -e class io.github.infinifar.rustclipsync.BindingSmokeTest,io.github.infinifar.rustclipsync.MainThreadGateTest io.github.infinifar.rustclipsync.test/androidx.test.runner.AndroidJUnitRunner | tee build/android-instrumentation.txt
+adb shell am instrument -w -r -e class io.github.infinifar.rustclipsync.BindingSmokeTest,io.github.infinifar.rustclipsync.MainThreadGateTest,io.github.infinifar.rustclipsync.SecureStateTest io.github.infinifar.rustclipsync.test/androidx.test.runner.AndroidJUnitRunner | tee build/android-instrumentation.txt
 python3 - <<'PY'
 import re
 from pathlib import Path
 report = Path('build/android-instrumentation.txt').read_text()
 match = re.search(r'OK \((\d+) tests?\)', report)
-if not match or int(match[1]) < 4 or 'INSTRUMENTATION_CODE: -1' not in report:
+if not match or int(match[1]) < 6 or 'INSTRUMENTATION_CODE: -1' not in report:
     raise SystemExit('Synthetic instrumentation tests did not all pass')
 print('Synthetic Android instrumentation tests passed:', match[1])
 PY
