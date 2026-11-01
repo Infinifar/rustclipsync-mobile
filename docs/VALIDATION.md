@@ -186,11 +186,53 @@ Android CLI 1.1 未发现临时 ANDROID_AVD_HOME 的设备，启动改用 SDK em
 
 独立测试 APK SHA-256：`bc94dc26618b0d48de29dfb34a592578c420b2b96633fec9260e901f8e40b5a9`。
 
-## 后台监听、写入与收件箱通知（实施中，2026-11-01）
+## 后台监听、写入与收件箱通知（通过，2026-11-01）
 
-core 固定到 `1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e`，从上游源码仓库的
-`codex/mobile-background-inbox` 分支导出完整校验快照；core 公共远端尚未发布该提交。
-本地 core 49 项合成测试、mobile facade 12 项测试及 fmt / Clippy 已通过。
-Android 新增实现与 instrumentation 场景已编写，平台构建和模拟器结果等待远端验证；
-不得将之前的 6 项手动同步 smoke 或 3 项服务互操作结果算作此功能验证。
-iOS 后台推送后续实施，未做本功能的 iOS 平台编译或真机验证。
+最终代码 `fb4bcaf8a5726047c7c74186f9e65163a7f3e106` 在
+[私有 GitLab #125](https://gitlab.infinifar.top/Cassius/rustclipsync-mobile/-/pipelines/125) /
+[job #284](https://gitlab.infinifar.top/Cassius/rustclipsync-mobile/-/jobs/284) 构建通过。
+core 固定 `1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e`，来自 core 仓库
+`codex/mobile-background-inbox` 分支的两个本地提交，未推公共上游。完整校验 vendor
+保证干净克隆可构建，不需要相邻仓库或取得该未公开 Git 对象；不直接修改 vendor。
+
+| 验证层级 | 结果与范围 |
+| --- | --- |
+| 本地 Rust core | 49 项合成测试、fmt、Clippy all-targets / warnings denied 通过 |
+| facade / host FFI（本地与 CI） | 12 项 Rust 测试；CI 另通过 4 项 host FFI smoke、14 个真实 HTTPS 路由请求、Kotlin / Swift 绑定生成、rustdoc、fmt / Clippy |
+| Android 平台编译（远端） | 普通 / 独立测试 APK、arm64-v8a / x86_64、lint、16 KiB APK / ELF 静态对齐、普通包无测试构造符号检查通过 |
+| Android 12 / API 31 模拟器 | 9 项 smoke、空 Compose 界面启动、4 项完整服务场景通过 |
+| Android 15 / API 35 模拟器 | 9 项 smoke、空 Compose 界面启动、5 项完整服务场景通过；含系统前台服务超时 |
+| 未验证 | 真机、真实 OS 剪贴板 / Keystore、完整表单与开关点击流程、iOS / Xcode 编译；iOS 推送后续配套 |
+
+服务场景继续使用固定真实服务端、合成账户、内存剪贴板和独立 RCS1 文件，覆盖普通
+收发、敏感跳过 / 收件箱 / 显式自动写入、断网 latest-only、进程 / 设备 / 服务端重启、
+不确定提交同 UUID 去重。两个保存准备阶段故意 force-stop，不计作 JUnit 通过；相同
+Android 场景在注入注册 503 时失败的负向控制也不计入通过数量。
+
+新增后台场景实际启动前台服务，由 30 秒调度器完成首次接收，再验证默认 `**`、显示 /
+隐藏、替换消息后旧按钮失效、熄屏隐藏、后台显式复制与敏感标记、后台自动写入开关、
+收件箱策略优先于自动写入，以及停止后撤销会话与通知。模拟剪贴板在失去焦点时拒绝
+读取，写入必须具备自动写入授权或当前消息的临时复制授权；计数证明后台没有读取。
+通知操作通过真实 PendingIntent / NotificationManager，前台服务使用模拟器系统。
+服务端 revision 8 / 9 / 11 只有 self + skipped 确认，显式复制没有变成 applied；普通
+后台写入 revision 10 为 self + applied。
+
+API 35 将系统 dataSync 时限临时改为 2,500 ms，验证超时后开关关闭、服务停止、会话
+关闭、写入授权撤销，随后恢复设置。它是系统超时分支验证，不是连续运行六小时测试。
+两套镜像实际页大小均为 4,096，不代表 16 KiB 设备运行验证。
+
+早期 job #278 后台方法在 revision 9 后等待超时，后来将复制改为直接服务操作；job #282
+在 API 35 发现两项通知测试误把异步 cancel 当成同步，已改为有上限的等待。失败探测与
+只运行六项旧 smoke 的诊断结果单列，不计入最终通过数量。
+
+最终证据：
+
+- [执行信息与清理记录](evidence/android-background-2026-11-01/background-execution.json)、[CI 日志](evidence/android-background-2026-11-01/ci-284.txt)。
+- [API 31 报告](evidence/android-background-2026-11-01/api31/report.json)、[后台场景](evidence/android-background-2026-11-01/api31/backgroundNotificationsAndOptionalWrites.txt)。
+- [API 35 报告](evidence/android-background-2026-11-01/api35/report.json)、[系统超时](evidence/android-background-2026-11-01/api35/foregroundServiceTimeoutStopsAndRevokes.txt)。
+- [失败探测说明](evidence/android-background-2026-11-01/probes.json)、[权限与 Intent 安全记录及 diff](evidence/android-background-2026-11-01/security-alignment.md)。
+
+普通调试 APK SHA-256：`e5426f89e926b1f2a70658422d47e7d951b1234b36c2f49def49d54f8db2b6bd`。
+运行脚本删除了 AVD、证书、数据库和相关进程；外层任务容器与所有 GitLab / 宿主 ZIP
+导出文件已删除，本地 mobile target / 新增工具已清理。共享镜像、Runner、GitLab、
+v2raya 保留，宿主与 Runner 配置未改。GitLab 构建产物按项目保留策略保留。

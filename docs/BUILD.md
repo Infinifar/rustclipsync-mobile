@@ -180,9 +180,9 @@ CLI 1.1 未发现 ANDROID_AVD_HOME 下的临时设备，AVD 启动使用 SDK emu
 - 真正提交 PUT 后丢弃响应，再强制终止进程、重启服务端，恢复时核对重复 UUID 仍对应
   同一 revision，服务端不增加第二条提交。
 
-三项完整 instrumentation 方法验证业务结果；另两项准备阶段在保存标记后被故意 force-stop，
-其 instrumentation 中断是故障注入，不计为通过的 JUnit 测试。普通包六项 smoke 另行执行。
-结果、请求元数据、APK / server 哈希保存在 build/service-e2e；不会记录 Authorization 或正文。
+API 31 四项、API 35 五项完整 instrumentation 方法验证业务结果；另两项准备阶段在保存标记后被故意 force-stop，
+其 instrumentation 中断是故障注入，不计为通过的 JUnit 测试。普通包九项 smoke 另行执行。
+结果、请求元数据、APK / server 哈希保存在 build/service-e2e-apiN；不会记录 Authorization 或正文。
 结束时停止 emulator / adb / TLS 代理 / 服务端，删除临时 AVD、证书与数据库。
 外层操作者仍需删除一次性容器及导出的 ZIP；保留证据和 GitLab 构建产物。
 

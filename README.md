@@ -8,11 +8,13 @@ The Apple client targets iPhone and iPad only. A macOS client belongs in the des
 
 The shared executor, encrypted state integration, binding generation and host smoke tests
 are implemented. Android debug/test APK compilation, lint and static 16 KiB alignment
-checks pass in private GitLab CI. Six synthetic tests and an empty Compose screen launch
-pass on an isolated Android 12 emulator. Real-server integration also covers send/receive,
+checks pass in private GitLab CI. Nine synthetic tests and an empty Compose screen launch
+pass on isolated Android 12 and Android 15 emulators. Real-server integration also covers send/receive,
 sensitive policies, offline recovery and process/device/server restarts with a synthetic
 clipboard and isolated encrypted files. iOS compilation, real OS adapter behavior and
-physical-device validation remain pending.
+physical-device validation remain pending. The final private GitLab build is pipeline #125 / job #284;
+API 31 completes four real-server scenarios and API 35 five, including background notifications,
+explicit copy, automatic-write opt-in and accelerated foreground-service timeout.
 
 See [中文开发说明](README-ZH.md), [build instructions](docs/BUILD.md),
 [binding/lifecycle contract](docs/BINDINGS.md), and [validation evidence](docs/VALIDATION.md).
