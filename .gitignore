@@ -1,0 +1,31 @@
+# Rust: commit Cargo.lock when the workspace exists.
+/target/
+**/target/
+
+# Android / Gradle
+.gradle/
+.kotlin/
+**/build/
+local.properties
+*.apk
+*.aab
+*.jks
+*.keystore
+
+# Apple platform build products and signing material
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcarchive
+*.ipa
+*.p12
+*.p8
+*.mobileprovision
+
+# Local settings and secrets
+.idea/
+.DS_Store
+.env
+.env.*
+!.env.example
+*.log
