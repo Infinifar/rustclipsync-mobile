@@ -218,6 +218,8 @@ def main():
                 if device('shell', 'getprop', 'sys.boot_completed', check=False).stdout.strip() == '1':
                     device('shell', 'input', 'keyevent', 'KEYCODE_WAKEUP')
                     device('shell', 'wm', 'dismiss-keyguard')
+                    for setting in ['window_animation_scale', 'transition_animation_scale', 'animator_duration_scale']:
+                        device('shell', 'settings', 'put', 'global', setting, '0')
                     return
                 time.sleep(2)
             raise RuntimeError('emulator did not finish booting')

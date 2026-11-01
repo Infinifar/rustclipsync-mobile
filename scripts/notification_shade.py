@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 import subprocess
 import time
+import re
+import xml.etree.ElementTree as ET
 
 
 def walk(node, parents=()):
@@ -31,13 +33,42 @@ def center(node):
     return json.loads(value) if isinstance(value, str) else value
 
 
-def layout(android, serial, output, environment=None):
+def layout(android, adb, serial, output, environment=None):
     result = subprocess.run([*android, 'layout', '--full', '--device', serial], env=environment,
                             capture_output=True, text=True, check=True, timeout=40)
     document = json.loads(result.stdout)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(document, ensure_ascii=False, indent=2) + '\n')
-    return list(nodes(document))
+    entries = list(nodes(document))
+    if any('加密收件箱' in entry.get('text', '') for entry, _ in entries):
+        return entries
+    # CLI 1.1 can return the underlying application while the shade is open.
+    # Reopen it and read the SDK's active SystemUI hierarchy as a fallback.
+    subprocess.run([adb, '-s', serial, 'shell', 'cmd', 'statusbar', 'expand-notifications'], env=environment, check=True, timeout=15)
+    time.sleep(1)
+    for attempt in range(3):
+        dump = subprocess.run([adb, '-s', serial, 'shell', 'uiautomator', 'dump', '--compressed', '/sdcard/rcs-notification-ui.xml'],
+                              env=environment, timeout=25, capture_output=True, text=True)
+        if dump.returncode == 0:
+            break
+        output.with_suffix('.uiautomator-error.txt').write_text(dump.stdout + dump.stderr)
+        time.sleep(.5)
+    else:
+        raise RuntimeError('SDK UI dump failed: ' + dump.stdout + dump.stderr)
+    raw = subprocess.check_output([adb, '-s', serial, 'shell', 'cat', '/sdcard/rcs-notification-ui.xml'], env=environment, timeout=15)
+    output.with_suffix('.xml').write_bytes(raw)
+    def convert(element):
+        attrs = dict(element.attrib)
+        bounds = list(map(int, re.findall(r'-?\d+', attrs.get('bounds', ''))))
+        if len(bounds) == 4:
+            attrs['center'] = [(bounds[0] + bounds[2]) // 2, (bounds[1] + bounds[3]) // 2]
+        attrs['interactions'] = ['CLICKABLE'] if attrs.get('clickable') == 'true' else []
+        attrs['children'] = [convert(child) for child in element]
+        return attrs
+    hierarchy = convert(ET.fromstring(raw))
+    if not any(entry.get('package') == 'com.android.systemui' for entry, _ in walk(hierarchy)):
+        raise RuntimeError('SDK hierarchy does not contain SystemUI; inspect saved XML')
+    return list(walk(hierarchy))
 
 
 def button(entries, title):
@@ -54,10 +85,10 @@ def prepare(android, adb, serial, output, environment=None):
                    env=environment, check=True, timeout=15)
     time.sleep(.4)
     for _ in range(8):
-        entries = layout(android, serial, output, environment)
+        entries = layout(android, adb, serial, output, environment)
         if button(entries, '复制') and (button(entries, '显示') or button(entries, '隐藏')):
             return entries
-        titles = [node for node, _ in entries if node.get('text') == '加密收件箱']
+        titles = [node for node, _ in entries if node.get('text', '').startswith('加密收件箱')]
         expanders = [node for node, _ in entries
                      if 'expand' in node.get('resource-id', '').lower()
                      and 'CLICKABLE' in node.get('interactions', []) and node.get('center')]

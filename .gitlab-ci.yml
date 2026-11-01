@@ -7,9 +7,9 @@ default:
   hooks:
     pre_get_sources_script:
       - |
-        # Some Rocky job containers inherit an unreachable Tailscale resolver.
+        # Rocky job containers can inherit an intermittently unreachable Tailscale resolver.
         # Only this disposable Docker container may use the fallback, never the host/runner.
-        if [ -f /.dockerenv ] && [ -n "${CI_JOB_IMAGE:-}" ] && ! getent hosts "$CI_SERVER_HOST" >/dev/null; then
+        if [ -f /.dockerenv ] && [ -n "${CI_JOB_IMAGE:-}" ]; then
           printf 'nameserver 223.5.5.5\nnameserver 1.1.1.1\n' > /etc/resolv.conf
         fi
 
