@@ -35,3 +35,4 @@ xcuserdata/
 **/jniLibs/
 /ios/Generated/
 /ios/RustClipSync.xcodeproj/
+/.ci-tools/
