@@ -15,7 +15,7 @@ Rust / host FFI、平台编译、模拟器、真实 OS 适配器和真机结果�
 - core 0.3.0 统一 `/api/...`；隔离 TLS 路由 smoke 检查 7 类操作及根路径 / 子路径共 14 个请求。
   升级前已确认旧 core 的 `/v1/devices` 请求使测试失败，升级后通过。
 - Android Compose 工程、Keystore 包装 key、RCS1 原子落盘、剪贴板标记、UI 回调撤销。
-  #107 / #249 完整编译、lint、16 KiB 静态对齐通过；API 31 AVD 6 项合成测试和空界面启动通过。
+  #112 / #262（core 0.3.0）完整编译、lint、16 KiB 静态对齐通过；API 31 AVD 6 项合成测试和空界面启动通过。
 - SwiftUI 源码、Keychain、原子落盘、剪贴板与 scene 生命周期；XcodeGen / XCFramework 脚本。
 - 双端内存适配器绑定 smoke；Android 另有主队列超时撤销与隔离文件存储测试，共 6 项。
 - GitHub Rust CI 与 GitLab Rust / Android 开发构建配置；私有镜像与现有 Runner 已实际接入。
@@ -44,7 +44,7 @@ Cirrus SDK 36-ndk digest，在临时任务容器补齐 JDK 17 / Rust 1.99.1 / ND
 
 ## 紧接着做
 
-1. GitLab #107 / #249 已完整通过 Rust、Android 两个 ABI、Kotlin、lint、APK 与 16 KiB 静态检查。
+1. GitLab #112 / #262（core 0.3.0）已完整通过 Rust、Android 两个 ABI、Kotlin、lint、APK 与 16 KiB 静态检查。
    修改共享层或平台代码后按 BUILD.md 重跑；不要以旧 APK 代表新实现。
 2. 隔离 API 31 AVD 的 6 项合成测试与空界面启动结果见 VALIDATION.md，复现脚本为
    scripts/test-android-emulator.sh。不把内存适配器通过当成真实剪贴板 / Keystore 验证。
