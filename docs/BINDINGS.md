@@ -2,7 +2,9 @@
 
 实现：UniFFI **0.32.2** proc macros，同一个 `rustclipsync-mobile-ffi` crate 生成 Kotlin / Swift。
 core 固定到 `a13298c550fa4ebb287e55fe7a229486a36f22f5`，版本 0.2.0；来源写在 workspace
-Cargo.toml 和 Cargo.lock，不读取相邻 checkout，不修改 core。
+Cargo.toml 和 Cargo.lock。为避免 CI 到 GitHub 的 Git 连接反复超时，.cargo/config.toml 将该
+来源替换为同提交的完整 vendor 快照，保留许可证、Git tree 与逐文件 SHA-256 清单。
+快照按固定 Git 对象导出，不读取相邻 checkout 作为构建依赖，不修改 core。
 
 ## 评估结论
 

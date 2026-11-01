@@ -1,0 +1,32 @@
+{
+  "files": {
+    ".gitattributes": "c9764e8e9ea4938e806ed181030ac9ebbb895bbbaa049f56e93c731dd7c38313",
+    ".github/workflows/ci.yml": "6c36a405bd7bd47ec6e48af89408932aaf5d7bfe8c1d1edacbff4dac4f081d07",
+    ".gitignore": "8c2fd413641964e37caebeee2a27030d617f3a80d88f6bfb0916d9d7d41388db",
+    "Cargo.lock": "8131f838ebb58e703503380d02c85710e13f5338827e4b31e8c34aa7b2f33c77",
+    "Cargo.toml": "df762167e355ac94bcff66caed28c4ea6a648a43fcf2545393d62e228b2e86b1",
+    "LICENSE": "e2a1c93da3bd7ecef573b225d7f159213fc89440b22487d1930b4c58a99bf84c",
+    "README-ZH.md": "a7747107edf7fed3d80e735424c42b438962d854c26425e2103bfaecadfb7362",
+    "README.md": "7b4c8f273bf1bba1ad29057dc743e75655a308da33b3e5178822ef48ce7162c9",
+    "VALIDATION.md": "ea5683b5bd7c3e04a59f3a76a3c21d63aa6608ec238ec1e4edc777b2b48fc23e",
+    "examples/protocol_probe.rs": "b30ab4ac27afcc4395855174e1abd94b1abf9a614ecb37b2b38f7bb288398f16",
+    "src/adapters.rs": "4c87eba6a900c9a9b2ab503190d9a4542d470bb3f1ddac951126c1f94315174f",
+    "src/client.rs": "1438c864ac46c902484917718359524554d79a51a0dbaf82bcdac691b032bd02",
+    "src/error.rs": "1b066be5b85f8d884b06e12ef0ac195fc7b52b93f6c9564f16d0b9aed63705da",
+    "src/filter.rs": "10444993546bc3164f2a103e7e4198b873c1363e7b19aba92aac518d531b7a16",
+    "src/lib.rs": "f5146a5e8321a6478252c6c474446889340221b321c68f025b12d37f3343399b",
+    "src/session.rs": "3d9ca7fc500af855fc7c5140bca4cef00b4152bfb1c10ed9ffe66b0e4c148627",
+    "src/state.rs": "0fb673c9ab87aa41c0ddd914ccb4f3ac2bcc076a6c8e832d339d635e0fe63251",
+    "src/transport.rs": "96a000f971442eeb38ce9b24517d7b91014b5c28afe00aa1b3402092126fb312",
+    "src/worker.rs": "20371d30e90b3c7f9c612b02b066c41728b12b3f1449ec5960d2b5f7beb2f4f9",
+    "tests/errors.rs": "9082805fe021faefbd63e915ea169d34a4b65be39caf55e54814c2af1a9abb4a",
+    "tests/fixtures/README.md": "9db81ba82b4e90e82fcd4049d9fb2a8bfc4a75970d310d5a6799038cc8cc1408",
+    "tests/fixtures/omaclipsync-0.2.0.state": "74690277a1aa04347124f91051dc518b190f3d54033df8a2eb7ce565a1ccbe16",
+    "tests/migration.rs": "6430dd177bfffd8b5717d65c20a20dd6c7316f34713002cde3017f8b3f683dc5",
+    "tests/server_e2e.py": "f7cc4edfe6e0bcb92981d24728d52ac88436e9c603b2132e3a0224589502ddbe",
+    "tests/session.rs": "443c2f13c6e2a6ba962263e9edba7d75620881309dead44f491994aba428631b",
+    "tests/worker.rs": "4001c5783276eaf154b80b3f7d58d5c2f3185cf58396aae1f229595e49ee8ff8",
+    "tools/export_source.py": "076a47520c13931123d4fc8536fb0d8c4c0fe2b2cf32d5ebc2ddc85da6f63d8e"
+  },
+  "package": null
+}

@@ -8,7 +8,6 @@ export RUSTUP_HOME="$ci_tools/rustup"
 export GRADLE_USER_HOME="$ci_tools/gradle"
 export PATH="$CARGO_HOME/bin:$PATH"
 export CARGO_BUILD_JOBS=4
-export CARGO_NET_GIT_FETCH_WITH_CLI=true
 if ! command -v python3 >/dev/null || [[ ! -d /usr/lib/jvm/java-17-openjdk-amd64 ]]; then
   apt-get update
   apt-get install -y --no-install-recommends python3 openjdk-17-jdk-headless

@@ -1,0 +1,8 @@
+{
+  "git_archive_sha256": "6b48a77736379a9c0302721e154d59fbf9675bbaa6b21b14297e667d288970b3",
+  "license": "MIT",
+  "revision": "a13298c550fa4ebb287e55fe7a229486a36f22f5",
+  "source_url": "https://github.com/Infinifar/rustclipsync-core.git",
+  "upstream_file_count": 27,
+  "upstream_tree": "66b8dc159f9207e5b4bd6d04824289b574c0675d"
+}
