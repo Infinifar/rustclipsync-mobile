@@ -1,8 +1,10 @@
 package io.github.infinifar.rustclipsync
 
 import android.Manifest
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import io.github.infinifar.rustclipsync.bindings.SensitivePolicy
@@ -43,6 +46,7 @@ private fun SyncScreen(session: SessionController) {
     var confirmAutoWrite by remember { mutableStateOf(false) }
     var confirmBackgroundWrite by remember { mutableStateOf(false) }
     val editable = !session.connected && !session.busy
+    val context = LocalContext.current
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { session.refreshNotificationAuthorization() }
     Surface(Modifier.fillMaxSize()) {
         Column(Modifier.safeDrawingPadding().padding(24.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -80,6 +84,9 @@ private fun SyncScreen(session: SessionController) {
                 Text(if (session.backgroundRunning) "后台监听服务运行中" else "连接后从前台启动监听服务")
                 Text(if (session.notificationAuthorized) "收件箱通知默认 **；可显示／隐藏、复制" else "通知未授权或频道关闭：继续保存收件箱，不展示消息通知")
                 if (Build.VERSION.SDK_INT >= 33 && !session.notificationAuthorized) TextButton(onClick = { permission.launch(Manifest.permission.POST_NOTIFICATIONS) }) { Text("允许收件箱通知") }
+                TextButton(onClick = {
+                    context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName))
+                }) { Text("通知权限与频道设置") }
             }
             if (session.connected) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

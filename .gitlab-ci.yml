@@ -4,6 +4,14 @@ default:
   tags: [android]
   image: ghcr.io/cirruslabs/android-sdk:36-ndk@sha256:eba21147d4ca3860e020ef607e3072f188674227e3110eb1d5aeb659f9ce4140
   interruptible: true
+  hooks:
+    pre_get_sources_script:
+      - |
+        # Some Rocky job containers inherit an unreachable Tailscale resolver.
+        # Only this disposable Docker container may use the fallback, never the host/runner.
+        if [ -f /.dockerenv ] && [ -n "${CI_JOB_IMAGE:-}" ] && ! getent hosts "$CI_SERVER_HOST" >/dev/null; then
+          printf 'nameserver 223.5.5.5\nnameserver 1.1.1.1\n' > /etc/resolv.conf
+        fi
 
 variables:
   CARGO_TERM_COLOR: always

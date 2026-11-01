@@ -188,3 +188,15 @@ CLI 1.1 未发现 ANDROID_AVD_HOME 下的临时设备，AVD 启动使用 SDK emu
 
 这些是 Android 模拟器绑定、HTTPS 与隔离文件测试；不代替真实 OS 剪贴板、Keystore、
 连接界面交互、真机、iOS 或 16 KiB 设备运行验证。
+
+
+后台通知测试在普通测试包中新增 NotificationSafetyTest；完整远端脚本现支持
+`--api 31`（默认）、`--api 35` 或 `--api 36`，输出分别为 build/service-e2e-apiN。
+API 33+ 在一次性模拟器上为测试包授予通知权限；真实用户授权仍由应用 UI 申请，
+通知频道与永久拒绝可从“通知权限与频道设置”恢复。新场景实际启动前台服务，
+检查默认隐藏、显示 / 隐藏、旧消息票据、熄屏隐藏、显式复制、后台写入开关与停止撤销。
+剪贴板和安全存储继续使用合成适配器与独立文件，不接触真实凭据或宿主剪贴板。
+
+Rocky 部分任务容器继承的 Tailscale DNS 不可达时，GitLab pre_get_sources_script
+仅在该临时 Docker 作业内回退到 223.5.5.5 / 1.1.1.1，解决源码拉取前的解析失败；
+不改 Runner 配置、宿主 DNS 或 v2raya。依据为 GitLab 官方 hooks:pre_get_sources_script。

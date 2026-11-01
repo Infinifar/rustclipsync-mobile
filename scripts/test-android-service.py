@@ -29,12 +29,13 @@ TOKEN = '44' * 32
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--api', type=int, choices=[31, 35, 36], default=31)
     parser.add_argument('--android-cli', default=str(Path.home() / '.local/bin/android'))
     args = parser.parse_args()
     sdk = Path(os.environ['ANDROID_HOME'])
     adb = str(sdk / 'platform-tools/adb')
     android = [args.android_cli, '--no-metrics', '--sdk=' + str(sdk)]
-    output = ROOT / 'build/service-e2e'
+    output = ROOT / ('build/service-e2e-api' + str(args.api))
     output.mkdir(parents=True, exist_ok=True)
     binary = ROOT / 'build/disposable-server/rustclipsync-server'
     provenance = json.loads(binary.with_name('provenance.json').read_text())
@@ -188,10 +189,10 @@ def main():
             # Refuse an existing device; this test owns an entirely new emulator and AVD.
             connected = subprocess.check_output([adb, 'devices'], env=environment).decode().splitlines()[1:]
             assert not any(line.strip() for line in connected), 'existing Android device detected'
-            if not (sdk / 'system-images/android-31/default/x86_64').exists():
-                run([str(sdk / 'cmdline-tools/latest/bin/sdkmanager'), 'system-images;android-31;default;x86_64'], stdin=subprocess.DEVNULL)
+            if not (sdk / f'system-images/android-{args.api}/default/x86_64').exists():
+                run([str(sdk / 'cmdline-tools/latest/bin/sdkmanager'), f'system-images;android-{args.api};default;x86_64'], stdin=subprocess.DEVNULL)
             run([str(sdk / 'cmdline-tools/latest/bin/avdmanager'), 'create', 'avd', '--force', '--name', 'rcs-service-e2e',
-                 '--package', 'system-images;android-31;default;x86_64', '--device', 'pixel_5'], input='no\n', text=True)
+                 '--package', f'system-images;android-{args.api};default;x86_64', '--device', 'pixel_5'], input='no\n', text=True)
             config = Path(environment['ANDROID_AVD_HOME']) / 'rcs-service-e2e.avd/config.ini'
             config.write_text(config.read_text() + '\nhw.gpu.enabled=yes\nhw.gpu.mode=swiftshader_indirect\nhw.ramSize=2048\n')
             # Android CLI 1.1 does not discover AVDs under a temporary ANDROID_AVD_HOME.
@@ -205,6 +206,8 @@ def main():
             report['android_api'] = device('shell', 'getprop', 'ro.build.version.sdk').stdout.strip()
             report['page_size'] = device('shell', 'getconf', 'PAGESIZE').stdout.strip()
             for apk in apks: device('install', '-r', str(apk), timeout=90)
+            if args.api >= 33:
+                for package in [NORMAL, APP]: device('shell', 'pm', 'grant', package, 'android.permission.POST_NOTIFICATIONS')
             smoke = device('shell', 'am', 'instrument', '-w', '-r', '-e', 'class',
                            ','.join(NORMAL + '.' + name for name in ['BindingSmokeTest', 'MainThreadGateTest', 'SecureStateTest', 'NotificationSafetyTest']),
                            NORMAL + '.test/androidx.test.runner.AndroidJUnitRunner', timeout=120).stdout
@@ -268,6 +271,8 @@ def main():
             assert len(retried) == 2 and retried[0]['path'] == retried[1]['path']
             assert [item['duplicate'] for item in retried] == [False, True]
             assert {item.get('result') for item in report['requests'] if item['path'] == '/api/ack'} >= {'applied', 'skipped', 'self'}
+            if args.api >= 33:
+                device('shell', 'pm', 'grant', APP, 'android.permission.POST_NOTIFICATIONS')
             phase('backgroundNotificationsAndOptionalWrites')
             assert metadata()['revision'] == 11
             report['final_revision'] = 11
