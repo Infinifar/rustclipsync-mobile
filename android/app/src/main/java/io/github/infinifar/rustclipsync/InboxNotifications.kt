@@ -26,6 +26,7 @@ internal class InboxNotifications(
     private var ticket: String? = null
     private var body: String? = null
     private var version = 0L
+    private var dismissedItem: String? = null
     private val pending = mutableSetOf<PendingIntent>()
 
     init { channels(context) }
@@ -41,6 +42,7 @@ internal class InboxNotifications(
     fun clear() {
         ++version
         body = null; item = null; ticket = null
+        dismissedItem = null
         pending.forEach { it.cancel() }; pending.clear()
         manager.cancel(INBOX_ID)
     }
@@ -53,10 +55,17 @@ internal class InboxNotifications(
 
     fun refreshAuthorization() { if (!authorized()) clear() }
 
+    /** Restore durable inbox availability without treating every poll as a new message. */
+    fun sync(id: String?, eligible: Boolean) {
+        if (!eligible || id == null || !authorized()) { clear(); return }
+        if (item == id || dismissedItem == id) return
+        offer(id)
+    }
+
     suspend fun action(intent: Intent, eligible: () -> Boolean, read: suspend (String) -> String?) {
         val id = matchingItem(intent) ?: return
         if (!eligible() || !authorized()) { clear(); return }
-        if (intent.action == DISMISS) { clear(); return }
+        if (intent.action == DISMISS) { clear(); dismissedItem = id; return }
         if (intent.action == HIDE) { mask(); return }
         if (intent.action != SHOW || locked()) return
         val revision = ++version
@@ -101,6 +110,7 @@ internal class InboxNotifications(
         val open = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), FLAGS)
         val notification = Notification.Builder(context, INBOX_CHANNEL)
             .setSmallIcon(R.drawable.ic_launcher).setContentTitle("加密收件箱")
+            .setSubText("展开可显示／隐藏、复制")
             .setContentText(text).setStyle(Notification.BigTextStyle().bigText(text))
             .setVisibility(Notification.VISIBILITY_PRIVATE).setPublicVersion(public)
             .setLocalOnly(true).setOnlyAlertOnce(true).setContentIntent(open)

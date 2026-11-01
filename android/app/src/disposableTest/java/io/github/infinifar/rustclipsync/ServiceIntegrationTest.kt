@@ -199,7 +199,8 @@ class ServiceIntegrationTest {
             eventually("opt-in ordinary write") { b.writes.get() == 2 }
             assertEquals("synthetic ordinary background write", b.selection?.text)
             assertEquals(reads, b.reads.get())
-            assertNull(inbox())
+            assertNotNull(inbox()) // Returning to the app masks the saved inbox; it remains actionable.
+            assertEquals("**", inbox()!!.extras.getCharSequence(Notification.EXTRA_TEXT).toString())
 
             // Inbox still wins over the background-write switch for marked data.
             publish("synthetic marked inbox with writes enabled", true)
@@ -216,6 +217,59 @@ class ServiceIntegrationTest {
             delay(300)
             main { app.session = previous }
             close(sender)
+        }
+    }
+
+    @Test fun restoredInboxActionsInNotificationShade() = runBlocking {
+        val text = "Synthetic encrypted inbox UI proof"
+        val a = platform("shade-sender"); val b = platform("shade-receiver")
+        val sender = open(a); val seed = open(b)
+        try {
+            sender.check(); seed.check()
+            a.selection = copy(text, true)
+            assertEquals(SyncOutcome.UPLOADED, sender.sendClipboard()); sender.retryPending()
+            assertEquals(SyncOutcome.STORED, seed.receive()); seed.retryPending()
+            assertEncrypted(b, text)
+        } finally { close(sender, seed) }
+        // Reopen saved inbox state. No new message is sent after this connection.
+        val app = context.applicationContext as SyncApplication
+        val previous = main { app.session }
+        val controller = main {
+            previous.close()
+            context.getSharedPreferences("background-listening", 0).edit().clear().commit()
+            SessionController(context, { b to ByteArray(32) { 0x42 } }, MobileSession::forDisposableTest)
+                .also { app.session = it }
+        }
+        val manager = context.getSystemService(NotificationManager::class.java)
+        fun inbox() = manager.activeNotifications.firstOrNull { it.id == InboxNotifications.INBOX_ID }?.notification
+        suspend fun shade(stage: String, predicate: suspend () -> Boolean) {
+            try { withTimeout(120_000) { while (!predicate()) delay(100) } }
+            catch (error: kotlinx.coroutines.TimeoutCancellationException) { throw AssertionError("SystemUI stage: " + stage, error) }
+        }
+        try {
+            main { context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)) }
+            eventually("shade activity visible") { main { controller.foreground } }
+            eventually("shade foreground connection") {
+                main { controller.connect(server, "synthetic-mobile", "synthetic-mobile-password", SensitivePolicy.ENCRYPTED_INBOX); controller.connected }
+            }
+            assertNotNull(main { controller.status?.inbox })
+            main { controller.configureBackgroundListening(true) }
+            eventually("saved inbox restored to notification") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == "**" }
+            assertTrue(main { controller.foreground })
+            File(root, "shade-ready").writeText("ready")
+            // Host must click the actual SystemUI buttons; this method never sends a PendingIntent itself.
+            shade("show clicked") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == text }
+            File(root, "shade-shown").writeText("ready")
+            shade("hide clicked") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == "**" }
+            File(root, "shade-hidden").writeText("ready")
+            shade("copy clicked") { b.writes.get() == 1 }
+            assertEquals(text, b.selection?.text); assertTrue(b.selection?.sensitive == true)
+            assertFalse(main { controller.backgroundWritesEnabled })
+            assertEquals(listOf("显示", "复制"), inbox()!!.actions.map { it.title.toString() })
+        } finally {
+            main { controller.configureBackgroundListening(false); controller.close() }
+            delay(300)
+            main { app.session = previous }
         }
     }
 

@@ -85,3 +85,12 @@ build/service-e2e-apiN。9 项普通合成 smoke，真实服务完整方法数 A
 另有故障注入中断准备阶段，不计为通过。通知 cancel 为异步，测试必须有上限地等待系统
 移除完成，不能直接断言即时消失。临时容器、AVD、证书、数据库、ZIP 与本地 mobile target
 均已清理；共享 Runner / 镜像 / v2raya 保留。
+
+## 通知可见性修复（本轮实施）
+
+用户反馈只有后台监听通知。旧实现只在后台收到新 inbox ID 时发卡片，进入前台删除后
+不会从已保存消息恢复；系统折叠通知也隐藏动作。已改为按服务 / 策略 / 授权 / 当前收件箱
+协调卡片，前台只 mask，加入手动重显、空箱 / 权限状态和 0.1.1 构建号。
+新测试 restoredInboxActionsInNotificationShade 先保存并关闭 Native 会话，再重开已有
+收件箱，由宿主通过 Android CLI layout 定位实际 SystemUI 控件并 adb 点击；不再只调用
+PendingIntent.send 验证动作对象。验证完成后更新 VALIDATION.md，构建仍在 Rocky。

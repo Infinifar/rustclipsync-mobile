@@ -42,6 +42,24 @@ class NotificationSafetyTest {
         } finally { notifications.clear() }
     }
 
+    @Test fun syncRestoresSavedInboxWithoutResettingTheCurrentTicket() {
+        val notifications = InboxNotifications(context)
+        try {
+            val id = "30000000-0000-4000-8000-000000000001"
+            notifications.sync(id, true)
+            val first = awaitInbox(true)!!.actions[0].actionIntent
+            notifications.sync(id, true)
+            assertEquals(first, awaitInbox(true)!!.actions[0].actionIntent)
+            notifications.clear()
+            assertNull(awaitInbox(false))
+            notifications.sync(id, true)
+            val restored = awaitInbox(true)!!.actions[0].actionIntent
+            assertNotEquals(first, restored)
+            notifications.sync(id, false)
+            assertNull(awaitInbox(false))
+        } finally { notifications.clear() }
+    }
+
     @Test fun defaultNotificationIsMaskedPrivateAndUsesImmutableActions() {
         val notifications = InboxNotifications(context)
         try {

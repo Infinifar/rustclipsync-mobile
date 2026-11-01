@@ -4,6 +4,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 val disposableIntegration = providers.gradleProperty("disposableIntegration").orNull == "true"
+val revision = providers.environmentVariable("CI_COMMIT_SHORT_SHA").orElse("local").get()
+require(revision == "local" || revision.matches(Regex("[0-9a-f]{7,40}")))
 android {
     namespace = "io.github.infinifar.rustclipsync"
     compileSdk = 36
@@ -13,12 +15,13 @@ android {
         applicationId = "io.github.infinifar.rustclipsync" + if (disposableIntegration) ".disposable" else ""
         minSdk = 31
         targetSdk = 36
-        versionCode = 1
-        versionName = if (disposableIntegration) "0.1.0-disposable" else "0.1.0"
+        versionCode = 2
+        versionName = if (disposableIntegration) "0.1.1-disposable" else "0.1.1"
+        buildConfigField("String", "BUILD_REVISION", "\"$revision\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
     }
-    buildFeatures { compose = true }
+    buildFeatures { compose = true; buildConfig = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     sourceSets["main"].java.srcDir("../../build/bindings")
     if (disposableIntegration) sourceSets["androidTest"].java.srcDir("src/disposableTest/java")

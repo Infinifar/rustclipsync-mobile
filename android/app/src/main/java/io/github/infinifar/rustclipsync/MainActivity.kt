@@ -72,6 +72,7 @@ private fun SyncScreen(session: SessionController) {
         Column(Modifier.safeDrawingPadding().padding(24.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("RustClipSync", style = MaterialTheme.typography.headlineLarge)
             Text("Android 独立客户端 · 手动同步与可选后台收件箱")
+            Text("开发构建 ${BuildConfig.VERSION_NAME} · ${BuildConfig.BUILD_REVISION}", style = MaterialTheme.typography.labelSmall)
             OutlinedTextField(server, { server = it }, label = { Text("HTTPS 服务器地址") }, enabled = editable, singleLine = true)
             OutlinedTextField(username, { username = it }, label = { Text("账户") }, enabled = editable, singleLine = true)
             OutlinedTextField(password, { password = it }, label = { Text("密码（仅本次内存会话）") }, enabled = editable, singleLine = true, visualTransformation = PasswordVisualTransformation())
@@ -105,6 +106,8 @@ private fun SyncScreen(session: SessionController) {
                 Text(if (session.notificationAuthorized) "收件箱通知默认 **；可显示／隐藏、复制" else "通知未授权或频道关闭：继续保存收件箱，不展示消息通知")
                 if (!session.notificationAuthorized) TextButton(onClick = ::requestNotificationPermission) { Text("允许收件箱通知") }
                 TextButton(onClick = ::notificationSettings) { Text("通知权限与频道设置") }
+                Text(session.inboxNotificationHint)
+                OutlinedButton(onClick = session::showInboxNotification, enabled = session.inboxNotificationReady && !session.busy) { Text("显示收件箱通知") }
             }
             if (session.connected) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -82,10 +82,11 @@ internal class SessionController(
         foreground = value
         updateWriteAccess()
         native?.clipboardChanged() // Invalidate an in-flight receive across a lifecycle transition.
-        if (value) { notifications.clear(); refreshNotificationAuthorization(); startBackgroundIfEnabled() }
+        if (value) { notifications.mask(); refreshNotificationAuthorization(); startBackgroundIfEnabled() }
         else {
             clipboardFocus(false)
             if (!backgroundEnabled || (!backgroundRunning && !startingService)) close()
+            else syncNotification()
         }
     }
 
@@ -135,6 +136,7 @@ internal class SessionController(
         startingService = false
         backgroundRunning = backgroundEnabled && connected
         updateWriteAccess()
+        syncNotification()
         return backgroundRunning
     }
 
@@ -150,11 +152,29 @@ internal class SessionController(
         message = "后台监听已达到系统时限并停止；可回到前台重新启用"
     }
 
-    fun notificationEligible(): Boolean = backgroundEnabled && backgroundRunning && connected && !foreground && selectedPolicy == SensitivePolicy.ENCRYPTED_INBOX
+    fun notificationEligible(): Boolean = backgroundEnabled && backgroundRunning && connected && selectedPolicy == SensitivePolicy.ENCRYPTED_INBOX
+
+    val inboxNotificationReady: Boolean get() = notificationEligible() && notificationAuthorized && status?.inbox != null
+    val inboxNotificationHint: String get() = when {
+        !connected -> "连接后可显示加密收件箱通知"
+        !backgroundEnabled || !backgroundRunning -> "请先启用后台监听并等待服务启动"
+        selectedPolicy != SensitivePolicy.ENCRYPTED_INBOX -> "当前未选择加密收件箱策略"
+        status?.inbox == null -> "收件箱为空：等待已明确标记的敏感消息；普通文本不会自动进入收件箱"
+        !notificationAuthorized -> "收件箱已有消息，但通知权限或频道未开启"
+        else -> "收件箱已有消息；展开通知栏的“加密收件箱”可显示／隐藏、复制"
+    }
+
+    private fun syncNotification() = notifications.sync(status?.inbox?.id, notificationEligible())
+    fun showInboxNotification() {
+        refreshNotificationAuthorization()
+        val id = status?.inbox?.id ?: return
+        if (inboxNotificationReady) notifications.offer(id)
+    }
 
     fun refreshNotificationAuthorization() {
         notificationAuthorized = InboxNotifications.authorized(application)
         notifications.refreshAuthorization()
+        syncNotification()
     }
 
     /** A scheduling tick, not an upload retry loop. Core owns all receive/ack rules. */
@@ -162,10 +182,7 @@ internal class SessionController(
         refreshNotificationAuthorization()
         if (!backgroundEnabled || !backgroundRunning || !connected || foreground || busy) return
         if (!backgroundWritesEnabled && selectedPolicy != SensitivePolicy.ENCRYPTED_INBOX) return
-        val previous = status?.inbox?.id
         perform { receiveBackground(backgroundWritesEnabled); "后台接收已检查" }
-        val id = status?.inbox?.id
-        if (notificationEligible() && id != null && id != previous) notifications.offer(id)
     }
 
     suspend fun notificationAction(intent: Intent) = notifications.action(intent, ::notificationEligible) { id ->
@@ -221,7 +238,7 @@ internal class SessionController(
                 }
                 message = safeError(error)
             }
-        } finally { if (version == epoch) busy = false }
+        } finally { if (version == epoch) { busy = false; syncNotification() } }
     }
 
     fun close() {

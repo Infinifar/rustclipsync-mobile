@@ -15,6 +15,7 @@ import subprocess
 import tempfile
 import threading
 import time
+import notification_shade
 
 ROOT = Path(__file__).resolve().parents[1]
 APP = 'io.github.infinifar.rustclipsync.disposable'
@@ -29,6 +30,7 @@ TOKEN = '44' * 32
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--manual-shade', action='store_true', help='Pause the SystemUI scenario for manual layout/screenshot/button checks')
     parser.add_argument('--api', type=int, choices=[31, 35, 36], default=31)
     parser.add_argument('--android-cli', default=str(Path.home() / '.local/bin/android'))
     args = parser.parse_args()
@@ -159,6 +161,37 @@ def main():
             assert 'OK (1 test)' in text and 'INSTRUMENTATION_CODE: -1' in text, method
             report['completed'].append(method); print('PASS:', method, flush=True)
 
+        def shade_phase():
+            nonlocal crash_process
+            method = 'restoredInboxActionsInNotificationShade'
+            path = output / (method + '.txt')
+            def marker(name):
+                return device('shell', 'run-as', APP, 'ls', 'no_backup/disposable-service-e2e/' + name, check=False).returncode == 0
+            with path.open('w') as log:
+                crash_process = instrument(method, log, asynchronous=True)
+                for _ in range(150):
+                    if crash_process.poll() is not None: raise RuntimeError('shade setup exited before readiness')
+                    if marker('shade-ready'): break
+                    time.sleep(.2)
+                else: raise RuntimeError('shade setup readiness timeout')
+                print('SHADE READY: saved inbox restored while app visible; actual SystemUI clicks required', flush=True)
+                if args.manual_shade:
+                    crash_process.wait(timeout=350)
+                else:
+                    for title, name in [('显示', 'shade-shown'), ('隐藏', 'shade-hidden'), ('复制', None)]:
+                        notification_shade.click(android, adb, SERIAL, output / ('shade-' + title + '.json'), title, environment)
+                        if name:
+                            for _ in range(100):
+                                if marker(name): break
+                                time.sleep(.1)
+                            else: raise RuntimeError('shade action did not reach app: ' + title)
+                    crash_process.wait(timeout=30)
+                crash_process = None
+            result = path.read_text()
+            assert 'OK (1 test)' in result and 'INSTRUMENTATION_CODE: -1' in result, method
+            report['completed'].append(method)
+            print('PASS:', method, flush=True)
+
         def crash_phase(method, marker):
             nonlocal crash_process
             with (output / (method + '.txt')).open('w') as log:
@@ -215,7 +248,7 @@ def main():
                            ','.join(NORMAL + '.' + name for name in ['BindingSmokeTest', 'MainThreadGateTest', 'SecureStateTest', 'NotificationSafetyTest']),
                            NORMAL + '.test/androidx.test.runner.AndroidJUnitRunner', timeout=120).stdout
             (output / 'production-smoke.txt').write_text(smoke)
-            assert 'OK (9 tests)' in smoke and 'INSTRUMENTATION_CODE: -1' in smoke
+            assert 'OK (10 tests)' in smoke and 'INSTRUMENTATION_CODE: -1' in smoke
             run([*android, 'run', '--apks', str(apks[0]), '--activity', NORMAL + '.MainActivity', '--device', SERIAL])
             with (output / 'empty-ui-layout.json').open('w') as layout:
                 run([*android, 'layout', '--device', SERIAL], stdout=layout)
@@ -280,7 +313,11 @@ def main():
             assert metadata()['revision'] == 11
             if args.api >= 35:
                 phase('foregroundServiceTimeoutStopsAndRevokes')
-            report['final_revision'] = 11
+            shade_phase()
+            assert metadata()['revision'] == 12
+            assert {item.get('result') for item in report['requests']
+                    if item['path'] == '/api/ack' and item.get('revision') == 12} == {'self', 'skipped'}
+            report['final_revision'] = 12
             report['status'] = 'passed'
             print('PASS: real server send/receive, three sensitive policies, offline latest-only, process/device/server restart, unknown-commit deduplication, background inbox notification toggle/copy and optional writes', flush=True)
         except Exception:
