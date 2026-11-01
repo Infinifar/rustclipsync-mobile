@@ -42,3 +42,15 @@ if not match or int(match[1]) < 6 or 'INSTRUMENTATION_CODE: -1' not in report:
     raise SystemExit('Synthetic instrumentation tests did not all pass')
 print('Synthetic Android instrumentation tests passed:', match[1])
 PY
+# Open only the empty configuration screen; never connect, paste, or enter credentials.
+adb shell am start -W -n io.github.infinifar.rustclipsync/.MainActivity | tee build/android-ui-launch.txt
+sleep 2
+adb shell pidof io.github.infinifar.rustclipsync >/dev/null
+python3 - <<'PY'
+from pathlib import Path
+if 'Status: ok' not in Path('build/android-ui-launch.txt').read_text():
+    raise SystemExit('Empty Compose screen did not launch successfully')
+print('Empty Compose configuration screen launched; no session was opened')
+PY
+adb shell input keyevent KEYCODE_HOME
+adb shell am force-stop io.github.infinifar.rustclipsync

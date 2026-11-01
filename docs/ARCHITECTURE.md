@@ -1,6 +1,7 @@
 # 移动端架构
 
-状态：共享 facade 与平台源码已建立，Rust / host FFI 已验证；平台编译与真机待验证。
+状态：共享 facade、双端原生源码已建立；Rust / host FFI 与 Android APK 编译、lint、
+16 KiB 静态对齐已通过。iOS 编译、真机与服务互操作待验证。
 实现契约见 [BINDINGS.md](BINDINGS.md)，构建见 [BUILD.md](BUILD.md)，结果见 [VALIDATION.md](VALIDATION.md)。
 
 ## 三层职责

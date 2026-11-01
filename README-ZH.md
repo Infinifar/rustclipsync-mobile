@@ -5,8 +5,10 @@
 现有小企鹅输入法维持 Kotlin，本仓库不迁移其实现。
 
 已建立 Cargo workspace、UniFFI 双端绑定生成、串行会话和主动关闭，并接入两端原生界面、
-剪贴板与安全存储适配源码。Rust mock 与实际 host FFI smoke 已通过；**Android / iOS
-平台编译和真机验证尚未完成**。详细证据见 [验证记录](docs/VALIDATION.md)。
+剪贴板与安全存储适配源码。Rust mock、实际 host FFI smoke 和 **Android
+应用 / 测试 APK 编译、lint、16 KiB 静态对齐检查、API 31 模拟器 6 项合成测试及
+空界面启动已通过**。iOS 平台编译与两端真机验证
+尚未完成。详细证据见 [验证记录](docs/VALIDATION.md)。
 
 | 层 | 职责 |
 | --- | --- |
