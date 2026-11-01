@@ -133,7 +133,14 @@ internal class SessionController(
         foreground = value
         updateWriteAccess()
         native?.clipboardChanged() // Invalidate an in-flight receive across a lifecycle transition.
-        if (value) { notifications.mask(); refreshNotificationAuthorization(); startBackgroundIfEnabled() }
+        if (value) {
+            notifications.mask(); refreshNotificationAuthorization(); startBackgroundIfEnabled()
+            // Recreated activities also refresh the running FGS title after a per-app locale change.
+            if (backgroundRunning) {
+                try { application.startService(Intent(application, BackgroundSyncService::class.java).setAction(InboxNotifications.START)) }
+                catch (_: RuntimeException) { /* The existing service stays bounded by its system lifetime. */ }
+            }
+        }
         else {
             clipboardFocus(false)
             if (!backgroundEnabled || (!backgroundRunning && !startingService)) close()
