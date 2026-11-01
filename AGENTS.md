@@ -6,6 +6,8 @@ docs/NEXT-SESSION.md；以实际代码与验证结果更新文档。
 ## 范围与架构
 
 - Android 使用 Kotlin / Jetpack Compose，iOS 使用 Swift / SwiftUI。
+- 本仓库只开发移动端；Apple 客户端面向 iPhone / iPad，不扩展 macOS 或 Mac Catalyst。
+  macOS 客户端之后在桌面端仓库考虑；macOS / Xcode 在此仅作为 iOS 构建宿主。
 - 两端调用同一 Rust mobile facade，facade 复用 rustclipsync-core。
 - 平台负责剪贴板、Keystore / Keychain、权限和生命周期；Rust facade 负责
   会话串行化、执行线程、关闭管理、接口与错误映射。

@@ -88,9 +88,11 @@ APK 和脚本。它运行上述 6 项合成测试，打开空配置页检查启�
 固定 SDK 镜像中的 emulator 36.3.10 使用该版本支持的 SwiftShader 模式；升级模拟器后按
 [官方加速文档](https://developer.android.com/studio/run/emulator-acceleration) 核对参数。
 
-## iOS（需要 macOS）
+## iOS 移动端（构建宿主为 macOS）
 
 工作基线：iOS **18** 起，bundle ID `io.github.infinifar.rustclipsync`。
+应用只面向 iPhone / iPad，工程关闭 Mac Catalyst 与 Designed for iPhone / iPad 的 Mac 运行目标。
+macOS 客户端之后在桌面端仓库考虑；此处 macOS / Xcode 仅为 iOS 的构建工具要求。
 Xcode 26.1 或更高、对应 iOS SDK、XcodeGen 2.x；Swift 5 language mode。
 这不是已通过验证的 Xcode 版本声明。选择实际 Mac 工具链后记录 xcodebuild -version。
 
@@ -121,6 +123,7 @@ iOS 会请求系统粘贴许可，不能承诺后台任意读取；离开 active
 - [Android Keystore](https://developer.android.com/privacy-and-security/keystore)
 - [Android 12+ 备份与设备迁移规则](https://developer.android.com/identity/data/autobackup#xml-syntax-android-12)
 - [Xcode 支持表](https://developer.apple.com/support/xcode/)
+- [Xcode 构建设置参考](https://developer.apple.com/documentation/xcode/build-settings-reference)
 - [UIPasteboard](https://developer.apple.com/documentation/uikit/uipasteboard)
 - [Keychain 前台可访问性](https://developer.apple.com/documentation/security/ksecattraccessiblewhenunlockedthisdeviceonly)
 - [SwiftUI scene background](https://developer.apple.com/documentation/swiftui/scenephase/background)

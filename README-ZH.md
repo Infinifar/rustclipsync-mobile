@@ -3,6 +3,7 @@
 独立 Android（Kotlin / Jetpack Compose）与 iOS（Swift / SwiftUI）客户端，
 共用 Rust mobile facade 和 [rustclipsync-core](https://github.com/Infinifar/rustclipsync-core)。
 现有小企鹅输入法维持 Kotlin，本仓库不迁移其实现。
+Apple 客户端只面向 iPhone / iPad；macOS 客户端之后在桌面端仓库考虑。
 
 已建立 Cargo workspace、UniFFI 双端绑定生成、串行会话和主动关闭，并接入两端原生界面、
 剪贴板与安全存储适配源码。Rust mock、实际 host FFI smoke 和 **Android

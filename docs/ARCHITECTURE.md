@@ -4,6 +4,9 @@
 16 KiB 静态对齐已通过。iOS 编译、真机与服务互操作待验证。
 实现契约见 [BINDINGS.md](BINDINGS.md)，构建见 [BUILD.md](BUILD.md)，结果见 [VALIDATION.md](VALIDATION.md)。
 
+本仓库的产品范围仅为 Android 与 iOS / iPadOS 移动端，不增加 macOS 或 Mac Catalyst
+应用目标。macOS 客户端之后在桌面端仓库考虑。文档中的 macOS / Xcode 指 iOS 构建宿主。
+
 ## 三层职责
 
 ```text

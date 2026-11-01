@@ -17,6 +17,7 @@
 | Kotlin 模拟器绑定 / 适配器测试 | 6 项通过 | job #249 完整 APK，全新 API 31 / x86_64 AVD；内存绑定、重复关闭、主队列执行/超时/撤销、隔离文件落盘/过大状态拒绝 |
 | Android Compose 空界面启动 | 通过 | 同一 AVD，冷启动 Status: ok，未打开会话、未输入凭据 |
 | iOS Swift / XCFramework | 未编译 | 无 macOS / Xcode；脚本在 Linux 明确退出，不宣称 iOS 通过 |
+| iOS 移动端范围 | 配置检查通过 | project.yml 经 Ruby YAML 解析：只有 iOS 目标、iPhone / iPad 设备族；显式关闭 Mac Catalyst 和 Designed for iPhone / iPad 的 Mac 运行目的地；未运行 Xcode |
 | Swift 模拟器绑定 smoke | 未运行 | 已编写 XCTest，无 Apple 运行环境 |
 | 真机 / OS 平台适配 / 服务互操作 | 未验证 | 尚需隔离服务、测试设备，验证 Keystore/Keychain、OS 剪贴板、生命周期、断网与重启 |
 

@@ -24,6 +24,9 @@ Rust / host FFI、平台编译、模拟器、真实 OS 适配器和真机结果�
 兼容包袱；iOS 依同样意图采用 **iOS 18** 工作基线。首批前台手动发送/接收、状态、加密
 敏感收件箱，先 Android 后 iOS，离开前台关闭。未标记文本不可承诺识别敏感。
 
+用户明确 Apple 客户端只做 iPhone / iPad 移动端；macOS 客户端之后在桌面端仓库考虑。
+不要在本仓库增加 macOS / Mac Catalyst 目标；Mac / Xcode 要求只涉及 iOS 构建宿主。
+
 用户要求使用 **gitlab-rocky 做开发构建，并清理本地新增工具**。
 Git SSH gitlab-rocky:20820 认证为 @Cassius；同机管理使用 root@turbo-rocky:22 与现有密钥，
 无需浏览器或新建 API token。不要混淆两种 SSH 服务。
