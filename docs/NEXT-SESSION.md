@@ -20,8 +20,8 @@ Rust / host FFI、平台编译、模拟器、真实 OS 适配器和真机结果�
   app force-stop、设备 reboot、服务端 restart、丢响应后同 UUID / revision 去重；证据见 VALIDATION。
 - retryPending 只委托 core.flush，Android 网络错误后刷新 pending 并提供重试入口。
 - SwiftUI 源码、Keychain、原子落盘、剪贴板与 scene 生命周期；XcodeGen / XCFramework 脚本。
-- 双端内存适配器绑定 smoke；Android 另有主队列超时撤销与隔离文件存储测试，共 9 项（含通知测试）。
-- GitHub Rust CI 与 GitLab Rust / Android 开发构建配置；私有镜像与现有 Runner 已实际接入。
+- 双端内存适配器绑定 smoke；Android 另有主队列超时撤销与隔离文件存储测试，共 10 项（含通知测试）。
+- GitHub Rust / Android APK 开发构建配置；私有 GitLab 镜像与现有 Runner 保留手动备用。
 
 ## 用户基线与远端构建
 
@@ -32,7 +32,13 @@ Rust / host FFI、平台编译、模拟器、真实 OS 适配器和真机结果�
 用户明确 Apple 客户端只做 iPhone / iPad 移动端；macOS 客户端之后在桌面端仓库考虑。
 不要在本仓库增加 macOS / Mac Catalyst 目标；Mac / Xcode 要求只涉及 iOS 构建宿主。
 
-用户要求使用 **gitlab-rocky 做开发构建，并清理本地新增工具**。
+用户最新要求将默认开发构建迁到 **GitHub Actions**，减少 Rocky DNS 失败造成的重跑，
+并且不持续监控构建。开发分支已推 origin，工作流按代码 push / PR 触发，缓存依赖、
+取消同分支过时任务、保留 APK 与报告。GitLab 的 web / API 构建保留手动备用，镜像
+push 不自动构建。不要恢复双端自动重复构建。当前可查看 Actions 页面，完成时作一次
+状态核对即可，不开启 watch 或轮询循环。文档修改不触发新构建。
+
+此前用户要求使用 **gitlab-rocky 做开发构建，并清理本地新增工具**，已有结果可复用。
 Git SSH gitlab-rocky:20820 认证为 @Cassius；同机管理使用 root@turbo-rocky:22 与现有密钥，
 无需浏览器或新建 API token。不要混淆两种 SSH 服务。
 本次尝试安装的本地 JDK / SDK tools / Gradle 和缓存已清理，本机 SDK 许可未接受。
@@ -47,9 +53,10 @@ Cirrus SDK 36-ndk digest，在临时任务容器补齐 JDK 17 / Rust 1.99.1 / ND
 
 ## 紧接着做
 
-1. 最新 GitLab #125 / #284 已完整通过 Rust、Android 两个 ABI、Kotlin、lint、APK 与 16 KiB 静态检查。
+1. GitLab #131 / #292（7117940）已通过 Rust、Android 两个 ABI、Kotlin、lint、APK 与 16 KiB 静态检查。
+   默认构建已迁到 GitHub Actions，首个提交 f9428b1；不要以旧 GitLab 包代表新 GitHub 产物。
    修改共享层或平台代码后按 BUILD.md 重跑；不要以旧 APK 代表新实现。
-2. API 31 / 35 的 9 项 smoke 与 4 / 5 项服务测试结果见 VALIDATION.md，复现脚本为
+2. API 31 / 35 的 10 项 smoke 与当前服务 / SystemUI 结果见 VALIDATION.md，复现脚本为
    scripts/test-android-service.py --api 31 或 --api 35。不把内存适配器通过当成真实剪贴板 / Keystore 验证。
 3. 在 Mac 选择实际 Xcode，执行 build-ios-native.sh、XcodeGen、xcodebuild 和 XCTest。
    Swift 源码未编译，不要把生成 Swift 绑定与 iOS 编译混淆。
@@ -93,4 +100,14 @@ build/service-e2e-apiN。9 项普通合成 smoke，真实服务完整方法数 A
 协调卡片，前台只 mask，加入手动重显、空箱 / 权限状态和 0.1.1 构建号。
 新测试 restoredInboxActionsInNotificationShade 先保存并关闭 Native 会话，再重开已有
 收件箱，由宿主通过 Android CLI layout 定位实际 SystemUI 控件并 adb 点击；不再只调用
-PendingIntent.send 验证动作对象。验证完成后更新 VALIDATION.md，构建仍在 Rocky。
+PendingIntent.send 验证动作对象。最终 API 31 / 35 各 10 项 smoke、5 / 6 项完整方法通过，含实际 SystemUI 操作；构建已改 GitHub。
+
+通知卡片使用独立 group key；原生操作在展开后显示。测试脚本只能点准确的
+`android:id/expand_button`，不能把 `expandableNotificationRow` 当成展开器，否则会打开应用。
+Android CLI / SDK 查询受并发 UiAutomation 所有限制，手工模式可据实际截图操作；失败或
+中断不计为通过。构建主机已按最新要求改 GitHub，Rocky 只保留本轮完成的验收产物。
+
+本轮 GitHub Android run 41334613641 与 Rust run 41334613232 均已通过，APK 位于对应 artifacts。
+Rocky 最终运行使用 7117940 / CI292，GitHub 编译源 f9428b1 的应用实现代码相同、构建号不同；
+GitHub 产物未另行运行模拟器。证据与完整清理记录见 android-notification-ui-2026-11-01。
+临时容器、AVD、证书、数据库、ZIP 与本地 actionlint 工具已清理；依赖缓存和 GitHub 构建产物按配置保留。

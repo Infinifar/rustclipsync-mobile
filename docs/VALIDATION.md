@@ -236,3 +236,53 @@ API 35 将系统 dataSync 时限临时改为 2,500 ms，验证超时后开关关
 运行脚本删除了 AVD、证书、数据库和相关进程；外层任务容器与所有 GitLab / 宿主 ZIP
 导出文件已删除，本地 mobile target / 新增工具已清理。共享镜像、Runner、GitLab、
 v2raya 保留，宿主与 Runner 配置未改。GitLab 构建产物按项目保留策略保留。
+
+## 收件箱通知可见性与 GitHub 构建迁移（2026-11-01）
+
+用户反馈只有后台监听通知。本轮确认旧实现进入前台时删除卡片，随后只在新 inbox ID
+到达时发布；已有收件箱不会恢复。此外，系统把监听与收件箱自动合组，动作隐藏且更新后
+组再次折叠。修复按持久化 inbox 元数据协调通知，回前台仅隐藏正文，使用独立 group key，
+并提供状态说明、手动重显与版本 / 构建号。没有更改协议、core 或 RCS1。
+
+实际运行的四个 APK 均来自提交 `71179403242589d44325e8093d1887dbcd7aa7a2` 的
+[GitLab #131 / job #292](https://gitlab.infinifar.top/Cassius/rustclipsync-mobile/-/jobs/292)。
+普通包为 **0.1.1 · 71179403**，SHA-256
+`ebd546d29a504ba764a7a0ef97c573d6ae48d70c7e9eb4a92dd06a79d9cd1158`。
+同一 job 通过 fmt、严格 Clippy、12 项 Rust 测试、rustdoc、14 次真实 HTTPS 路由请求、
+4 项 host FFI smoke、绑定生成、两个 Android ABI、普通与隔离测试包编译、lint、16 KiB
+APK / ELF 静态检查和测试构造函数隔离检查。iOS 仅生成绑定，未运行 Xcode。
+
+| 当前产物的运行验证 | 结果 |
+| --- | --- |
+| API 31 / Android 12 | 10 项普通 smoke、空 Compose 界面、5 项完整隔离服务方法通过；真实 SystemUI 显示 / 隐藏 / 复制通过 |
+| API 35 / Android 15 | 10 项普通 smoke、空 Compose 界面、6 项完整隔离服务方法通过 |
+| 通知栏实际交互 | API 35 实际点击显示、隐藏、复制，截图确认独立卡片、默认 ** 与相邻文本按钮；复制由合成适配器确认全文和敏感标记，后台自动写入仍关闭 |
+| 未验证 | 真机、真实 OS 剪贴板 / Keystore、完整连接表单操作、iOS / Xcode 和 16 KiB 设备运行 |
+
+新增通知方法先保存合成敏感消息，关闭 native 会话，再重开相同 RCS1；不发送新消息也
+必须恢复通知。服务回归继续覆盖敏感三策略、断网 latest-only、强制进程终止、Android
+重启、真实服务端重启、丢响应后同 UUID / revision 去重、后台写入授权与系统超时。
+通知方法不用 PendingIntent.send 代替点击 SystemUI；host 按实际层级或截图定位按钮。
+服务只监听一次性容器 loopback，剪贴板 / 密钥为 mock，未访问生产服务或真实账户。
+
+本轮早期测试工具探测未计入最终数量：API 31 UI 查询的并发 UiAutomation 冲突、两次
+人工阶段超时、Android CLI 未取得通知窗口的结果均单列。定位发现通用“expand”匹配误选
+`expandableNotificationRow`，会打开应用，已限定为准确的 `android:id/expand_button`。
+GitLab #129 / #130 分别在隔离服务源站及 Maven DNS 解析失败，也不计作完整构建通过。
+API 35 系统超时仍采用 2,500 ms 注入并还原；两种镜像均为 4,096 字节页。
+
+用户随后要求改用 GitHub 托管构建，已推送 `f9428b17dad34381a2718fe899b2335c64390a31`：
+[Android APK](https://github.com/Infinifar/rustclipsync-mobile/actions/runs/41334613641)、
+[Rust facade](https://github.com/Infinifar/rustclipsync-mobile/actions/runs/41334613232)。
+两个 GitHub job 均已成功，普通 APK / 测试 APK、lint、两个 ABI、静态对齐和 Rust 全检查通过；
+[APK 与校验值下载](https://github.com/Infinifar/rustclipsync-mobile/actions/runs/41334613641/artifacts/13094973024)。
+工作流另通过 Ruby YAML 解析与 actionlint 1.7.12；官方 actions 固定完整 SHA，依赖缓存、
+同分支取消过时任务、7 天 artifacts、按需隔离 fixtures 已配置。GitLab 镜像改为 web / API
+手动备用，避免双重自动构建。GitHub 构建结果单独记录，不能继承上述 APK 的运行通过结论。
+
+证据：
+
+- [执行来源、APK / 脚本哈希与清理](evidence/android-notification-ui-2026-11-01/execution.json)、[CI292 日志](evidence/android-notification-ui-2026-11-01/ci-292.txt)。
+- [API 31 报告](evidence/android-notification-ui-2026-11-01/api31/report.json)、[API 35 报告](evidence/android-notification-ui-2026-11-01/api35/report.json)。
+- [默认隐藏](evidence/android-notification-ui-2026-11-01/api35-hidden.png)、[显示正文与隐藏按钮](evidence/android-notification-ui-2026-11-01/api35-shown.png)、[再次隐藏](evidence/android-notification-ui-2026-11-01/api35-hidden-again.png)。
+- [探测范围与失败说明](evidence/android-notification-ui-2026-11-01/probes.json)、[通知权限与 Intent 安全记录及 diff](evidence/android-notification-ui-2026-11-01/security-alignment.md)。

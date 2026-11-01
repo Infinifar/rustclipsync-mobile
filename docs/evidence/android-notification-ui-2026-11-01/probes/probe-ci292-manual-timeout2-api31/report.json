@@ -1,0 +1,86 @@
+{
+  "server": {
+    "source_url": "https://github.com/Infinifar/rustclipsync-server",
+    "revision": "c0e1774adef185ee7e2979cb6ad20c1c244acbed",
+    "version": "2.0.0",
+    "archive_url": "https://codeload.github.com/Infinifar/rustclipsync-server/tar.gz/c0e1774adef185ee7e2979cb6ad20c1c244acbed",
+    "archive_sha256": "1a6a2796ff1beb5997a631ded3e7243c8d7f31518662a8d85b566755c78ec6b9",
+    "license": "MIT",
+    "binary_sha256": "63934ff512c97dd802d4efc198fc56045fb4f0cbf01251d479dad30f49e99782"
+  },
+  "apks": {
+    "android/app/build/outputs/apk/debug/app-debug.apk": "ebd546d29a504ba764a7a0ef97c573d6ae48d70c7e9eb4a92dd06a79d9cd1158",
+    "android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk": "d4ef69124602d624dabbd8ba3cd999558c48deeb2de99c5596d9c3cf210bd58d",
+    "build/disposable/app-disposable.apk": "7bb10910507e1a1c04f0af69c23902b7f4165eaf08218f03e8033771551ac644",
+    "build/disposable/app-disposable-androidTest.apk": "9451a93b965f5ab4a5797e013256d81e57a21a6013ac5a6b2417642e1c5d675d"
+  },
+  "completed": [],
+  "faults": [],
+  "requests": [
+    {
+      "method": "POST",
+      "path": "/api/devices",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/devices",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/messages/42898dff-ead4-43a9-9d08-88ff38528620",
+      "status": 200,
+      "revision": 1,
+      "duplicate": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/ack",
+      "status": 200,
+      "revision": 1,
+      "result": "self"
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/messages/42898dff-ead4-43a9-9d08-88ff38528620/content",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/ack",
+      "status": 200,
+      "revision": 1,
+      "result": "skipped"
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    }
+  ],
+  "android_api": "31",
+  "page_size": "4096",
+  "scope": "notification-shade-only",
+  "temporary_fixture_removed": true
+}

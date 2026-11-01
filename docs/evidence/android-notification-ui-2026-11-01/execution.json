@@ -1,0 +1,116 @@
+{
+  "verified_at_utc": "2026-11-01T18:20:58.790909+00:00",
+  "runtime_source_commit": "71179403242589d44325e8093d1887dbcd7aa7a2",
+  "gitlab": {
+    "pipeline": 131,
+    "job": 292,
+    "status": "success",
+    "archive_sha256": "de1c013c564db8adc72b5f13b4dd40d9079d6158c315476cc4d42eb7bbd86093",
+    "archive_bytes": 34188739
+  },
+  "github": {
+    "source_commit": "f9428b17dad34381a2718fe899b2335c64390a31",
+    "android_run": 41334613641,
+    "rust_run": 41334613232,
+    "both_job_conclusions": "success",
+    "runtime_tested": false,
+    "note": "Application sources match the tested GitLab commit; workflows, build revision and host test driver differ. GitHub provides independent compilation/lint/static checks."
+  },
+  "runtime": {
+    "scripts": {
+      "scripts/test-android-service.py": "dc02166333d26a4da3fad60e006d11cc1d0a87e4aab2ce03c7de8b742a6343d2",
+      "scripts/notification_shade.py": "5c17541ae45fe44a9198288a01fc48d1a7bcc920defd646d3a688777eb5d66f3"
+    },
+    "runtime_container": "rcs-inbox-ui-20261101",
+    "android_cli": "1.1.16717390",
+    "emulator": "36.3.10",
+    "server": {
+      "source_url": "https://github.com/Infinifar/rustclipsync-server",
+      "revision": "c0e1774adef185ee7e2979cb6ad20c1c244acbed",
+      "version": "2.0.0",
+      "archive_url": "https://codeload.github.com/Infinifar/rustclipsync-server/tar.gz/c0e1774adef185ee7e2979cb6ad20c1c244acbed",
+      "archive_sha256": "1a6a2796ff1beb5997a631ded3e7243c8d7f31518662a8d85b566755c78ec6b9",
+      "license": "MIT",
+      "binary_sha256": "63934ff512c97dd802d4efc198fc56045fb4f0cbf01251d479dad30f49e99782"
+    }
+  },
+  "api31": {
+    "scope": "full",
+    "ordinary_smoke_tests": 10,
+    "completed_methods": 5,
+    "final_revision": 12,
+    "shade_mode": "actual host SystemUI taps after Android CLI hierarchy lookup; exact native expand button",
+    "action_centers": {
+      "显示": [
+        226,
+        1512
+      ],
+      "隐藏": [
+        226,
+        1512
+      ],
+      "复制": [
+        381,
+        1512
+      ]
+    }
+  },
+  "api35": {
+    "scope": "full",
+    "ordinary_smoke_tests": 10,
+    "completed_methods": 6,
+    "final_revision": 12,
+    "shade_mode": "manual actual SystemUI taps, based on observed CLI hierarchy and visually inspected screenshots",
+    "action_centers": {
+      "显示": [
+        225,
+        1093
+      ],
+      "隐藏": [
+        225,
+        1093
+      ],
+      "复制": [
+        380,
+        1093
+      ]
+    },
+    "helper_sha256_before_expander_fix": "1a57661ae9829b7810369f5d8a5d57f12428fef33fee5bd1a5a7418dd644eae2"
+  },
+  "boundaries": {
+    "clipboard": "synthetic FilePlatform with main-thread authorization checks",
+    "state": "isolated RCS1 files with public synthetic key",
+    "server": "pinned real server, ephemeral SQLCipher db and loopback TLS proxy",
+    "physical_devices": false,
+    "real_clipboard_and_keystore": false,
+    "ios_compiled": false,
+    "runtime_page_size": 4096
+  },
+  "signing": {
+    "type": "temporary debug certificates; no persistent development signing configured",
+    "job286_certificate_sha256": "6ce2ffd806f9ab1cc7beae9523fdb6f8cfa6667a3300c1b8447ef636abf97628",
+    "job292_certificate_sha256": "951df388edc12271ec09d1756f8b7ecac1edd72e25ff082ed5e9c1737753ed21",
+    "in_place_upgrade_between_these_jobs": false,
+    "user_app_data_modified": false
+  },
+  "cleanup": {
+    "test_container_removed": true,
+    "test_container": "rcs-inbox-ui-20261101",
+    "avd_certificates_databases_adb_backend_removed": true,
+    "host_and_gitlab_export_paths_removed": [
+      "/tmp/rcs-ui-286.zip",
+      "/tmp/rcs-ui-286.txt",
+      "/tmp/rcs-ui-292.zip",
+      "/tmp/rcs-ui-292.txt"
+    ],
+    "shared_services_preserved": [
+      "gitlab",
+      "v2raya",
+      "android-gitlab-runner"
+    ],
+    "host_runner_proxy_config_changed": false,
+    "local_sdk_installed": false,
+    "local_actionlint_temporary_tool_removed": true,
+    "github_dependency_caches_and_build_artifacts_retained": true
+  }
+}

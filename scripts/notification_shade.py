@@ -54,7 +54,9 @@ def layout(android, adb, serial, output, environment=None):
         output.with_suffix('.uiautomator-error.txt').write_text(dump.stdout + dump.stderr)
         time.sleep(.5)
     else:
-        raise RuntimeError('SDK UI dump failed: ' + dump.stdout + dump.stderr)
+        raise RuntimeError('SDK UI dump failed; a concurrent UiAutomation owner can block it. '
+                           'Rerun with --manual-shade and inspect the actual screenshot before adb input: '
+                           + dump.stdout + dump.stderr)
     raw = subprocess.check_output([adb, '-s', serial, 'shell', 'cat', '/sdcard/rcs-notification-ui.xml'], env=environment, timeout=15)
     output.with_suffix('.xml').write_bytes(raw)
     def convert(element):
@@ -90,7 +92,9 @@ def prepare(android, adb, serial, output, environment=None):
             return entries
         titles = [node for node, _ in entries if node.get('text', '').startswith('加密收件箱')]
         expanders = [node for node, _ in entries
-                     if 'expand' in node.get('resource-id', '').lower()
+                     # The clickable expandableNotificationRow opens the app;
+                     # only the native header button expands its text actions.
+                     if node.get('resource-id') == 'android:id/expand_button'
                      and 'CLICKABLE' in node.get('interactions', []) and node.get('center')]
         if titles and expanders:
             # Choose the expander beside the observed inbox title, not another app's row.

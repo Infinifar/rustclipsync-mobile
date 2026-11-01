@@ -26,6 +26,8 @@ facade 请求当前消息正文，最多向系统通知交付 2,000 字符；复
 在主线程实际写入前重新检查当前票据、会话、通知授权和解锁状态；不切换界面。回前台只隐藏正文，保留卡片；关闭时移除通知。
 重新连接或启用监听时从已保存的 inbox 元数据恢复卡片，不等待下一条消息。用户划掉的
 卡片不会每次轮询重发，可在应用内主动“显示收件箱通知”。收件箱为空时解释其标记要求。
+收件箱使用独立 group key，避免被系统自动合入后台监听的状态通知。原生操作按钮在展开
+卡片后显示；通知栏中的“后台监听”本身只提供停止监听，不能替代收件箱卡片。
 
 停止监听、关闭会话和超时均先撤销权限、预览和 native 命令入口，再异步等待 core 退出。
 UI 不等待线程 join。服务为 START_NOT_STICKY；划掉任务主动停止，不保留登录凭据。
@@ -43,6 +45,8 @@ iOS 目前保持前台手动同步。后续需要 APNs 服务端、设备令牌�
 - [Android 15+ 前台服务超时及测试](https://developer.android.com/develop/background-work/services/fgs/timeout)。
 - [POST_NOTIFICATIONS：拒绝授权不禁止启动 FGS，但不在通知栏展示](https://developer.android.com/develop/ui/compose/notifications/notification-permission)。
 - [通知操作与直接 Activity PendingIntent](https://developer.android.com/develop/ui/compose/notifications/create-notification)。
+- [原生操作在展开通知中显示](https://developer.android.com/reference/android/app/Notification.Builder#addAction(android.app.Notification.Action))。
+- [显式分组与系统自动分组](https://developer.android.com/develop/ui/views/notifications/group)。
 - [Apple 后台策略与有限运行时间](https://developer.apple.com/documentation/backgroundtasks/choosing-background-strategies-for-your-app)。
 
 core 来源固定为 `1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e`，在 core 仓库

@@ -43,7 +43,7 @@ scripts/check-android.sh
 并用 zipalign 检查 APK 16 KiB 对齐。APK 位于
 `android/app/build/outputs/apk/debug/app-debug.apk`，使用开发调试签名，不用于发布。
 脚本同时检查 JNA 和 Rust 所有打包 so 的 ELF 对齐；这些静态检查仍不足以证明整个 APK
-在 16 KiB 真机工作。正式发布签名、商店流程和后台常驻功能不在首版内。
+在 16 KiB 真机工作。正式发布签名与商店流程待完成；可选后台监听受系统时限约束。
 
 有隔离模拟器时运行：
 
@@ -64,18 +64,42 @@ BindingSmokeTest 只用内存 Platform，通过 Kotlin → Rust → Kotlin 验�
 
 使用行为：输入 HTTPS 地址与账户，点击连接（首次注册以当前服务端版本为基线），然后
 显式发送/接收。敏感默认跳过；加密收件箱与自动写入分开选择，自动写入有确认。
-离开前台立即请求关闭，不在后台监听剪贴板。回到前台重新连接；首版不保存账户密码。
+后台监听默认关闭，此时离开前台立即请求关闭，回到前台需重新连接。
+显式启用后台监听后保留会话，但不读取后台剪贴板；后台写入需另行授权。首版不保存账户密码。
 更换服务器不会静默清空旧身份，现有状态与服务器不匹配会报错；多账户/显式重新配对 UI 待做。
 
-## GitLab 开发构建
+## GitHub Actions 开发构建
+
+用户已将默认构建主机改为 GitHub 托管 Runner，不再依赖 Rocky 的网络环境。
+开发分支为 `codex/mobile-native-foundation`，入口为
+[Actions](https://github.com/Infinifar/rustclipsync-mobile/actions)。推送代码或发起 PR 自动执行：
+
+- `Rust facade`：vendor 校验、fmt、Clippy、12 项 synthetic 测试、rustdoc、路由与 host FFI smoke、双端绑定。
+- `Android APK`：Ubuntu 24.04、JDK 17、Rust 1.99.1、SDK 36 / NDK 28.2，两个 ABI、应用与测试 APK、lint、APK / ELF 静态对齐。
+
+Actions 固定官方 action 提交，复用 Cargo / Gradle 缓存；同分支的新提交取消过时任务。
+文档修改不重复构建。APK、SHA-256、源码 / run 信息与报告作为 artifact 保留 7 天；
+每次运行的 Summary 提供下载链接，无需持续轮询。此处的构建不代表已运行模拟器或真机。
+SDK 安装只使用托管镜像原有许可，脚本不自动接受新增条款。
+
+隔离服务端与测试 APK 通过 `workflow_dispatch` 的 `fixtures` 选项按需生成；工作流文件
+进入默认分支后可从 Actions 手动选择开发分支。普通自动构建不重复编译隔离服务端。
+已完成的 Rocky 运行证据继续保留，不能把它当成 GitHub 产物的实机测试。
+
+依据：[GitHub workflow 语法](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax)、
+[Ubuntu 24.04 镜像清单](https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md)、
+[setup-java 缓存](https://github.com/actions/setup-java)、[artifact 保留](https://github.com/actions/upload-artifact)。
+
+## GitLab 手动备用构建
 
 私有开发镜像：[Cassius/rustclipsync-mobile](https://gitlab.infinifar.top/Cassius/rustclipsync-mobile)，
-代码位于 codex/mobile-native-foundation 分支。origin 保留 GitHub；gitlab remote 使用
+代码位于 codex/mobile-native-foundation 分支。origin 为默认 GitHub 构建来源；gitlab remote 使用
 `git@gitlab-rocky:Cassius/rustclipsync-mobile.git`（SSH 20820）。
 
 通过同机 `ssh -l root turbo-rocky`（22）管理与读取本项目的 GitLab CI 状态/日志，
 使用已有密钥，不需要浏览器或新建 API 凭据。现有实例 Runner #3，标签 **android**、Docker
-executor；没有修改 Runner 全局配置。项目 Auto DevOps 已关闭，仅做开发检查与调试 APK。
+executor；没有修改 Runner 全局配置。项目 Auto DevOps 已关闭，CI workflow 仅接受 web / API
+显式启动，普通镜像推送不再触发构建。
 
 .gitlab-ci.yml 使用固定 digest 的 Cirrus Android SDK 36-ndk 镜像，临时容器中安装 JDK 17、
 Rust 1.99.1、NDK 28.2。先验证 Gradle 配置，再跑 scripts/check.sh 与 scripts/check-android.sh。
@@ -150,7 +174,7 @@ iOS 会请求系统粘贴许可，不能承诺后台任意读取；离开 active
 
 ## Android 与真实隔离服务互操作（远端 Linux）
 
-构建继续在 GitLab 的 Android Runner 完成。现有任务先执行普通 Rust / Android 检查，
+隔离验证使用已成功的 GitLab 产物或 GitHub 手动 fixtures 产物。备用 GitLab 任务执行普通 Rust / Android 检查，
 再用 scripts/build-disposable-server.py 从固定的上游 GitHub 源码归档构建服务端，
 版本、提交和 SHA-256 在 tests/disposable-server-source.json。该脚本在临时目录构建，
 不依赖相邻仓库或运行中的服务；产物为 build/disposable-server。
@@ -180,8 +204,8 @@ CLI 1.1 未发现 ANDROID_AVD_HOME 下的临时设备，AVD 启动使用 SDK emu
 - 真正提交 PUT 后丢弃响应，再强制终止进程、重启服务端，恢复时核对重复 UUID 仍对应
   同一 revision，服务端不增加第二条提交。
 
-API 31 四项、API 35 五项完整 instrumentation 方法验证业务结果；另两项准备阶段在保存标记后被故意 force-stop，
-其 instrumentation 中断是故障注入，不计为通过的 JUnit 测试。普通包九项 smoke 另行执行。
+完整脚本包含 API 31 五项、API 35 六项 instrumentation 方法；另两项准备阶段在保存标记后被故意 force-stop，
+其 instrumentation 中断是故障注入，不计为通过的 JUnit 测试。普通包十项 smoke 另行执行。
 结果、请求元数据、APK / server 哈希保存在 build/service-e2e-apiN；不会记录 Authorization 或正文。
 结束时停止 emulator / adb / TLS 代理 / 服务端，删除临时 AVD、证书与数据库。
 外层操作者仍需删除一次性容器及导出的 ZIP；保留证据和 GitLab 构建产物。
@@ -196,6 +220,25 @@ API 33+ 在一次性模拟器上为测试包授予通知权限；真实用户授
 通知频道与永久拒绝可从“通知权限与频道设置”恢复。新场景实际启动前台服务，
 检查默认隐藏、显示 / 隐藏、旧消息票据、熄屏隐藏、显式复制、后台写入开关与停止撤销。
 剪贴板和安全存储继续使用合成适配器与独立文件，不接触真实凭据或宿主剪贴板。
+
+`restoredInboxActionsInNotificationShade` 先把合成敏感消息保存为 RCS1，关闭并重开会话，
+不再发送新消息；服务启动后必须恢复已有收件箱卡片。宿主随后定位真正的 SystemUI
+“显示 / 隐藏”和“复制”控件并点击，等待应用确认正文切换与模拟剪贴板写入。
+这项检查补充了旧的 Notification 对象和 PendingIntent 测试，覆盖用户实际可操作的通知栏。
+
+默认脚本自动完成点击。需要人工检查屏幕时加 `--manual-shade`，出现 `SHADE READY`
+后使用 `scripts/notification_shade.py --android-cli ... --adb ... --output ...` 展开卡片，
+再分别加 `--click 显示`、`--click 隐藏`、`--click 复制`。每一步需在 120 秒内完成。
+`--shade-only` 只运行通知专项与普通 smoke，报告标记为 `notification-shade-only`，
+不能代替发送、断网和重启的完整结果。Android CLI 1.1 返回底层应用窗口时，脚本回退到
+SDK UiAutomator 当前 SystemUI XML，并保存层级以复查实际按钮位置。
+部分 API 31 完整运行中，SDK 回退遇到 `UiAutomationService already registered`，外部查询
+无法与现有测试连接并存；此时使用 `--manual-shade`，先检查真实截图，再按其坐标输入。
+不要把 UI 查询失败计为通知操作通过，也不要把 host 清理时中断的 instrumentation 算作应用崩溃。
+
+开发 APK 使用临时调试签名。本轮比较 job #286 / #292 的证书指纹，确认它们不同，
+不能互相覆盖安装；换构建服务也不会自动沿用旧签名。尚未配置稳定的开发签名或发布签名，
+不要为解决安装冲突自动卸载或删除用户应用数据。
 
 Rocky 部分任务容器继承的 Tailscale DNS 不可达时，GitLab pre_get_sources_script
 仅在该临时 Docker 作业内回退到 223.5.5.5 / 1.1.1.1，解决源码拉取前的解析失败；

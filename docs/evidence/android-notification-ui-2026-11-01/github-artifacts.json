@@ -1,0 +1,42 @@
+{
+  "artifacts": [
+    {
+      "id": 13095042953,
+      "name": "android-reports-f9428b17dad34381a2718fe899b2335c64390a31",
+      "size_in_bytes": 29674,
+      "url": "https://api.github.com/repos/Infinifar/rustclipsync-mobile/actions/artifacts/13095042953",
+      "archive_download_url": "https://api.github.com/repos/Infinifar/rustclipsync-mobile/actions/artifacts/13095042953/zip",
+      "expired": false,
+      "created_at": "2026-11-01T18:13:15Z",
+      "expires_at": "2026-11-08T18:13:13Z",
+      "updated_at": "2026-11-01T18:13:15Z",
+      "digest": "sha256:5f8f99dae2eebcb85c1a42d60fc9098659f65985a6b856878daf04291d575ad7",
+      "workflow_run": {
+        "id": 41334613641,
+        "repository_id": 1441658544,
+        "head_repository_id": 1441658544,
+        "head_branch": "codex/mobile-native-foundation",
+        "head_sha": "f9428b17dad34381a2718fe899b2335c64390a31"
+      }
+    },
+    {
+      "id": 13094973024,
+      "name": "android-apk-f9428b17dad34381a2718fe899b2335c64390a31",
+      "size_in_bytes": 15060236,
+      "url": "https://api.github.com/repos/Infinifar/rustclipsync-mobile/actions/artifacts/13094973024",
+      "archive_download_url": "https://api.github.com/repos/Infinifar/rustclipsync-mobile/actions/artifacts/13094973024/zip",
+      "expired": false,
+      "created_at": "2026-11-01T18:13:13Z",
+      "expires_at": "2026-11-08T18:13:11Z",
+      "updated_at": "2026-11-01T18:13:13Z",
+      "digest": "sha256:8f7db5d72120686245445863f32c4717094280df83e709fe1499bf131030b30e",
+      "workflow_run": {
+        "id": 41334613641,
+        "repository_id": 1441658544,
+        "head_repository_id": 1441658544,
+        "head_branch": "codex/mobile-native-foundation",
+        "head_sha": "f9428b17dad34381a2718fe899b2335c64390a31"
+      }
+    }
+  ]
+}

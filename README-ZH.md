@@ -6,10 +6,10 @@
 Apple 客户端只面向 iPhone / iPad；macOS 客户端之后在桌面端仓库考虑。
 
 已建立 Cargo workspace、UniFFI 双端绑定、串行会话与主动关闭，并接入两端原生源码。
-Rust core 49 项、facade 12 项合成测试通过；Android 在私有 GitLab 完成应用 / 测试 APK
-编译、lint、16 KiB 静态对齐。Android 12 / API 31 与 Android 15 / API 35 各通过 9 项
-smoke，真实隔离服务分别通过 4 / 5 项完整场景，涵盖发送 / 接收、敏感三策略、断网与
-重启恢复、后台通知及写入，API 35 另验证系统超时关闭。剪贴板为模拟适配器，状态使用
+Rust core 49 项、facade 12 项合成测试通过；Android 已在私有 GitLab 完成应用 / 测试 APK
+编译、lint、16 KiB 静态对齐。Android 12 / API 31 与 Android 15 / API 35 各通过 10 项
+smoke，真实隔离服务覆盖发送 / 接收、敏感三策略、断网与重启恢复、后台通知及写入，
+两端均验证实际通知栏显示 / 隐藏 / 复制，API 35 另验证系统超时关闭。完整服务方法分别为 5 / 6 项，未完成探测单列。剪贴板为模拟适配器，状态使用
 独立合成 key / 文件；通知和前台服务使用真实模拟器框架。iOS 平台编译与真机、真实
 剪贴板 / Keystore 验证尚未完成。详细证据见 [验证记录](docs/VALIDATION.md)。
 
@@ -31,7 +31,8 @@ core 固定到 Git 提交 `1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e`，Cargo.loc
 scripts/check.sh
 ```
 
-运行需要 Rustup、C 编译器、Git、Python 3 和 OpenSSL（隔离 HTTPS 测试）。Android 按要求使用 GitLab 开发构建；
+运行需要 Rustup、C 编译器、Git、Python 3 和 OpenSSL（隔离 HTTPS 测试）。Android 开发构建已迁移到
+[GitHub Actions](https://github.com/Infinifar/rustclipsync-mobile/actions)，GitLab 保留手动备用；
 iOS 需要 macOS / Xcode，Linux 不提供 iOS 编译验证。
 
 - [构建与开发](docs/BUILD.md)
@@ -71,10 +72,13 @@ Android 15+ 的 `dataSync` 前台服务受系统后台运行时限约束，目�
 不承诺常驻或实时。停止、划掉任务、重启后不自动连接，不保存账户密码。iOS 当前保持
 前台会话，**后续通过推送等配套能力支持后台接收**，不添加无法兑现的常驻监听开关。
 
-实现与官方依据见 [后台接收说明](docs/BACKGROUND.md)。本功能的最终编译与运行结果记录在
-[验证记录](docs/VALIDATION.md)，对应 GitLab #125 / job #284；早期失败探测单独保留，不计入通过数量。
+实现与官方依据见 [后台接收说明](docs/BACKGROUND.md)。各次编译与运行结果记录在
+[验证记录](docs/VALIDATION.md)；早期失败探测单独保留，不计入最终通过数量。
 
 通知栏只有“后台监听”时，请查看应用中的收件箱状态：空收件箱、未选择加密收件箱策略、
 权限 / 频道关闭会分别提示。普通未标记文本不会自动进入敏感收件箱。系统折叠通知时
 会隐藏原生操作按钮，点“加密收件箱”右侧展开箭头后，可见并排的“显示 / 隐藏”和“复制”。
 应用顶部显示版本与构建号；本轮为 0.1.1，避免把旧包误认为包含当前修复。
+
+实际通知栏截图：[默认隐藏与两个按钮](docs/evidence/android-notification-ui-2026-11-01/api35-hidden.png)、
+[显示正文后变为“隐藏”](docs/evidence/android-notification-ui-2026-11-01/api35-shown.png)。
