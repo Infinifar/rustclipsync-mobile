@@ -93,7 +93,7 @@ internal class InboxNotifications(
         val toggle = if (body == null) SHOW else HIDE
         val public = Notification.Builder(context, INBOX_CHANNEL)
             .setSmallIcon(R.drawable.ic_launcher).setContentTitle("加密收件箱").setContentText("**").build()
-        val open = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), FLAGS)
+        val open = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), FLAGS)
         val notification = Notification.Builder(context, INBOX_CHANNEL)
             .setSmallIcon(R.drawable.ic_launcher).setContentTitle("加密收件箱")
             .setContentText(text).setStyle(Notification.BigTextStyle().bigText(text))
@@ -103,7 +103,7 @@ internal class InboxNotifications(
             .addAction(Notification.Action.Builder(null, if (body == null) "显示" else "隐藏",
                 track(serviceIntent(context, toggle, id, nonce))).setAuthenticationRequired(true).build())
             .addAction(Notification.Action.Builder(null, "复制", track(PendingIntent.getActivity(context, 0,
-                itemIntent(context, InboxCopyActivity::class.java, COPY, id, nonce), FLAGS)))
+                itemIntent(context, InboxCopyActivity::class.java, COPY, id, nonce).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), FLAGS)))
                 .setAuthenticationRequired(true).build())
             .build()
         try { manager.notify(INBOX_ID, notification) }
@@ -149,7 +149,7 @@ internal class InboxNotifications(
                 .setContentText(if (write) "后台接收与写入已启用；敏感内容遵循所选策略" else "后台接收加密收件箱；不读写系统剪贴板")
                 .setOngoing(true).setOnlyAlertOnce(true).setLocalOnly(true)
                 .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
-                .setContentIntent(PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), FLAGS))
+                .setContentIntent(PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), FLAGS))
                 .addAction(Notification.Action.Builder(null, "停止监听", serviceIntent(context, STOP)).build())
                 .build()
         }

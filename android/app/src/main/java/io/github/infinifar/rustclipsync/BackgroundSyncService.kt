@@ -1,6 +1,7 @@
 package io.github.infinifar.rustclipsync
 
 import android.app.Service
+import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -22,17 +23,27 @@ class BackgroundSyncService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val session get() = (application as SyncApplication).session
     private var polling: Job? = null
-    private val screenOff = object : BroadcastReceiver() {
+    private val privacyChanges = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == Intent.ACTION_SCREEN_OFF) session.notifications.mask()
+            when (intent.action) {
+                Intent.ACTION_SCREEN_OFF -> session.notifications.mask()
+                NotificationManager.ACTION_APP_BLOCK_STATE_CHANGED,
+                NotificationManager.ACTION_NOTIFICATION_CHANNEL_BLOCK_STATE_CHANGED -> {
+                    session.notifications.clear()
+                    session.refreshNotificationAuthorization()
+                }
+            }
         }
     }
 
     override fun onCreate() {
         super.onCreate()
-        val filter = IntentFilter(Intent.ACTION_SCREEN_OFF) // Protected system broadcast only.
-        if (Build.VERSION.SDK_INT >= 33) registerReceiver(screenOff, filter, Context.RECEIVER_NOT_EXPORTED)
-        else registerReceiver(screenOff, filter)
+        val filter = IntentFilter(Intent.ACTION_SCREEN_OFF).apply {
+            addAction(NotificationManager.ACTION_APP_BLOCK_STATE_CHANGED)
+            addAction(NotificationManager.ACTION_NOTIFICATION_CHANNEL_BLOCK_STATE_CHANGED)
+        } // Protected system broadcasts only; no caller-supplied extras are used.
+        if (Build.VERSION.SDK_INT >= 33) registerReceiver(privacyChanges, filter, Context.RECEIVER_NOT_EXPORTED)
+        else registerReceiver(privacyChanges, filter)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -72,7 +83,7 @@ class BackgroundSyncService : Service() {
     }
     override fun onDestroy() {
         scope.cancel()
-        unregisterReceiver(screenOff)
+        unregisterReceiver(privacyChanges)
         session.serviceStopped()
         stopForeground(STOP_FOREGROUND_REMOVE)
         super.onDestroy()

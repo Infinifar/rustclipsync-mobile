@@ -171,8 +171,10 @@ class ServiceIntegrationTest {
             inbox()!!.actions[1].actionIntent.send()
             eventually { b.writes.get() == 1 }
             assertEquals(second, b.selection?.text); assertTrue(b.selection?.sensitive == true)
-            eventually { inbox() == null && main { !controller.foreground } }
+            eventually { inbox() == null }
             assertEquals(reads, b.reads.get())
+            instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
+            eventually { main { !controller.foreground } }
 
             publish("synthetic ordinary background write", false)
             withContext(Dispatchers.Main) { controller.pollInbox() }

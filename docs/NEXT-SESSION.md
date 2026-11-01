@@ -6,12 +6,12 @@ Rust / host FFI、平台编译、模拟器、真实 OS 适配器和真机结果�
 
 ## 已完成
 
-- Cargo workspace；core 0.3.0 固定 Git rev 5816bb5d18bc38bd26cca1ed6e7c5c093bfacd92，锁文件。
+- Cargo workspace；core 0.3.0 固定 Git rev 1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e，锁文件。
   Cargo source replacement 使用该提交完整未改动的 vendor，逐文件校验及来源见 vendor/。
 - UniFFI 0.32.2，同一 facade 生成 Kotlin / Swift；额外 Python 绑定仅用于 host ABI smoke。
 - 单执行线程 / 16 命令有界队列，非阻塞 requestClose 与重复 await shutdown，存储失败停止。
 - core Session 的 check / record_local / flush / pull / 敏感收件箱复用，无协议重写。
-- 10 项 Rust synthetic mock 测试、4 项实际 host FFI smoke 通过；fmt / Clippy / rustdoc 通过。
+- 12 项 Rust synthetic mock 测试、4 项实际 host FFI smoke 通过；fmt / Clippy / rustdoc 通过。
 - core 0.3.0 统一 `/api/...`；隔离 TLS 路由 smoke 检查 7 类操作及根路径 / 子路径共 14 个请求。
   升级前已确认旧 core 的 `/v1/devices` 请求使测试失败，升级后通过。
 - Android Compose 工程、Keystore 包装 key、RCS1 原子落盘、剪贴板标记、UI 回调撤销。
@@ -27,7 +27,7 @@ Rust / host FFI、平台编译、模拟器、真实 OS 适配器和真机结果�
 
 标识均为 io.github.infinifar.rustclipsync。用户确认最低 Android **12 / API 31**，不承担旧 Android
 兼容包袱；iOS 依同样意图采用 **iOS 18** 工作基线。首批前台手动发送/接收、状态、加密
-敏感收件箱，先 Android 后 iOS，离开前台关闭。未标记文本不可承诺识别敏感。
+敏感收件箱，先 Android 后 iOS。后台监听默认关闭；最新要求允许单独选择后台监听和后台写入，iOS 后续配套推送。未标记文本不可承诺识别敏感。
 
 用户明确 Apple 客户端只做 iPhone / iPad 移动端；macOS 客户端之后在桌面端仓库考虑。
 不要在本仓库增加 macOS / Mac Catalyst 目标；Mac / Xcode 要求只涉及 iOS 构建宿主。
@@ -64,3 +64,22 @@ Cirrus SDK 36-ndk digest，在临时任务容器补齐 JDK 17 / Rust 1.99.1 / ND
 
 测试包 feature disposable-tests / appId .disposable 只用于回环 TLS fixture，普通包不含测试构造符号。
 临时服务与模拟器环境本轮已清理；重跑需新容器，不恢复旧合成状态。iOS 重试 UI 尚未接入。
+
+## 本轮后台功能交接（待平台验证结果更新）
+
+Android 实现独立默认关闭的后台监听和后台写入开关，前台服务只由前台已连接会话启动。
+新增 BackgroundSyncService、InboxNotifications、私有 InboxCopyActivity；加密收件箱
+通知默认 **，两个相邻操作为显示 / 隐藏和复制。前台、熄屏、消息替换、权限变化与关闭
+使预览失效，旧 PendingIntent 主动取消。复制 Activity 取得焦点后复制完整敏感正文。
+core 的 pull_background / pull_inbox 复用原来的接收路径，后台不读剪贴板；写入需确认，
+不保证保留其他应用刚复制的值。协议 / RCS1 不变，无后台上传重试。
+
+core 分支 codex/mobile-background-inbox 含两个本地提交，最后为上述固定 SHA，尚未推公共
+上游。mobile 完整 vendor 经过逐文件校验，构建不需相邻仓库或取得该未公开 Git 对象。
+本地 core 49 项、facade 12 项测试和 fmt / Clippy 通过。Android 编译 / API 31、35 服务测试
+结果以 VALIDATION.md 最终记录为准，不能将已经编写的测试视为已经执行。
+
+CI 源码获取前的 DNS 回退仅作用于临时 Docker helper，prepare-android.sh 对临时 build
+容器执行相同检查；宿主、Runner、v2raya 未改。测试脚本支持 --api 31/35/36，输出位于
+build/service-e2e-apiN。9 项普通合成 smoke，真实服务完整方法数 API 31 为 4、API 35+ 为 5，
+另有故障注入中断准备阶段；这些数量须与实际执行报告核对。

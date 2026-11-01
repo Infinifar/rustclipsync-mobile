@@ -1,11 +1,13 @@
 # 共享绑定与会话契约
 
 实现：UniFFI **0.32.2** proc macros，同一个 `rustclipsync-mobile-ffi` crate 生成 Kotlin / Swift。
-core 固定到 `5816bb5d18bc38bd26cca1ed6e7c5c093bfacd92`，版本 0.3.0；来源写在 workspace
+core 固定到 `1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e`，版本 0.3.0；来源写在 workspace
 Cargo.toml 和 Cargo.lock。为避免 CI 到 GitHub 的 Git 连接反复超时，.cargo/config.toml 将该
 来源替换为同提交的完整 vendor 快照，保留许可证、Git tree 与逐文件 SHA-256 清单。
-快照按固定 Git 对象导出，不读取相邻 checkout 作为构建依赖，不修改 core。
-core 0.3.0 使用 `/api/...`，无 `/v1` 回退；移动 facade 的公开 API 与 RCS1 持久化格式保持不变。
+快照按固定 Git 对象导出，不读取相邻 checkout 作为构建依赖，不直接修改 vendor。
+新增后台接收先在 core 的 codex/mobile-background-inbox 分支实现，再导出完整快照；
+该 core 分支尚未推送公共远端，干净构建由完整 vendor 保证。
+core 0.3.0 使用 `/api/...`，无 `/v1` 回退；RCS1 持久化与 HTTP 协议格式保持不变，facade 新增后台接收方法。
 
 ## 评估结论
 
@@ -33,25 +35,29 @@ UniFFI 可以表达对象、record、枚举、Result、异步方法和可由两�
 一个 MobileSession 只有一个 core Session 所有者。16 个命令的有界队列使用 try_send；
 满时返回 Busy，不堵塞调用线程。构造只校验 key 长度并创建线程；初始化、Client 构造和
 StateStore.load/save 也在执行线程。status() 等待初始化完成；构造/状态查询没有网络调用。
-check、sendClipboard、retryPending、receive 才执行 core 的网络方法。
+check、sendClipboard、retryPending、receive、receiveInbox、receiveBackground 执行 core 的网络方法。
 
 Platform 是 UniFFI foreign trait：clipboardSnapshot、clipboardWrite、loadState、saveState
 都返回带固定安全文案的 AdapterError；UnexpectedUniFFICallbackError 转成 Platform 错误。
 不将平台异常的正文带到 Rust 或 UI。Rust 保留最近的 core SyncError 原因链直到会话退出，
 不向 UI 返回底层 URL、凭据或剪贴板正文。状态仅含 paired、cursor、hasPending、inbox 元数据。
-readInbox 单独读取正文；首版 UI 默认不显示正文，只提供显式复制和删除。
+readInbox 单独读取正文；UI 默认不显示正文，收件箱通知仅在用户显式点击“显示”后读取当前正文。
 
 剪贴板适配器在 Rust 执行线程接到请求，向 UI 主线程投递短操作，最多等待两秒。
 超时任务必须撤销，尚未开始的任务不得稍后写入。已经进入 OS 调用的超时属于可能已写入，
-core 的 applying journal 按歧义写入恢复，不能当作成功确认。平台离开前台时先 revoke
-适配器，再 requestClose，避免排队回调触碰失效 UI。适配器只保留应用上下文或弱会话引用，
+core 的 applying journal 按歧义写入恢复，不能当作成功确认。未启用后台监听时，平台离开前台先 revoke
+适配器，再 requestClose。启用时保留应用级存储适配器，撤销剪贴板读取权限；后台写入需
+单独显式启用且服务正在运行，回前台、停用或关闭时立即撤销。适配器只保留应用上下文或弱会话引用，
 不保留 Activity / View；监听器只递增 clipboardChanged 计数，不读正文。
 
-core 在网络前后的快照检查和 generation 检查保持原样，facade 不缓存剪贴板快照。
+前台接收保持网络前后快照与 generation 检查。后台接收不取快照，保留 generation
+检查，平台在前后台、焦点和写入授权变化时使在途操作失效；facade 不缓存剪贴板快照。
 发送只 record_local + flush，冲突不被自动重置或覆盖。retryPending 只委托 core::Session::flush，
 不生成新复制事件或 UUID；取消未决旧请求后，core 可能仍有待发最新项，需要再次显式重试。
 Android 在网络错误后刷新本地状态，显示待处理事务与重试入口。没有重新实现协议、重试、确认、
-游标、过滤或冲突解决逻辑；也没有给首版增加长轮询或自己的自动重试循环。
+游标、过滤或冲突解决逻辑；后台服务每 30 秒调度一次 receiveBackground，仅委托 core 的接收和确认路径，不自动重试上传。
+后台不读剪贴板，core 复用相同的验证、敏感策略、apply journal 和 RCS1 提交路径；
+无法用快照比较其他应用刚复制的值，UI 对后台写入明确告知覆盖风险。
 
 取消一个等待中的 Kotlin coroutine / Swift Task / foreign future **不保证撤销已入队命令**，
 因为它可能已进入 core 事务。生命周期必须明确调用 requestClose；UI 用 epoch 检查丢弃
