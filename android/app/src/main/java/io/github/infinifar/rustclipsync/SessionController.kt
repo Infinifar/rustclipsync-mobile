@@ -175,19 +175,19 @@ internal class SessionController(
         if (version == epoch && status?.inbox?.id == id) text else null
     }
 
-    data class CopyRequest(val id: String, val epoch: Long)
-    fun claimNotificationCopy(intent: Intent): CopyRequest? {
-        if (!notificationEligible()) return null
-        return notifications.claimCopy(intent)?.let { CopyRequest(it, epoch) }
-    }
-
-    suspend fun copyFromNotification(request: CopyRequest): Boolean {
-        // A receive may still be completing. Yield rather than block the UI thread.
-        repeat(80) { if (busy && request.epoch == epoch) delay(25) }
-        if (busy || !foreground || !focused || request.epoch != epoch || selectedPolicy != SensitivePolicy.ENCRYPTED_INBOX || status?.inbox?.id != request.id) return false
-        var copied = false
-        perform { copyInbox(request.id); copied = true; "已显式复制敏感内容" }
-        return copied && request.epoch == epoch
+    suspend fun notificationCopy(intent: Intent) {
+        if (!notificationEligible()) return
+        val permit = notifications.claimCopy(intent) ?: return
+        val id = permit.id
+        val version = epoch
+        repeat(80) { if (busy && version == epoch) delay(25) }
+        if (busy || version != epoch || !notificationEligible() || notifications.claimCopy(intent) != permit || status?.inbox?.id != id) return
+        val adapter = platform ?: return
+        // One explicit operation, bound to this item. Recheck authorization,
+        // lifecycle, current ticket and lock state inside the main-thread write.
+        adapter.explicitCopy(id) { version == epoch && notificationEligible() && notifications.claimCopy(intent) == permit }
+        try { perform { copyInbox(id); notifications.mask(); "已显式复制敏感内容" } }
+        finally { adapter.explicitCopy(null) { false } }
     }
 
     fun send() { if (focused) command { sendClipboard().toString() } }

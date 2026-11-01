@@ -68,9 +68,9 @@ Cirrus SDK 36-ndk digest，在临时任务容器补齐 JDK 17 / Rust 1.99.1 / ND
 ## 本轮后台功能交接（待平台验证结果更新）
 
 Android 实现独立默认关闭的后台监听和后台写入开关，前台服务只由前台已连接会话启动。
-新增 BackgroundSyncService、InboxNotifications、私有 InboxCopyActivity；加密收件箱
+新增 BackgroundSyncService、InboxNotifications；加密收件箱
 通知默认 **，两个相邻操作为显示 / 隐藏和复制。前台、熄屏、消息替换、权限变化与关闭
-使预览失效，旧 PendingIntent 主动取消。复制 Activity 取得焦点后复制完整敏感正文。
+使预览失效，旧 PendingIntent 主动取消。复制操作在后台直接写入完整敏感正文，使用仅对该消息有效的临时授权，仍不读取剪贴板。
 core 的 pull_background / pull_inbox 复用原来的接收路径，后台不读剪贴板；写入需确认，
 不保证保留其他应用刚复制的值。协议 / RCS1 不变，无后台上传重试。
 

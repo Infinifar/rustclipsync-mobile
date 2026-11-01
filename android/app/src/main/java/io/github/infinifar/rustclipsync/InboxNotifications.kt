@@ -12,6 +12,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import java.util.UUID
 import kotlinx.coroutines.CancellationException
 
@@ -70,8 +71,9 @@ internal class InboxNotifications(
         publish()
     }
 
-    fun claimCopy(intent: Intent): String? =
-        if (intent.action == COPY && authorized() && !locked()) matchingItem(intent) else null
+    data class CopyPermit(val id: String, val version: Long)
+    fun claimCopy(intent: Intent): CopyPermit? =
+        if (intent.action == COPY && authorized() && !locked()) matchingItem(intent)?.let { CopyPermit(it, version) } else null
 
     private fun matchingItem(intent: Intent): String? {
         val id = item ?: return null
@@ -81,7 +83,10 @@ internal class InboxNotifications(
         } catch (_: RuntimeException) { null }
     }
 
-    private fun locked() = context.getSystemService(KeyguardManager::class.java).isDeviceLocked
+    private fun locked(): Boolean {
+        val keyguard = context.getSystemService(KeyguardManager::class.java)
+        return keyguard.isDeviceLocked || keyguard.isKeyguardLocked || !context.getSystemService(PowerManager::class.java).isInteractive
+    }
 
     @SuppressLint("MissingPermission") // Checked on every publication, including action completion.
     private fun publish() {
@@ -102,8 +107,7 @@ internal class InboxNotifications(
             .setDeleteIntent(track(serviceIntent(context, DISMISS, id, nonce)))
             .addAction(Notification.Action.Builder(null, if (body == null) "显示" else "隐藏",
                 track(serviceIntent(context, toggle, id, nonce))).setAuthenticationRequired(true).build())
-            .addAction(Notification.Action.Builder(null, "复制", track(PendingIntent.getActivity(context, 0,
-                itemIntent(context, InboxCopyActivity::class.java, COPY, id, nonce).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), FLAGS)))
+            .addAction(Notification.Action.Builder(null, "复制", track(serviceIntent(context, COPY, id, nonce)))
                 .setAuthenticationRequired(true).build())
             .build()
         try { manager.notify(INBOX_ID, notification) }

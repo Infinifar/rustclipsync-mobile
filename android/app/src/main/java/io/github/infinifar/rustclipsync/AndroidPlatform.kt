@@ -14,6 +14,7 @@ internal interface SessionPlatform : Platform {
     fun observe(session: MobileSession)
     fun focus(value: Boolean)
     fun backgroundWrite(value: Boolean)
+    fun explicitCopy(id: String?, permitted: () -> Boolean)
     fun revoke()
 }
 
@@ -23,6 +24,8 @@ internal class AndroidPlatform(context: Context, private val state: SecureState)
     // Main-thread only. A foreground service does not grant clipboard access.
     private var focused = false
     private var allowBackgroundWrite = false
+    private var copyId: String? = null
+    private var copyPermitted: (() -> Boolean)? = null
     private var listener: ClipboardManager.OnPrimaryClipChangedListener? = null
 
     // Called on the UI thread; listener sends a counter only, never reads clipboard content.
@@ -35,11 +38,13 @@ internal class AndroidPlatform(context: Context, private val state: SecureState)
     }
     override fun revoke() {
         gate.revoke()
+        copyId = null; copyPermitted = null; allowBackgroundWrite = false; focused = false
         listener?.let { clipboard.removePrimaryClipChangedListener(it) }
         listener = null
     }
     override fun focus(value: Boolean) { focused = value }
     override fun backgroundWrite(value: Boolean) { allowBackgroundWrite = value }
+    override fun explicitCopy(id: String?, permitted: () -> Boolean) { copyId = id; copyPermitted = if (id == null) null else permitted }
     override fun clipboardSnapshot(): ClipboardText? = gate.call {
         if (!focused) throw AdapterException.Unavailable()
         val clip = clipboard.primaryClip ?: return@call null
@@ -50,7 +55,9 @@ internal class AndroidPlatform(context: Context, private val state: SecureState)
         ClipboardText(value, extras?.getBoolean(SENSITIVE, false) ?: false, extras?.getString(ORIGIN))
     }
     override fun clipboardWrite(value: ClipboardText) = gate.call {
-        if (!focused && !allowBackgroundWrite) throw AdapterException.Unavailable()
+        if (copyId != null) {
+            if (value.origin != copyId || !value.sensitive || copyPermitted?.invoke() != true) throw AdapterException.Unavailable()
+        } else if (!focused && !allowBackgroundWrite) throw AdapterException.Unavailable()
         val clip = ClipData.newPlainText("RustClipSync", value.text)
         clip.description.extras = PersistableBundle().apply {
             putBoolean(SENSITIVE, value.sensitive)

@@ -39,16 +39,21 @@ class ServiceIntegrationTest {
         @Volatile var backgroundWriteAllowed = false
         override fun observe(session: MobileSession) { }
         override fun focus(value: Boolean) { focused = value }
+        private val writeGate = MainThreadGate()
+        private var copyId: String? = null
+        private var copyPermitted: (() -> Boolean)? = null
         override fun backgroundWrite(value: Boolean) { backgroundWriteAllowed = value }
-        override fun revoke() { focused = false; backgroundWriteAllowed = false }
+        override fun explicitCopy(id: String?, permitted: () -> Boolean) { copyId = id; copyPermitted = if (id == null) null else permitted }
+        override fun revoke() { writeGate.revoke(); focused = false; backgroundWriteAllowed = false; copyId = null; copyPermitted = null }
         override fun clipboardSnapshot(): ClipboardText? {
             check(focused) { "background clipboard read attempted" }
             reads.incrementAndGet()
             return selection
         }
-        override fun clipboardWrite(value: ClipboardText) {
-            check(focused || backgroundWriteAllowed) { "unauthorized background write attempted" }
-            selection = value; writes.incrementAndGet()
+        override fun clipboardWrite(value: ClipboardText) = writeGate.call {
+            check(if (copyId != null) value.origin == copyId && value.sensitive && copyPermitted?.invoke() == true
+                else focused || backgroundWriteAllowed) { "unauthorized background write attempted" }
+            selection = value; writes.incrementAndGet(); Unit
         }
         override fun loadState() = store.load()
         override fun saveState(ciphertext: ByteArray) = store.save(ciphertext)
@@ -105,8 +110,9 @@ class ServiceIntegrationTest {
         } finally { close(sender, receiver) }
     }
 
-    private suspend fun eventually(predicate: suspend () -> Boolean) {
-        withTimeout(45_000) { while (!predicate()) delay(100) }
+    private suspend fun eventually(stage: String, predicate: suspend () -> Boolean) {
+        try { withTimeout(45_000) { while (!predicate()) delay(100) } }
+        catch (error: kotlinx.coroutines.TimeoutCancellationException) { throw AssertionError("Timed out at " + stage, error) }
     }
     private suspend fun <T> main(operation: () -> T): T = withContext(Dispatchers.Main) { operation() }
 
@@ -130,21 +136,21 @@ class ServiceIntegrationTest {
         try {
             sender.check()
             main { context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)) }
-            eventually { main { controller.foreground } }
+            eventually("activity visible") { main { controller.foreground } }
             // Wait for the actual window focus callback before starting a foreground connection.
-            eventually {
+            eventually("foreground connection") {
                 main { controller.connect(server, "synthetic-mobile", "synthetic-mobile-password", SensitivePolicy.ENCRYPTED_INBOX); controller.connected }
             }
             main { controller.configureBackgroundListening(true) }
-            eventually { main { controller.backgroundRunning } }
+            eventually("foreground service running") { main { controller.backgroundRunning } }
             instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
-            eventually { main { !controller.foreground } }
+            eventually("activity backgrounded") { main { !controller.foreground } }
             val reads = b.reads.get()
             val first = "synthetic background inbox alpha"
             val second = "synthetic background inbox beta"
             publish(first, true)
             // Exercise the real service's 30-second scheduler for the first receive.
-            eventually { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == "**" }
+            eventually("scheduled masked inbox") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == "**" }
             assertEquals(reads, b.reads.get()); assertEquals(0, b.writes.get())
             assertEncrypted(b, first)
             val hidden = inbox() ?: error("missing hidden inbox notification")
@@ -153,28 +159,31 @@ class ServiceIntegrationTest {
             assertTrue(hidden.actions.all { it.actionIntent.isImmutable })
             val staleShow = hidden.actions[0].actionIntent
             staleShow.send()
-            eventually { inbox()?.actions?.get(0)?.title?.toString() == "隐藏" }
+            eventually("explicit show") { inbox()?.actions?.get(0)?.title?.toString() == "隐藏" }
             assertEquals(first, inbox()!!.extras.getCharSequence(Notification.EXTRA_TEXT).toString())
             inbox()!!.actions[0].actionIntent.send()
-            eventually { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == "**" }
+            eventually("explicit hide") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == "**" }
             publish(second, true)
             withContext(Dispatchers.Main) { controller.pollInbox() }
-            eventually { inbox()?.actions?.get(0)?.title?.toString() == "显示" }
+            eventually("replacement masked") { inbox()?.actions?.get(0)?.title?.toString() == "显示" }
             try { staleShow.send() } catch (_: android.app.PendingIntent.CanceledException) { }; delay(300)
             assertEquals("**", inbox()!!.extras.getCharSequence(Notification.EXTRA_TEXT).toString())
             inbox()!!.actions[0].actionIntent.send()
-            eventually { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == second }
+            eventually("replacement reveal") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == second }
             instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_SLEEP").close()
-            eventually { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == "**" }
+            eventually("screen-off remasks") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == "**" }
             instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_WAKEUP").close()
             instrumentation.uiAutomation.executeShellCommand("wm dismiss-keyguard").close()
+            eventually("device unlocked for copy") {
+                !context.getSystemService(android.app.KeyguardManager::class.java).isKeyguardLocked && context.getSystemService(android.os.PowerManager::class.java).isInteractive
+            }
             inbox()!!.actions[1].actionIntent.send()
-            eventually { b.writes.get() == 1 }
+            eventually("notification explicit copy") { b.writes.get() == 1 }
             assertEquals(second, b.selection?.text); assertTrue(b.selection?.sensitive == true)
-            eventually { inbox() == null }
+            assertTrue(main { !controller.foreground && !controller.backgroundWritesEnabled })
+            assertFalse(b.backgroundWriteAllowed)
+            eventually("copy remasks") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() == "**" }
             assertEquals(reads, b.reads.get())
-            instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
-            eventually { main { !controller.foreground } }
 
             publish("synthetic ordinary background write", false)
             withContext(Dispatchers.Main) { controller.pollInbox() }
@@ -182,12 +191,12 @@ class ServiceIntegrationTest {
             main {
                 context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             }
-            eventually { main { controller.foreground && !controller.busy } }
+            eventually("writing configuration foreground") { main { controller.foreground && !controller.busy } }
             main { controller.configureBackgroundWrites(true) }
             instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
-            eventually { main { !controller.foreground } }
+            eventually("writing configuration background") { main { !controller.foreground } }
             withContext(Dispatchers.Main) { controller.pollInbox() }
-            eventually { b.writes.get() == 2 }
+            eventually("opt-in ordinary write") { b.writes.get() == 2 }
             assertEquals("synthetic ordinary background write", b.selection?.text)
             assertEquals(reads, b.reads.get())
             assertNull(inbox())
@@ -195,11 +204,11 @@ class ServiceIntegrationTest {
             // Inbox still wins over the background-write switch for marked data.
             publish("synthetic marked inbox with writes enabled", true)
             withContext(Dispatchers.Main) { controller.pollInbox() }
-            eventually { inbox() != null }
+            eventually("marked still in inbox") { inbox() != null }
             assertEquals(2, b.writes.get())
             val obsolete = inbox()!!.actions[0].actionIntent
             main { controller.configureBackgroundListening(false) }
-            eventually { inbox() == null && main { !controller.backgroundRunning && !controller.connected } }
+            eventually("stop revokes session") { inbox() == null && main { !controller.backgroundRunning && !controller.connected } }
             try { obsolete.send() } catch (_: android.app.PendingIntent.CanceledException) { }; delay(300)
             assertNull(inbox())
         } finally {
@@ -228,14 +237,14 @@ class ServiceIntegrationTest {
             assertEquals("", shell("device_config put activity_manager data_sync_fgs_timeout_duration 2500"))
             assertEquals("2500", shell("device_config get activity_manager data_sync_fgs_timeout_duration"))
             main { context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)) }
-            eventually { main { controller.foreground } }
-            eventually {
+            eventually("timeout activity visible") { main { controller.foreground } }
+            eventually("timeout foreground connection") {
                 main { controller.connect(server, "synthetic-mobile", "synthetic-mobile-password", SensitivePolicy.ENCRYPTED_INBOX); controller.connected }
             }
             main { controller.configureBackgroundListening(true) }
-            eventually { main { controller.backgroundRunning } }
+            eventually("timeout service running") { main { controller.backgroundRunning } }
             instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
-            eventually { main { !controller.backgroundEnabled && !controller.backgroundRunning && !controller.connected } }
+            eventually("system timeout closes session") { main { !controller.backgroundEnabled && !controller.backgroundRunning && !controller.connected } }
             assertFalse(adapter.backgroundWriteAllowed)
             assertEquals(0, adapter.writes.get())
         } finally {

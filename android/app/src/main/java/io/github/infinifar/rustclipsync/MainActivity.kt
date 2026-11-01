@@ -98,7 +98,7 @@ private fun SyncScreen(session: SessionController) {
                 Switch(checked = session.backgroundWritesEnabled, enabled = session.backgroundEnabled && !session.busy, onCheckedChange = { value ->
                     if (value) confirmBackgroundWrite = true else session.configureBackgroundWrites(false)
                 })
-                Text("允许后台写入剪贴板", Modifier.padding(top = 12.dp))
+                Text("允许后台自动写入剪贴板", Modifier.padding(top = 12.dp))
             }
             if (session.backgroundEnabled) {
                 Text(if (session.backgroundRunning) "后台监听服务运行中" else "连接后从前台启动监听服务")

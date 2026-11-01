@@ -12,7 +12,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".InboxCopyActivity" android:exported="false" android:excludeFromRecents="true" />
         <service android:name=".BackgroundSyncService" android:exported="false" android:foregroundServiceType="dataSync" />
     </application>
 </manifest>

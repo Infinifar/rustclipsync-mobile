@@ -26,7 +26,7 @@ existing sensitive policy. With writes off, ordinary messages await foreground h
 With encrypted inbox enabled, the app in the background, its listener running, and
 notifications/channel authorized, a newly received inbox item creates a notification
 masked as `**`. Its adjacent text actions are **Show / Hide** (one toggling button) and
-**Copy**. Showing requires unlocking; copying opens a private Activity and waits for focus.
+**Copy**. Showing requires unlocking; copying explicitly writes the complete marked item in the background, independently of automatic writes.
 New messages, screen-off, foreground entry, policy changes and shutdown reset the preview.
 Notification denial does not prevent encrypted storage. The server retains only the latest
 message. Background writes can overwrite another app's recent clipboard value because

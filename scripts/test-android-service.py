@@ -181,7 +181,10 @@ def main():
 
         def wait_boot():
             for _ in range(120):
-                if device('shell', 'getprop', 'sys.boot_completed', check=False).stdout.strip() == '1': return
+                if device('shell', 'getprop', 'sys.boot_completed', check=False).stdout.strip() == '1':
+                    device('shell', 'input', 'keyevent', 'KEYCODE_WAKEUP')
+                    device('shell', 'wm', 'dismiss-keyguard')
+                    return
                 time.sleep(2)
             raise RuntimeError('emulator did not finish booting')
 
@@ -280,6 +283,16 @@ def main():
             report['final_revision'] = 11
             report['status'] = 'passed'
             print('PASS: real server send/receive, three sensitive policies, offline latest-only, process/device/server restart, unknown-commit deduplication, background inbox notification toggle/copy and optional writes', flush=True)
+        except Exception:
+            # The emulator is disposable and contains synthetic data only. Capture
+            # lifecycle diagnostics before cleanup; never dump notification bodies.
+            for filename, command in [
+                ('failure-activities.txt', ('shell', 'dumpsys', 'activity', 'activities')),
+                ('failure-logcat.txt', ('logcat', '-d', '-t', '1000')),
+            ]:
+                try: (output / filename).write_text(device(*command, check=False).stdout)
+                except (OSError, subprocess.SubprocessError): pass
+            raise
         finally:
             if crash_process is not None and crash_process.poll() is None:
                 device('shell', 'am', 'force-stop', APP, check=False)

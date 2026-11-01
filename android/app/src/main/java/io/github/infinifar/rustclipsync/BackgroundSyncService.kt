@@ -67,6 +67,10 @@ class BackgroundSyncService : Service() {
                 if (session.backgroundRunning) scope.launch { session.notificationAction(intent) }
                 else stopSelf()
             }
+            InboxNotifications.COPY -> {
+                if (session.backgroundRunning) scope.launch { session.notificationCopy(intent) }
+                else stopSelf()
+            }
             else -> stopSelf()
         }
         return START_NOT_STICKY
