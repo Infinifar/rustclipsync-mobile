@@ -19,12 +19,16 @@ struct FakePlatform {
     forbid_clipboard: AtomicBool,
     fail_save: AtomicBool,
     fail_write: AtomicBool,
+    fail_read: AtomicBool,
     threads: Mutex<Vec<thread::ThreadId>>,
 }
 impl Platform for FakePlatform {
     fn clipboard_snapshot(&self) -> Result<Option<ClipboardText>, AdapterError> {
         self.reads.fetch_add(1, Ordering::SeqCst);
         assert!(!self.forbid_clipboard.load(Ordering::SeqCst));
+        if self.fail_read.load(Ordering::SeqCst) {
+            return Err(AdapterError::Unavailable);
+        }
         Ok(self.clipboard.lock().unwrap().clone())
     }
     fn clipboard_write(&self, value: ClipboardText) -> Result<(), AdapterError> {
@@ -621,5 +625,186 @@ fn directions_block_disallowed_transfers_and_never_retry_a_receive_only_upload()
         assert_eq!(remote.data.lock().unwrap().attempts.len(), attempts);
         assert_eq!(s.receive().await.unwrap(), SyncOutcome::Downloaded);
         s.shutdown().await.unwrap();
+    });
+}
+
+#[test]
+fn background_sync_continues_owned_upload_and_obeys_all_directions_without_reading_clipboard() {
+    block_on(async {
+        for direction in [
+            crate::SyncDirection::Both,
+            crate::SyncDirection::Upload,
+            crate::SyncDirection::Download,
+        ] {
+            let platform = Arc::new(FakePlatform::default());
+            let remote = Remote::default();
+            let s = start(&platform, &remote, SensitivePolicy::EncryptedInbox);
+            // Background calls must never initialize a session by inspecting the clipboard.
+            assert_eq!(
+                s.sync_background(crate::BackgroundClipboardSource::PendingOnly)
+                    .await
+                    .unwrap()
+                    .sent,
+                SyncOutcome::Paused
+            );
+            s.check().await.unwrap();
+            *platform.clipboard.lock().unwrap() =
+                Some(text("synthetic pending background upload", false));
+            remote.fail_next_send.store(true, Ordering::SeqCst);
+            assert!(matches!(
+                s.send_clipboard().await,
+                Err(MobileError::Network)
+            ));
+            let attempts = remote.data.lock().unwrap().attempts.len();
+            s.update_direction(direction).await.unwrap();
+            let reads = platform.reads.load(Ordering::SeqCst);
+            platform.forbid_clipboard.store(true, Ordering::SeqCst);
+            s.sync_background(crate::BackgroundClipboardSource::PendingOnly)
+                .await
+                .unwrap();
+            s.sync_background(crate::BackgroundClipboardSource::PendingOnly)
+                .await
+                .unwrap(); // Send/ack or cancellation finishes through core.
+            assert_eq!(platform.reads.load(Ordering::SeqCst), reads);
+            assert_eq!(
+                remote.data.lock().unwrap().attempts.len(),
+                attempts + usize::from(direction != crate::SyncDirection::Download)
+            );
+            remote.publish("synthetic background sensitive inbox", true);
+            let tick = s
+                .sync_background(crate::BackgroundClipboardSource::PendingOnly)
+                .await
+                .unwrap();
+            if direction == crate::SyncDirection::Upload {
+                assert_eq!(tick.received, SyncOutcome::Paused);
+                assert!(s.status().await.unwrap().inbox.is_none());
+            } else {
+                assert_eq!(tick.received, SyncOutcome::Stored);
+                assert!(s.status().await.unwrap().inbox.is_some());
+            }
+            assert_eq!(platform.writes.load(Ordering::SeqCst), 0);
+            s.shutdown().await.unwrap();
+        }
+    });
+}
+
+#[test]
+fn privileged_background_capture_does_not_reupload_unchanged_content_or_replace_retry_uuid() {
+    block_on(async {
+        let platform = Arc::new(FakePlatform::default());
+        let remote = Remote::default();
+        let s = start(&platform, &remote, SensitivePolicy::EncryptedInbox);
+        s.check().await.unwrap();
+        *platform.clipboard.lock().unwrap() = Some(text("synthetic Shizuku copy", false));
+        remote.fail_next_send.store(true, Ordering::SeqCst);
+        assert!(matches!(
+            s.sync_background(crate::BackgroundClipboardSource::Privileged)
+                .await,
+            Err(MobileError::Network)
+        ));
+        for _ in 0..4 {
+            s.sync_background(crate::BackgroundClipboardSource::Privileged)
+                .await
+                .unwrap();
+        }
+        {
+            let data = remote.data.lock().unwrap();
+            assert_eq!(data.sends, ["synthetic Shizuku copy"]);
+            assert_eq!(data.attempts.len(), 2);
+            assert_eq!(data.attempts[0], data.attempts[1]);
+        }
+        // An actual successful incoming OS write is an observation too, even after echo timeout.
+        remote.publish("synthetic received ordinary", false);
+        assert_eq!(
+            s.sync_background(crate::BackgroundClipboardSource::Privileged)
+                .await
+                .unwrap()
+                .received,
+            SyncOutcome::Downloaded
+        );
+        for _ in 0..3 {
+            s.sync_background(crate::BackgroundClipboardSource::Privileged)
+                .await
+                .unwrap();
+        }
+        assert_eq!(remote.data.lock().unwrap().sends.len(), 1);
+        s.shutdown().await.unwrap();
+    });
+}
+
+#[test]
+fn unavailable_privileged_capture_preserves_receiving_and_sensitive_policy() {
+    block_on(async {
+        for policy in [
+            SensitivePolicy::Disabled,
+            SensitivePolicy::EncryptedInbox,
+            SensitivePolicy::AutoWrite,
+        ] {
+            let platform = Arc::new(FakePlatform::default());
+            let remote = Remote::default();
+            let s = start(&platform, &remote, policy);
+            s.check().await.unwrap();
+            *platform.clipboard.lock().unwrap() =
+                Some(text("synthetic already-owned upload", false));
+            remote.fail_next_send.store(true, Ordering::SeqCst);
+            assert!(matches!(
+                s.send_clipboard().await,
+                Err(MobileError::Network)
+            ));
+            platform.fail_read.store(true, Ordering::SeqCst);
+            for _ in 0..2 {
+                s.sync_background(crate::BackgroundClipboardSource::Privileged)
+                    .await
+                    .unwrap();
+            }
+            {
+                let data = remote.data.lock().unwrap();
+                assert_eq!(data.sends, ["synthetic already-owned upload"]);
+                assert_eq!(data.attempts.len(), 2);
+                assert_eq!(data.attempts[0], data.attempts[1]);
+            }
+            remote.publish("synthetic marked incoming", true);
+            let result = s
+                .sync_background(crate::BackgroundClipboardSource::Privileged)
+                .await
+                .unwrap();
+            assert_eq!(result.capture, crate::BackgroundCapture::Unavailable);
+            assert_eq!(
+                result.received,
+                match policy {
+                    SensitivePolicy::Disabled => SyncOutcome::Filtered,
+                    SensitivePolicy::EncryptedInbox => SyncOutcome::Stored,
+                    SensitivePolicy::AutoWrite => SyncOutcome::Downloaded,
+                }
+            );
+            assert_eq!(
+                s.status().await.unwrap().inbox.is_some(),
+                policy == SensitivePolicy::EncryptedInbox
+            );
+            assert_eq!(
+                platform.writes.load(Ordering::SeqCst),
+                u64::from(policy == SensitivePolicy::AutoWrite)
+            );
+            if policy == SensitivePolicy::AutoWrite {
+                assert!(
+                    platform
+                        .clipboard
+                        .lock()
+                        .unwrap()
+                        .as_ref()
+                        .unwrap()
+                        .sensitive
+                );
+            }
+            s.update_direction(crate::SyncDirection::Download)
+                .await
+                .unwrap();
+            let reads = platform.reads.load(Ordering::SeqCst);
+            s.sync_background(crate::BackgroundClipboardSource::Privileged)
+                .await
+                .unwrap();
+            assert_eq!(platform.reads.load(Ordering::SeqCst), reads);
+            s.shutdown().await.unwrap();
+        }
     });
 }

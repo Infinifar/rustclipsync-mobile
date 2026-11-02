@@ -24,23 +24,30 @@ See [中文开发说明](README-ZH.md), [build instructions](docs/BUILD.md),
 [binding/lifecycle contract](docs/BINDINGS.md), and [validation evidence](docs/VALIDATION.md).
 
 
-Android adds separate, default-off **background listening** and **automatic background clipboard
-writes** switches. Listening uses a user-started foreground service; background receives
-never read the clipboard. Writes require an additional explicit confirmation and obey the
-existing sensitive policy. With writes off, ordinary messages await foreground handling.
+Android 0.1.4 uses one default-off **Run in background** switch. **Two-way / Send only /
+Receive only** controls both foreground and background operation. Incoming ordinary text
+writes the clipboard and may replace another app's recent copy. Upgrade users must re-enable
+the expanded background capability; there is no second background write switch.
 
-With encrypted inbox enabled, its listener running, notifications/channel authorized,
-and a saved inbox item available, the app creates or restores a notification
-masked as `**`. Its adjacent text actions are **Show / Hide** (one toggling button) and
-**Copy**. Showing requires unlocking; copying explicitly writes the complete marked item in the background, independently of automatic writes.
-New messages, screen-off, foreground entry, policy changes and shutdown reset the preview.
-Notification denial does not prevent encrypted storage. The server retains only the latest
-message. Background writes can overwrite another app's recent clipboard value because
-background reads are unavailable. Unmarked text cannot reliably be classified as sensitive.
+Install and start **Shizuku 13+ in wireless debugging / ADB shell mode**, then select **Request Shizuku access** to capture new
+background copies. The source binds only while the app is backgrounded, background operation
+is active and the direction includes sending. It does not read while locked or screen-off.
+Without access, already-owned uploads and receiving continue. Oversized RPC text (over 256 KiB)
+is rejected without truncation. Shizuku does not remove Android service time limits.
 
-Android background execution is bounded by system foreground-service limits; it is not
-an always-on guarantee. iOS remains foreground-only until push support is added. See
-[behavior, platform limits and sources](docs/BACKGROUND.md) and [validation](docs/VALIDATION.md).
+Sensitive content is one persistent, exclusive choice: **Skip marked sensitive messages**,
+**Save in encrypted inbox**, or **Write directly to clipboard (no inbox)**. Unmarked text
+cannot reliably be identified as sensitive. With receiving enabled, the encrypted inbox policy,
+a running background service, notification/channel authorization and an eligible saved item,
+a separate inbox notification offers **Show / Hide** and **Copy**. The default star mask adapts
+to screen width independently of content length. Show/Hide keeps the shade open; Copy uses
+the system closing/authentication path. MyUI behavior remains user-owned device validation.
+
+The inbox page explains unmet conditions, the active policy, incoming filtering and the latest
+sync result. Initial registration does not replay old messages; direct writes create no new
+inbox notification. Stop, screen-off and lifecycle changes revoke previews and old actions.
+Android execution is bounded by foreground-service limits. iOS remains foreground-only pending
+APNs support. See [behavior and official sources](docs/BACKGROUND.md) and [validation](docs/VALIDATION.md).
 
 Version 0.1.1 displays its build revision in the app. Saved inbox notifications survive
 foreground entry with their body masked; the app provides **Show inbox notification**

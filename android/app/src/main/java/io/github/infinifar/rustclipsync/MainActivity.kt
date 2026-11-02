@@ -64,7 +64,7 @@ private fun SyncScreen(session: SessionController, theme: ThemeMode, changeTheme
     var server by rememberSaveable { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var policy by remember { mutableStateOf(session.policySelection) }
+    val policy = session.policySelection
     var settingsPage by rememberSaveable { mutableIntStateOf(0) }
     var updateChecking by remember { mutableStateOf(false) }
     var updateMessage by remember { mutableStateOf<UiMessage?>(null) }
@@ -72,7 +72,7 @@ private fun SyncScreen(session: SessionController, theme: ThemeMode, changeTheme
     var page by rememberSaveable { mutableIntStateOf(0) }
     var confirmDelete by remember { mutableStateOf(false) }
     var confirmAutoWrite by remember { mutableStateOf(false) }
-    var confirmBackgroundWrite by remember { mutableStateOf(false) }
+    var confirmBackgroundRun by remember { mutableStateOf(false) }
     var notificationRationale by remember { mutableStateOf(false) }
     val editable = !session.connected && !session.busy
     val context = LocalContext.current
@@ -162,11 +162,17 @@ private fun SyncScreen(session: SessionController, theme: ThemeMode, changeTheme
                                 TextButton(onClick = { confirmDelete = true }, enabled = !session.busy) { Text(context.translated(R.string.delete_message)) }
                             } else {
                                 Text(if (session.connected) context.translated(R.string.inbox_policy_note) else context.translated(R.string.inbox_connect_note))
-                                TextButton(onClick = { page = if (session.connected) 2 else 0 }) { Text(if (session.connected) context.translated(R.string.go_settings) else context.translated(R.string.go_connect)) }
+                                TextButton(onClick = { settingsPage = 0; page = if (session.connected) 2 else 0 }) { Text(if (session.connected) context.translated(R.string.go_settings) else context.translated(R.string.go_connect)) }
                             }
                         }
                         Panel(context.translated(R.string.notification_actions)) {
                             Text(session.inboxNotificationHint)
+                            Note(session.message)
+                            if (session.filterDownloads && session.filterMode != io.github.infinifar.rustclipsync.bindings.TextFilterMode.OFF) {
+                                Note(context.translated(R.string.inbox_receive_filter_active))
+                            }
+                            Note(context.translated(R.string.sensitive_policy_prefix) + context.translated(policyTitle(policy)))
+                            TextButton(onClick = { settingsPage = 0; page = 2 }) { Text(context.translated(R.string.review_sync_settings)) }
                             Note(context.translated(R.string.notification_actions_note))
                             OutlinedButton(onClick = session::showInboxNotification,
                                 enabled = session.inboxNotificationReady && !session.busy, modifier = Modifier.fillMaxWidth()) { Text(context.translated(R.string.show_inbox_notification)) }
@@ -187,7 +193,7 @@ private fun SyncScreen(session: SessionController, theme: ThemeMode, changeTheme
                                 }
                             }
                             Note(context.translated(R.string.direction_change_note))
-                            Note(context.translated(R.string.background_receive_only))
+                            Note(context.translated(R.string.direction_background_note))
                         }
                         if (settingsPage == 1) Panel(context.translated(R.string.regex_filter_title)) { FilterSettingsEditor(session) }
                         if (settingsPage == 2) Panel(context.translated(R.string.language_title)) {
@@ -212,27 +218,32 @@ private fun SyncScreen(session: SessionController, theme: ThemeMode, changeTheme
                                 SensitivePolicy.entries.forEach { value ->
                                     Choice(context.translated(policyTitle(value)), policy == value, !session.busy) {
                                         if (value == SensitivePolicy.AUTO_WRITE) confirmAutoWrite = true
-                                        else { policy = value; if (session.connected) session.policy(value) }
+                                        else session.policy(value)
                                     }
                                 }
                             }
                             Note(context.translated(R.string.unmarked_note))
                         }
-                        if (settingsPage == 0) Panel(context.translated(R.string.background_receive)) {
-                            SettingSwitch(context.translated(R.string.background_listening), context.translated(R.string.poll_interval_note), session.backgroundEnabled, !session.busy && session.direction.receives) { enabled ->
-                                session.configureBackgroundListening(enabled)
-                                if (enabled && !session.notificationAuthorized) requestNotificationPermission()
+                        if (settingsPage == 0) Panel(context.translated(R.string.background_execution)) {
+                            SettingSwitch(context.translated(R.string.background_execution), context.translated(R.string.background_execution_note),
+                                session.backgroundEnabled, !session.busy) { enabled ->
+                                if (enabled) confirmBackgroundRun = true else session.configureBackgroundRunning(false)
                             }
-                            HorizontalDivider()
-                            SettingSwitch(context.translated(R.string.auto_clipboard_write), context.translated(R.string.background_write_note),
-                                session.backgroundWritesEnabled, session.direction.receives && session.backgroundEnabled && !session.busy) { enabled ->
-                                if (enabled) confirmBackgroundWrite = true else session.configureBackgroundWrites(false)
-                            }
-                            if (session.backgroundEnabled) {
-                                Note(if (session.backgroundRunning) context.translated(R.string.listener_running) else context.translated(R.string.listener_connect_first))
-                                if (!session.notificationAuthorized) TextButton(onClick = ::requestNotificationPermission) { Text(context.translated(R.string.allow_notifications)) }
+                            Note(if (session.backgroundRunning) context.translated(R.string.background_running) else context.translated(R.string.listener_connect_first))
+                            Note(context.translated(R.string.direction_status, context.translated(session.direction.title)))
+                            if (session.backgroundEnabled && !session.notificationAuthorized) {
+                                TextButton(onClick = ::requestNotificationPermission) { Text(context.translated(R.string.allow_notifications)) }
                             }
                             Note(context.translated(R.string.background_limits))
+                        }
+                        if (settingsPage == 0 && session.direction.sends) Panel(context.translated(R.string.shizuku_title)) {
+                            Text(session.privilegedClipboard.status.resolve(context))
+                            Note(context.translated(R.string.shizuku_note))
+                            if (session.captureUnavailable) Note(context.translated(R.string.shizuku_capture_failed))
+                            OutlinedButton(onClick = session.privilegedClipboard::requestPermission, modifier = Modifier.fillMaxWidth()) {
+                                Text(context.translated(R.string.shizuku_authorize))
+                            }
+                            TextButton(onClick = { openProject("https://shizuku.rikka.app/download/") }) { Text(context.translated(R.string.shizuku_setup)) }
                         }
                         if (settingsPage == 3) Panel(context.translated(R.string.settings_about)) {
                             Text("RustClipSync ${BuildConfig.VERSION_NAME}")
@@ -262,13 +273,13 @@ private fun SyncScreen(session: SessionController, theme: ThemeMode, changeTheme
     if (confirmAutoWrite) AlertDialog(onDismissRequest = { confirmAutoWrite = false },
         title = { Text(context.translated(R.string.sensitive_write_title)) },
         text = { Text(context.translated(R.string.sensitive_write_warning)) },
-        confirmButton = { TextButton(onClick = { confirmAutoWrite = false; policy = SensitivePolicy.AUTO_WRITE; if (session.connected) session.policy(policy) }) { Text(context.translated(R.string.enable)) } },
+        confirmButton = { TextButton(onClick = { confirmAutoWrite = false; session.policy(SensitivePolicy.AUTO_WRITE) }) { Text(context.translated(R.string.enable)) } },
         dismissButton = { TextButton(onClick = { confirmAutoWrite = false }) { Text(context.translated(R.string.cancel)) } })
-    if (confirmBackgroundWrite) AlertDialog(onDismissRequest = { confirmBackgroundWrite = false },
-        title = { Text(context.translated(R.string.background_write_title)) },
-        text = { Text(context.translated(R.string.background_write_warning)) },
-        confirmButton = { TextButton(onClick = { confirmBackgroundWrite = false; session.configureBackgroundWrites(true) }) { Text(context.translated(R.string.allow_write)) } },
-        dismissButton = { TextButton(onClick = { confirmBackgroundWrite = false }) { Text(context.translated(R.string.cancel)) } })
+    if (confirmBackgroundRun) AlertDialog(onDismissRequest = { confirmBackgroundRun = false },
+        title = { Text(context.translated(R.string.background_execution_title)) },
+        text = { Text(context.translated(R.string.background_execution_warning)) },
+        confirmButton = { TextButton(onClick = { confirmBackgroundRun = false; session.configureBackgroundRunning(true); if (!session.notificationAuthorized) requestNotificationPermission() }) { Text(context.translated(R.string.enable)) } },
+        dismissButton = { TextButton(onClick = { confirmBackgroundRun = false }) { Text(context.translated(R.string.cancel)) } })
     if (notificationRationale) AlertDialog(onDismissRequest = { notificationRationale = false },
         title = { Text(context.translated(R.string.notify_permission_title)) },
         text = { Text(context.translated(R.string.notification_permission_note)) },
@@ -279,7 +290,7 @@ private fun SyncScreen(session: SessionController, theme: ThemeMode, changeTheme
 private fun policyTitle(value: SensitivePolicy): Int = when (value) {
     SensitivePolicy.DISABLED -> R.string.policy_skip
     SensitivePolicy.ENCRYPTED_INBOX -> R.string.policy_inbox
-    SensitivePolicy.AUTO_WRITE -> R.string.auto_clipboard_write
+    SensitivePolicy.AUTO_WRITE -> R.string.policy_direct_write
 }
 
 @Composable

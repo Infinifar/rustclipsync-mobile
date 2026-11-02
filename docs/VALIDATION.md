@@ -327,7 +327,41 @@ Rust 原始记录见 [本轮证据目录](evidence/android-client-settings-2026-
 最终实现 `40dabeaedefd755ffc3e7952ec57709392080d43`（0.1.3）：
 [Rust CI 已通过](https://github.com/Infinifar/rustclipsync-mobile/actions/runs/41341560187)，
 [Android APK / JVM tests / lint 构建](https://github.com/Infinifar/rustclipsync-mobile/actions/runs/41341560080)
-在交接记录时仍在执行，不计为已通过平台编译；完成后可在同页面下载。
+现已确认成功，APK 可在同页面下载。该结果仅适用于 0.1.3。
 本地临时 Rust target 与日志已清理，原始验证记录保留在证据目录；未安装本地 SDK，
 未启动模拟器、真实剪贴板或生产服务。支持 RTL 布局方向，但尚未提供其他语言翻译，
 也未做相应视觉验收。现有常驻通知会随返回前台刷新语言，服务配置变化会重算隐藏占位。
+
+
+## Android 0.1.4：统一后台运行与 Shizuku 来源
+
+本轮将“后台监听+后台写入”收敛成一个默认关闭的“后台运行”，方向控制全部收发。
+旧设置不静默升级授权。敏感三策略互斥且持久保存，UI 不再保留可能过时的策略副本；
+收件箱页显示缺失条件、实际策略、最近结果及接收过滤，不再暗示所有开关都需开启。
+
+用户选择 Shizuku 来源。固定 API/provider 13.1.5，显式授权、Binder 断开/撤销处理、
+非 daemon UserService、调用 UID 校验、私有 AIDL、受平台权限保护的 Provider、
+无正文变化回调、锁屏/熄屏保护、256 KiB RPC 上限和 1.5 秒工作线程等待。
+当前支持无线调试/ADB shell 模式，root 模式明确提示改用 ADB，避免 UID/包所有权错误
+被误认为空剪贴板。未使用任意命令执行，不改用户系统配置。
+
+共享 sync_background 串行组合 core 既有操作，核心 27 个 vendor 文件校验未变。
+会话内观察记录防止轮询重复创建复制事件，并记录成功 OS 写入防止监听器迟到回传；
+网络 UUID、重试、取消、ack、敏感与过滤逻辑仍由 core 负责，协议及 RCS1 未变。
+
+已完成的本地检查：
+
+- fmt、Clippy --workspace --all-targets --all-features -D warnings、rustdoc。
+- Rust 全特性 18 项通过（默认 17 项）；覆盖三方向、已持有事务断网续传、特权读取失败
+  不清除待发项、继续敏感三策略接收、仅接收不读，以及重复检查不重复上传/替换原 UUID。
+- 负向证据：新 API 缺失先编译失败；去重未实现时合成同一文本重复上传 3 次，断言失败。
+  修复后通过。所有正文、账号、key 为合成数据，未访问真实系统剪贴板。
+- Kotlin/Swift/Python UniFFI 重新生成，4 项真实 host ABI smoke 通过；不是平台运行验证。
+- 隔离回环 TLS 路由 smoke 14 个 /api 请求通过；不是生产服务或完整服务端行为验证。
+- 179 个中英文资源键/占位符、XML 和 diff 静态校验通过。
+
+证据见 [本轮原始记录](evidence/android-background-model-2026-11-01/)。Android 的应用、测试 APK、
+JVM 测试与 lint 统一提交 GitHub 构建，最终链接/状态随后记录；不复用旧包代表本轮成功。
+没有本地 SDK 安装、模拟器、截图、真实剪贴板、Shizuku 设备运行或生产账户测试。
+按用户要求，可视化和 moto razr 60 u / Android 16 / MyUI 验收交用户，清单见 ANDROID-REVIEW.md。
+iOS 没有 macOS/Xcode 条件，未声称平台编译或真机通过。

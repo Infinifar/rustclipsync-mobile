@@ -14,7 +14,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -23,6 +24,7 @@ class BackgroundSyncService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val session get() = (application as SyncApplication).session
     private var polling: Job? = null
+    private val wake = Channel<Unit>(Channel.CONFLATED)
     private val privacyChanges = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
@@ -50,19 +52,21 @@ class BackgroundSyncService : Service() {
         when (intent?.action) {
             InboxNotifications.START -> {
                 try {
-                    startForeground(InboxNotifications.SERVICE_ID, InboxNotifications.serviceNotification(this, session.backgroundWritesEnabled), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+                    startForeground(InboxNotifications.SERVICE_ID, InboxNotifications.serviceNotification(this, session.direction), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
                 } catch (_: RuntimeException) { session.serviceStopped(); stopSelf(); return START_NOT_STICKY }
                 if (!session.serviceStarted()) { stopSelf(); return START_NOT_STICKY }
+                session.backgroundWake = { wake.trySend(Unit); Unit }
+                wake.trySend(Unit)
                 if (polling == null) polling = scope.launch {
                     while (isActive && session.backgroundEnabled && session.connected) {
-                        session.pollInbox()
-                        // No wake lock, clipboard watcher, or platform-side upload/retry algorithm.
-                        delay(30_000)
+                        session.pollBackground()
+                        // Clipboard wake signals are coalesced; core owns send/receive transitions.
+                        withTimeoutOrNull(30_000) { wake.receive() }
                     }
                     stopSelf()
                 }
             }
-            InboxNotifications.STOP -> { session.configureBackgroundListening(false); stopSelf() }
+            InboxNotifications.STOP -> { session.configureBackgroundRunning(false); stopSelf() }
             InboxNotifications.SHOW, InboxNotifications.HIDE, InboxNotifications.DISMISS -> {
                 if (session.backgroundRunning) scope.launch { session.notificationAction(intent) }
                 else stopSelf()
@@ -87,11 +91,12 @@ class BackgroundSyncService : Service() {
         stopSelf()
     }
     override fun onTaskRemoved(rootIntent: Intent?) {
-        session.configureBackgroundListening(false)
+        session.configureBackgroundRunning(false)
         stopSelf()
     }
     override fun onDestroy() {
-        scope.cancel()
+        session.backgroundWake = null
+        wake.close(); scope.cancel()
         unregisterReceiver(privacyChanges)
         session.serviceStopped()
         stopForeground(STOP_FOREGROUND_REMOVE)

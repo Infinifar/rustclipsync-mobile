@@ -8,7 +8,7 @@ use rustclipsync_core::{
 use std::{
     io,
     sync::{
-        Arc,
+        Arc, Mutex,
         atomic::{AtomicBool, Ordering},
     },
 };
@@ -34,9 +34,27 @@ pub trait Platform: Send + Sync {
 pub(crate) struct Host {
     pub platform: Arc<dyn Platform>,
     pub closing: Arc<AtomicBool>,
+    // Session-local observation only; core owns outbox IDs, retries and persistence.
+    pub observed_clipboard: Arc<Mutex<Option<Option<ClipboardText>>>>,
 }
 
 impl Host {
+    pub fn snapshot_changed(&self, value: &Option<ClipboardText>) -> Result<bool, ClipboardError> {
+        let previous = self
+            .observed_clipboard
+            .lock()
+            .map_err(|_| ClipboardError::Platform)?;
+        Ok(previous.as_ref() != Some(value))
+    }
+
+    pub fn remember_snapshot(&self, value: Option<ClipboardText>) -> Result<(), ClipboardError> {
+        *self
+            .observed_clipboard
+            .lock()
+            .map_err(|_| ClipboardError::Platform)? = Some(value);
+        Ok(())
+    }
+
     pub fn read_snapshot(&self) -> Result<Option<ClipboardText>, ClipboardError> {
         if self.closing.load(Ordering::SeqCst) {
             return Err(ClipboardError::Unavailable);
@@ -67,13 +85,16 @@ impl Clipboard for Host {
         if self.closing.load(Ordering::SeqCst) {
             return Err(ClipboardError::Unavailable);
         }
+        let value = ClipboardText {
+            text: text.to_owned(),
+            sensitive,
+            origin: Some(message_id.to_owned()),
+        };
         self.platform
-            .clipboard_write(ClipboardText {
-                text: text.to_owned(),
-                sensitive,
-                origin: Some(message_id.to_owned()),
-            })
-            .map_err(clipboard_error)
+            .clipboard_write(value.clone())
+            .map_err(clipboard_error)?;
+        // A successful receive/copy is already observed, even if the OS listener fires late.
+        self.remember_snapshot(Some(value))
     }
 }
 

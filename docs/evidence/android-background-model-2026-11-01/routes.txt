@@ -1,0 +1,20 @@
+   Compiling rustclipsync-mobile-ffi v0.1.0 (/home/cassius/Projects/rustclipsync-mobile/crates/rustclipsync-mobile-ffi)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.45s
+All seven core HTTP operations completed against the synthetic fixture
+All seven core HTTP operations completed against the synthetic fixture
+Core revision: 1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e
+PASS: 14 real HTTPS requests; root and nested deployment paths
+POST /api/devices
+GET /api/state
+GET /api/changes?epoch=10000000-0000-4000-8000-000000000001&after=0
+GET /api/messages/30000000-0000-4000-8000-000000000001/content
+PUT /api/messages/30000000-0000-4000-8000-000000000001
+DELETE /api/messages/30000000-0000-4000-8000-000000000001
+POST /api/ack
+POST /synthetic-mount/api/devices
+GET /synthetic-mount/api/state
+GET /synthetic-mount/api/changes?epoch=10000000-0000-4000-8000-000000000001&after=0
+GET /synthetic-mount/api/messages/30000000-0000-4000-8000-000000000001/content
+PUT /synthetic-mount/api/messages/30000000-0000-4000-8000-000000000001
+DELETE /synthetic-mount/api/messages/30000000-0000-4000-8000-000000000001
+POST /synthetic-mount/api/ack

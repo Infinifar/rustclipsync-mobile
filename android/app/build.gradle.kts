@@ -15,13 +15,13 @@ android {
         applicationId = "io.github.infinifar.rustclipsync" + if (disposableIntegration) ".disposable" else ""
         minSdk = 31
         targetSdk = 36
-        versionCode = 4
-        versionName = if (disposableIntegration) "0.1.3-disposable" else "0.1.3"
+        versionCode = 5
+        versionName = if (disposableIntegration) "0.1.4-disposable" else "0.1.4"
         buildConfigField("String", "BUILD_REVISION", "\"$revision\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
     }
-    buildFeatures { compose = true; buildConfig = true }
+    buildFeatures { compose = true; buildConfig = true; aidl = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     sourceSets["main"].java.srcDir("../../build/bindings")
     if (disposableIntegration) sourceSets["androidTest"].java.srcDir("src/disposableTest/java")
@@ -29,6 +29,8 @@ android {
 }
 kotlin { jvmToolchain(17) }
 dependencies {
+    implementation("dev.rikka.shizuku:api:13.1.5")
+    implementation("dev.rikka.shizuku:provider:13.1.5")
     implementation(platform("androidx.compose:compose-bom:2026.02.01"))
     implementation("androidx.compose.material3:material3")
     implementation("androidx.activity:activity-compose:1.12.4")

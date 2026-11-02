@@ -32,23 +32,27 @@ internal class SessionController(
     private val open: (MobileConfig, Platform) -> MobileSession = { config, adapter -> MobileSession(config, adapter) },
 ) {
     private val application = context.applicationContext
-    private val preferences = application.getSharedPreferences("background-listening", Context.MODE_PRIVATE)
+    private val preferences = application.getSharedPreferences("background-running-v2", Context.MODE_PRIVATE)
     private val syncPreferences = application.getSharedPreferences("sync-settings", Context.MODE_PRIVATE)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val cleanup = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     internal val notifications = InboxNotifications(application)
+    internal val privilegedClipboard get() = (application as SyncApplication).privilegedClipboard
+    internal var backgroundWake: (() -> Unit)? = null
+    var captureUnavailable by mutableStateOf(false); private set
     private var native: MobileSession? = null
     private var platform: SessionPlatform? = null
     private var retiring: Job? = null
     private var epoch = 0L
     private var startingService = false
     private var focused = false
-    private var selectedPolicy by mutableStateOf(SensitivePolicy.DISABLED)
+    private var selectedPolicy by mutableStateOf(SensitivePolicy.entries.firstOrNull {
+        it.name == syncPreferences.getString("sensitive-policy", "DISABLED")
+    } ?: SensitivePolicy.DISABLED)
     val policySelection get() = selectedPolicy
     var notificationAuthorized by mutableStateOf(InboxNotifications.authorized(application)); private set
     var foreground by mutableStateOf(false); private set
     var backgroundEnabled by mutableStateOf(preferences.getBoolean("enabled", false)); private set
-    var backgroundWritesEnabled by mutableStateOf(preferences.getBoolean("write", false)); private set
     var backgroundRunning by mutableStateOf(false); private set
     var busy by mutableStateOf(false); private set
     var connected by mutableStateOf(false); private set
@@ -65,8 +69,8 @@ internal class SessionController(
         fun save() {
             direction = value
             syncPreferences.edit().putString("direction", value.key).apply()
-            if (!value.receives) { configureBackgroundListening(false); configureBackgroundWrites(false) }
             updateWriteAccess()
+            if (backgroundRunning) application.startService(Intent(application, BackgroundSyncService::class.java).setAction(InboxNotifications.START))
         }
         if (connected) command {
             updateDirection(io.github.infinifar.rustclipsync.bindings.SyncDirection.valueOf(value.name))
@@ -134,7 +138,7 @@ internal class SessionController(
         updateWriteAccess()
         native?.clipboardChanged() // Invalidate an in-flight receive across a lifecycle transition.
         if (value) {
-            notifications.mask(); refreshNotificationAuthorization(); startBackgroundIfEnabled()
+            notifications.mask(); refreshNotificationAuthorization(); privilegedClipboard.refresh(); startBackgroundIfEnabled()
             // Recreated activities also refresh the running FGS title after a per-app locale change.
             if (backgroundRunning) {
                 try { application.startService(Intent(application, BackgroundSyncService::class.java).setAction(InboxNotifications.START)) }
@@ -144,7 +148,7 @@ internal class SessionController(
         else {
             clipboardFocus(false)
             if (!backgroundEnabled || (!backgroundRunning && !startingService)) close()
-            else syncNotification()
+            else { syncNotification(); backgroundWake?.invoke() }
         }
     }
 
@@ -154,7 +158,7 @@ internal class SessionController(
         native?.clipboardChanged()
     }
 
-    fun configureBackgroundListening(value: Boolean) {
+    fun configureBackgroundRunning(value: Boolean) {
         backgroundEnabled = value
         native?.clipboardChanged()
         updateWriteAccess()
@@ -167,20 +171,15 @@ internal class SessionController(
         }
     }
 
-    fun configureBackgroundWrites(value: Boolean) {
-        backgroundWritesEnabled = value
-        preferences.edit().putBoolean("write", value).apply()
-        native?.clipboardChanged()
-        updateWriteAccess()
-        if (backgroundRunning && foreground) application.startService(Intent(application, BackgroundSyncService::class.java).setAction(InboxNotifications.START))
-    }
-
     private fun updateWriteAccess() {
-        platform?.backgroundWrite(direction.receives && backgroundEnabled && backgroundRunning && backgroundWritesEnabled && !foreground)
+        platform?.backgroundRead(backgroundEnabled && backgroundRunning && direction.sends && !foreground)
+        platform?.backgroundWrite(backgroundEnabled && backgroundRunning && direction.receives && !foreground)
+        privilegedClipboard.requireSource(backgroundEnabled && backgroundRunning && direction.sends && !foreground)
+        privilegedClipboard.wake = { native?.clipboardChanged(); backgroundWake?.invoke() }
     }
 
     private fun startBackgroundIfEnabled() {
-        if (!direction.receives || !backgroundEnabled || !connected || !foreground || backgroundRunning || startingService) return
+        if (!backgroundEnabled || !connected || !foreground || backgroundRunning || startingService) return
         startingService = true
         try { application.startForegroundService(Intent(application, BackgroundSyncService::class.java).setAction(InboxNotifications.START)) }
         catch (_: RuntimeException) {
@@ -192,7 +191,7 @@ internal class SessionController(
 
     fun serviceStarted(): Boolean {
         startingService = false
-        backgroundRunning = direction.receives && backgroundEnabled && connected
+        backgroundRunning = backgroundEnabled && connected
         updateWriteAccess()
         syncNotification()
         return backgroundRunning
@@ -206,7 +205,7 @@ internal class SessionController(
     }
 
     fun serviceTimedOut() {
-        configureBackgroundListening(false)
+        configureBackgroundRunning(false)
         statusText = UiMessage(R.string.status_service_timeout)
     }
 
@@ -218,8 +217,8 @@ internal class SessionController(
         !direction.receives -> application.translated(R.string.status_upload_only)
         !backgroundEnabled || !backgroundRunning -> application.translated(R.string.hint_start_listening)
         selectedPolicy != SensitivePolicy.ENCRYPTED_INBOX -> application.translated(R.string.hint_wrong_policy)
-        status?.inbox == null -> application.translated(R.string.hint_empty_inbox)
         !notificationAuthorized -> application.translated(R.string.hint_notification_denied)
+        status?.inbox == null -> application.translated(R.string.hint_empty_inbox)
         else -> application.translated(R.string.hint_inbox_ready)
     }
 
@@ -237,11 +236,18 @@ internal class SessionController(
     }
 
     /** A scheduling tick, not an upload retry loop. Core owns all receive/ack rules. */
-    suspend fun pollInbox() {
+    suspend fun pollBackground() {
         refreshNotificationAuthorization()
-        if (!direction.receives || !backgroundEnabled || !backgroundRunning || !connected || foreground || busy) return
-        if (!backgroundWritesEnabled && selectedPolicy != SensitivePolicy.ENCRYPTED_INBOX) return
-        perform { receiveBackground(backgroundWritesEnabled); UiMessage(R.string.status_background_checked) }
+        privilegedClipboard.refresh()
+        if (!backgroundEnabled || !backgroundRunning || !connected || foreground || busy) return
+        perform {
+            val source = if (direction.sends && privilegedClipboard.ready)
+                io.github.infinifar.rustclipsync.bindings.BackgroundClipboardSource.PRIVILEGED
+                else io.github.infinifar.rustclipsync.bindings.BackgroundClipboardSource.PENDING_ONLY
+            val result = syncBackground(source)
+            captureUnavailable = result.capture == io.github.infinifar.rustclipsync.bindings.BackgroundCapture.UNAVAILABLE
+            UiMessage(R.string.status_background_sync, listOf(UiMessage.outcome(result.sent), UiMessage.outcome(result.received)))
+        }
     }
 
     suspend fun notificationAction(intent: Intent) = notifications.action(intent, ::notificationEligible) { id ->
@@ -269,15 +275,25 @@ internal class SessionController(
     fun send() { if (focused && direction.sends) command { UiMessage.outcome(sendClipboard()) } }
     fun receive() { if (focused && direction.receives) command { UiMessage.outcome(receive()) } }
     fun retry() { if (focused) command { UiMessage.outcome(retryPending()) } }
-    fun policy(value: SensitivePolicy) = command {
-        updatePolicy(value); selectedPolicy = value; notifications.clear(); UiMessage(R.string.status_policy_saved)
+    fun policy(value: SensitivePolicy) {
+        if (busy) return
+        fun save() {
+            selectedPolicy = value
+            syncPreferences.edit().putString("sensitive-policy", value.name).apply()
+            notifications.clear()
+        }
+        if (connected) command { updatePolicy(value); save(); UiMessage(R.string.status_policy_saved) }
+        else { save(); statusText = UiMessage(R.string.status_policy_saved) }
     }
     fun copyInbox() {
         val id = status?.inbox?.id ?: return
         if (focused) command { copyInbox(id); UiMessage(R.string.status_copied) }
     }
     fun clearInbox() { val id = status?.inbox?.id ?: return; command { clearInbox(id); notifications.clear(); UiMessage(R.string.status_inbox_cleared) } }
-    private fun command(operation: suspend MobileSession.() -> UiMessage) { scope.launch { perform(operation) } }
+    private fun command(operation: suspend MobileSession.() -> UiMessage) { scope.launch {
+        perform(operation)
+        if (!foreground && backgroundRunning) backgroundWake?.invoke()
+    } }
     private suspend fun perform(operation: suspend MobileSession.() -> UiMessage) {
         val session = native ?: return
         if (busy || !connected) return
@@ -304,6 +320,7 @@ internal class SessionController(
         ++epoch
         startingService = false; backgroundRunning = false
         notifications.clear()
+        privilegedClipboard.requireSource(false)
         application.stopService(Intent(application, BackgroundSyncService::class.java))
         platform?.revoke(); platform = null
         val session = native; native = null

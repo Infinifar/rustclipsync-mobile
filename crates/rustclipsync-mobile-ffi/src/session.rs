@@ -38,6 +38,7 @@ enum Command {
     Receive,
     ReceiveInbox,
     ReceiveBackground(bool),
+    BackgroundSync(crate::BackgroundClipboardSource),
     Policy(SensitivePolicy),
     Filter(crate::FilterConfig),
     Direction(crate::SyncDirection),
@@ -47,6 +48,7 @@ enum Command {
     Wake,
 }
 enum Response {
+    Background(crate::BackgroundSyncResult),
     Status(SessionStatus),
     Outcome(SyncOutcome),
     Text(Option<String>),
@@ -153,6 +155,25 @@ impl MobileSession {
     ) -> Result<SyncOutcome, MobileError> {
         self.outcome(Command::ReceiveBackground(write_clipboard))
             .await
+    }
+
+    /// Continue authorized background work in the configured direction.
+    ///
+    /// A successful foreground check must precede this call. PendingOnly never
+    /// reads the clipboard. Privileged requires a user-authorized host adapter;
+    /// a failed capture does not discard queued content or prevent receiving.
+    /// All state transitions, retries, filtering and inbox handling remain in core.
+    ///
+    /// # Errors
+    /// Returns sanitized core network, storage, conflict or lifecycle errors.
+    pub async fn sync_background(
+        &self,
+        source: crate::BackgroundClipboardSource,
+    ) -> Result<crate::BackgroundSyncResult, MobileError> {
+        match self.request(Command::BackgroundSync(source)).await? {
+            Response::Background(value) => Ok(value),
+            _ => Err(MobileError::Internal),
+        }
     }
 
     /// Updates explicit policy without replaying previously consumed messages.
@@ -304,6 +325,7 @@ impl MobileSession {
                 let result = catch_unwind(AssertUnwindSafe(|| {
                     let host = Host {
                         platform,
+                        observed_clipboard: Arc::default(),
                         closing: Arc::clone(&stopped),
                     };
                     let mut session = open(
@@ -381,6 +403,7 @@ impl Drop for MobileSession {
 }
 
 struct Engine<R> {
+    background_ready: bool,
     direction: crate::SyncDirection,
     filter_config: crate::FilterConfig,
     policy: SensitivePolicy,
@@ -416,6 +439,7 @@ fn open<R: Transport, F: FnOnce(&MobileConfig) -> Result<R, Error>>(
     )?;
     apply_policy(&mut session, policy);
     Ok(Engine {
+        background_ready: false,
         direction: crate::SyncDirection::Both,
         filter_config: crate::FilterConfig::default(),
         policy,
@@ -470,11 +494,12 @@ fn execute<R: Transport>(
             }),
             Command::Check => {
                 session.check()?;
+                engine.background_ready = true;
                 Response::Done
             }
             Command::Send => {
                 let snapshot = host.read_snapshot().map_err(SyncError::Clipboard)?;
-                let recorded = match snapshot {
+                let recorded = match &snapshot {
                     Some(value) => session.record_local(
                         &value.text,
                         value.origin.as_deref(),
@@ -483,6 +508,8 @@ fn execute<R: Transport>(
                     )?,
                     None => session.record_clear()?,
                 };
+                host.remember_snapshot(snapshot)
+                    .map_err(SyncError::Clipboard)?;
                 let flushed = session.flush(observed)?;
                 Response::Outcome(outcome(if matches!(recorded, Outcome::Filtered) {
                     recorded
@@ -494,6 +521,68 @@ fn execute<R: Transport>(
             Command::ReceiveInbox => Response::Outcome(outcome(session.pull_inbox(observed)?)),
             Command::ReceiveBackground(write) => {
                 Response::Outcome(outcome(session.pull_background(observed, write)?))
+            }
+            Command::BackgroundSync(source) => {
+                use crate::{
+                    BackgroundCapture, BackgroundClipboardSource, BackgroundSyncResult,
+                    SyncDirection,
+                };
+                if !engine.background_ready {
+                    return Ok(Response::Background(BackgroundSyncResult {
+                        sent: SyncOutcome::Paused,
+                        received: SyncOutcome::Paused,
+                        capture: BackgroundCapture::NotRequested,
+                    }));
+                }
+                let capture = if source == BackgroundClipboardSource::Privileged
+                    && engine.direction != SyncDirection::Download
+                {
+                    match host.read_snapshot() {
+                        Ok(value) => {
+                            if host
+                                .snapshot_changed(&value)
+                                .map_err(SyncError::Clipboard)?
+                            {
+                                match &value {
+                                    Some(value) => {
+                                        session.record_local(
+                                            &value.text,
+                                            value.origin.as_deref(),
+                                            value.sensitive,
+                                            Instant::now(),
+                                        )?;
+                                    }
+                                    None => {
+                                        session.record_clear()?;
+                                    }
+                                }
+                                host.remember_snapshot(value)
+                                    .map_err(SyncError::Clipboard)?;
+                            }
+                            BackgroundCapture::Captured
+                        }
+                        Err(_) => BackgroundCapture::Unavailable,
+                    }
+                } else {
+                    BackgroundCapture::NotRequested
+                };
+                if engine.direction == SyncDirection::Download
+                    && (session.persisted.state.pending.is_some()
+                        || session.persisted.state.queued.is_some())
+                {
+                    session.record_clear()?;
+                }
+                let sent = outcome(session.flush(observed)?);
+                let received = if engine.direction == SyncDirection::Upload {
+                    SyncOutcome::Paused
+                } else {
+                    outcome(session.pull_background(observed, true)?)
+                };
+                Response::Background(BackgroundSyncResult {
+                    sent,
+                    received,
+                    capture,
+                })
             }
             Command::Retry => {
                 if engine.direction == crate::SyncDirection::Download {

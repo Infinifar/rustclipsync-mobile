@@ -124,7 +124,7 @@ class ServiceIntegrationTest {
         val previous = main { app.session }
         val controller = main {
             previous.close()
-            context.getSharedPreferences("background-listening", 0).edit().clear().commit()
+            context.getSharedPreferences("background-running-v2", 0).edit().clear().commit()
             SessionController(context, { b to ByteArray(32) { 0x42 } }, MobileSession::forDisposableTest)
                 .also { app.session = it }
         }
@@ -141,7 +141,7 @@ class ServiceIntegrationTest {
             eventually("foreground connection") {
                 main { controller.connect(server, "synthetic-mobile", "synthetic-mobile-password", SensitivePolicy.ENCRYPTED_INBOX); controller.connected }
             }
-            main { controller.configureBackgroundListening(true) }
+            main { controller.configureBackgroundRunning(true) }
             eventually("foreground service running") { main { controller.backgroundRunning } }
             instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
             eventually("activity backgrounded") { main { !controller.foreground } }
@@ -164,7 +164,7 @@ class ServiceIntegrationTest {
             inbox()!!.actions[0].actionIntent.send()
             eventually("explicit hide") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?.let { value -> value.length >= 7 && value.all { it == '*' } } == true }
             publish(second, true)
-            withContext(Dispatchers.Main) { controller.pollInbox() }
+            withContext(Dispatchers.Main) { controller.pollBackground() }
             eventually("replacement masked") { inbox()?.actions?.get(0)?.title?.toString() == context.translated(R.string.show) }
             try { staleShow.send() } catch (_: android.app.PendingIntent.CanceledException) { }; delay(300)
             assertTrue((inbox()!!.extras.getCharSequence(Notification.EXTRA_TEXT).toString()).let { value -> value.length >= 7 && value.all { it == '*' } })
@@ -180,40 +180,31 @@ class ServiceIntegrationTest {
             inbox()!!.actions[1].actionIntent.send()
             eventually("notification explicit copy") { b.writes.get() == 1 }
             assertEquals(second, b.selection?.text); assertTrue(b.selection?.sensitive == true)
-            assertTrue(main { !controller.foreground && !controller.backgroundWritesEnabled })
-            assertFalse(b.backgroundWriteAllowed)
+            assertTrue(main { !controller.foreground && controller.policySelection == SensitivePolicy.ENCRYPTED_INBOX })
+            assertTrue(b.backgroundWriteAllowed)
             eventually("copy remasks") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?.let { value -> value.length >= 7 && value.all { it == '*' } } == true }
             assertEquals(reads, b.reads.get())
 
             publish("synthetic ordinary background write", false)
-            withContext(Dispatchers.Main) { controller.pollInbox() }
-            assertEquals(1, b.writes.get()) // Write switch is off: leave ordinary message unconsumed.
-            main {
-                context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            }
-            eventually("writing configuration foreground") { main { controller.foreground && !controller.busy } }
-            main { controller.configureBackgroundWrites(true) }
-            instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
-            eventually("writing configuration background") { main { !controller.foreground } }
-            withContext(Dispatchers.Main) { controller.pollInbox() }
+            withContext(Dispatchers.Main) { controller.pollBackground() }
             eventually("opt-in ordinary write") { b.writes.get() == 2 }
             assertEquals("synthetic ordinary background write", b.selection?.text)
             assertEquals(reads, b.reads.get())
             assertNotNull(inbox()) // Returning to the app masks the saved inbox; it remains actionable.
             assertTrue((inbox()!!.extras.getCharSequence(Notification.EXTRA_TEXT).toString()).let { value -> value.length >= 7 && value.all { it == '*' } })
 
-            // Inbox still wins over the background-write switch for marked data.
+            // Encrypted-inbox policy still protects marked data while ordinary receiving writes.
             publish("synthetic marked inbox with writes enabled", true)
-            withContext(Dispatchers.Main) { controller.pollInbox() }
+            withContext(Dispatchers.Main) { controller.pollBackground() }
             eventually("marked still in inbox") { inbox() != null }
             assertEquals(2, b.writes.get())
             val obsolete = inbox()!!.actions[0].actionIntent
-            main { controller.configureBackgroundListening(false) }
+            main { controller.configureBackgroundRunning(false) }
             eventually("stop revokes session") { inbox() == null && main { !controller.backgroundRunning && !controller.connected } }
             try { obsolete.send() } catch (_: android.app.PendingIntent.CanceledException) { }; delay(300)
             assertNull(inbox())
         } finally {
-            main { controller.configureBackgroundListening(false); controller.close() }
+            main { controller.configureBackgroundRunning(false); controller.close() }
             delay(300)
             main { app.session = previous }
             close(sender)
@@ -236,7 +227,7 @@ class ServiceIntegrationTest {
         val previous = main { app.session }
         val controller = main {
             previous.close()
-            context.getSharedPreferences("background-listening", 0).edit().clear().commit()
+            context.getSharedPreferences("background-running-v2", 0).edit().clear().commit()
             SessionController(context, { b to ByteArray(32) { 0x42 } }, MobileSession::forDisposableTest)
                 .also { app.session = it }
         }
@@ -253,7 +244,7 @@ class ServiceIntegrationTest {
                 main { controller.connect(server, "synthetic-mobile", "synthetic-mobile-password", SensitivePolicy.ENCRYPTED_INBOX); controller.connected }
             }
             assertNotNull(main { controller.status?.inbox })
-            main { controller.configureBackgroundListening(true) }
+            main { controller.configureBackgroundRunning(true) }
             eventually("saved inbox restored to notification") { inbox()?.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?.let { value -> value.length >= 7 && value.all { it == '*' } } == true }
             assertTrue(main { controller.foreground })
             File(root, "shade-ready").writeText("ready")
@@ -264,10 +255,10 @@ class ServiceIntegrationTest {
             File(root, "shade-hidden").writeText("ready")
             shade("copy clicked") { b.writes.get() == 1 }
             assertEquals(text, b.selection?.text); assertTrue(b.selection?.sensitive == true)
-            assertFalse(main { controller.backgroundWritesEnabled })
+            assertTrue(main { controller.policySelection == SensitivePolicy.ENCRYPTED_INBOX })
             assertEquals(listOf(context.translated(R.string.show), context.translated(R.string.copy)), inbox()!!.actions.map { it.title.toString() })
         } finally {
-            main { controller.configureBackgroundListening(false); controller.close() }
+            main { controller.configureBackgroundRunning(false); controller.close() }
             delay(300)
             main { app.session = previous }
         }
@@ -283,7 +274,7 @@ class ServiceIntegrationTest {
         val previous = main { app.session }
         val controller = main {
             previous.close()
-            context.getSharedPreferences("background-listening", 0).edit().clear().commit()
+            context.getSharedPreferences("background-running-v2", 0).edit().clear().commit()
             SessionController(context, { adapter to ByteArray(32) { 0x42 } }, MobileSession::forDisposableTest)
                 .also { app.session = it }
         }
@@ -295,14 +286,14 @@ class ServiceIntegrationTest {
             eventually("timeout foreground connection") {
                 main { controller.connect(server, "synthetic-mobile", "synthetic-mobile-password", SensitivePolicy.ENCRYPTED_INBOX); controller.connected }
             }
-            main { controller.configureBackgroundListening(true) }
+            main { controller.configureBackgroundRunning(true) }
             eventually("timeout service running") { main { controller.backgroundRunning } }
             instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
             eventually("system timeout closes session") { main { !controller.backgroundEnabled && !controller.backgroundRunning && !controller.connected } }
             assertFalse(adapter.backgroundWriteAllowed)
             assertEquals(0, adapter.writes.get())
         } finally {
-            main { controller.configureBackgroundListening(false); controller.close() }
+            main { controller.configureBackgroundRunning(false); controller.close() }
             delay(300)
             main { app.session = previous }
             if (oldTimeout == "null") shell("device_config delete activity_manager data_sync_fgs_timeout_duration")

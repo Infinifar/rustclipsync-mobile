@@ -13,17 +13,22 @@ import java.lang.ref.WeakReference
 internal interface SessionPlatform : Platform {
     fun observe(session: MobileSession)
     fun focus(value: Boolean)
+    fun backgroundRead(value: Boolean) {}
     fun backgroundWrite(value: Boolean)
     fun explicitCopy(id: String?, permitted: () -> Boolean)
     fun revoke()
 }
 
 internal class AndroidPlatform(context: Context, private val state: SecureState) : SessionPlatform {
+    private val privileged = (context.applicationContext as SyncApplication).privilegedClipboard
+    private val keyguard = context.getSystemService(android.app.KeyguardManager::class.java)
+    private val power = context.getSystemService(android.os.PowerManager::class.java)
     private val clipboard = context.applicationContext.getSystemService(ClipboardManager::class.java)
     private val gate = MainThreadGate()
     // Main-thread only. A foreground service does not grant clipboard access.
-    private var focused = false
-    private var allowBackgroundWrite = false
+    @Volatile private var focused = false
+    @Volatile private var allowBackgroundWrite = false
+    @Volatile private var allowBackgroundRead = false
     private var copyId: String? = null
     private var copyPermitted: (() -> Boolean)? = null
     private var listener: ClipboardManager.OnPrimaryClipChangedListener? = null
@@ -38,21 +43,30 @@ internal class AndroidPlatform(context: Context, private val state: SecureState)
     }
     override fun revoke() {
         gate.revoke()
-        copyId = null; copyPermitted = null; allowBackgroundWrite = false; focused = false
+        copyId = null; copyPermitted = null; allowBackgroundWrite = false; allowBackgroundRead = false; focused = false
         listener?.let { clipboard.removePrimaryClipChangedListener(it) }
         listener = null
     }
     override fun focus(value: Boolean) { focused = value }
+    override fun backgroundRead(value: Boolean) { allowBackgroundRead = value }
     override fun backgroundWrite(value: Boolean) { allowBackgroundWrite = value }
     override fun explicitCopy(id: String?, permitted: () -> Boolean) { copyId = id; copyPermitted = if (id == null) null else permitted }
-    override fun clipboardSnapshot(): ClipboardText? = gate.call {
-        if (!focused) throw AdapterException.Unavailable()
-        val clip = clipboard.primaryClip ?: return@call null
-        if (clip.itemCount == 0) return@call null
-        val value = clip.getItemAt(0).text?.toString() ?: return@call null
-        if (value.toByteArray(Charsets.UTF_8).size > 10 * 1024 * 1024) throw AdapterException.Unavailable()
-        val extras = clip.description.extras
-        ClipboardText(value, extras?.getBoolean(SENSITIVE, false) ?: false, extras?.getString(ORIGIN))
+    override fun clipboardSnapshot(): ClipboardText? {
+        if (!focused && allowBackgroundRead) {
+            if (!gate.isActive || keyguard.isDeviceLocked || !power.isInteractive) throw AdapterException.Unavailable()
+            val value = privileged.snapshot()
+            if (!gate.isActive || !allowBackgroundRead || keyguard.isDeviceLocked || !power.isInteractive) throw AdapterException.Unavailable()
+            return value
+        }
+        return gate.call {
+            if (!focused) throw AdapterException.Unavailable()
+            val clip = clipboard.primaryClip ?: return@call null
+            if (clip.itemCount == 0) return@call null
+            val value = clip.getItemAt(0).text?.toString() ?: return@call null
+            if (value.toByteArray(Charsets.UTF_8).size > 10 * 1024 * 1024) throw AdapterException.Unavailable()
+            val extras = clip.description.extras
+            ClipboardText(value, extras?.getBoolean(SENSITIVE, false) ?: false, extras?.getString(ORIGIN))
+        }
     }
     override fun clipboardWrite(value: ClipboardText) = gate.call {
         if (copyId != null) {

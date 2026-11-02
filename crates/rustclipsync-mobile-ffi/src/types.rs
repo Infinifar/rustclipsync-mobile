@@ -161,3 +161,34 @@ pub enum SyncDirection {
     /// Receive only; old upload candidates are cleared through core.
     Download,
 }
+
+/// Explicit clipboard capability supplied by the host for a background tick.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, uniffi::Enum)]
+pub enum BackgroundClipboardSource {
+    /// Continue only already-owned core transactions; never read the clipboard.
+    PendingOnly,
+    /// The user authorized a privileged host adapter to read current content.
+    Privileged,
+}
+
+/// Metadata about capture; never includes clipboard content.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, uniffi::Enum)]
+pub enum BackgroundCapture {
+    /// Not requested, or this direction does not send.
+    NotRequested,
+    /// The authorized adapter was read and core handled the snapshot.
+    Captured,
+    /// Capture failed; existing transactions and receiving still proceed.
+    Unavailable,
+}
+
+/// Independent send/receive results from one serialized background tick.
+#[derive(Clone, Debug, uniffi::Record)]
+pub struct BackgroundSyncResult {
+    /// Upload, cancellation or acknowledgement outcome.
+    pub sent: SyncOutcome,
+    /// Remote receive outcome; Paused in send-only mode.
+    pub received: SyncOutcome,
+    /// Whether an authorized clipboard source was available.
+    pub capture: BackgroundCapture,
+}

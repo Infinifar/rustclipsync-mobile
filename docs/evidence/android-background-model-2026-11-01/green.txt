@@ -1,0 +1,23 @@
+   Compiling rustclipsync-mobile-ffi v0.1.0 (/home/cassius/Projects/rustclipsync-mobile/crates/rustclipsync-mobile-ffi)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.94s
+     Running unittests src/lib.rs (/tmp/rcs-background-model/debug/deps/rustclipsync_mobile_ffi-ad371d843e6dd314)
+
+running 15 tests
+test session::tests::executor_panic_terminates_session_and_reports_failed_shutdown ... ok
+test session::tests::clipboard_change_during_network_prevents_stale_receive ... ok
+test session::tests::close_is_nonblocking_rejects_queue_and_suppresses_late_clipboard_callbacks ... ok
+test session::tests::unmarked_text_is_not_heuristically_treated_as_sensitive ... ok
+test session::tests::failed_os_write_is_never_acknowledged_as_applied ... ok
+test session::tests::background_binding_stores_only_marked_inbox_without_platform_clipboard_calls ... ok
+test session::tests::background_write_binding_requires_opt_in_and_reads_no_platform_snapshot ... ok
+test session::tests::storage_failure_terminates_and_corruption_never_resets_identity ... ok
+test session::tests::retry_pending_preserves_the_existing_request_instead_of_recording_another_copy ... ok
+test session::tests::directions_block_disallowed_transfers_and_never_retry_a_receive_only_upload ... ok
+test session::tests::filter_sample_uses_core_semantics_and_device_uuid_survives_reopen ... ok
+test session::tests::core_round_trip_uses_encrypted_durable_state_on_one_non_ui_thread ... ok
+test session::tests::configured_filter_survives_sensitive_policy_changes_and_rejects_invalid_rules ... ok
+test session::tests::sensitive_policy_distinguishes_skip_inbox_and_actual_clipboard_write ... ok
+test session::tests::background_sync_continues_owned_upload_and_obeys_all_directions_without_reading_clipboard ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

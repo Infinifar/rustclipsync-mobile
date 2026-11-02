@@ -6,7 +6,7 @@ import io.github.infinifar.rustclipsync.bindings.SyncOutcome
 
 /** Store message identity, so a locale change also translates an existing status. */
 internal data class UiMessage(@param:StringRes val resource: Int, val arguments: List<Any> = emptyList()) {
-    fun resolve(context: Context): String = AppLanguages.context(context).getString(resource, *arguments.toTypedArray())
+    fun resolve(context: Context): String = AppLanguages.context(context).getString(resource, *arguments.map { if (it is UiMessage) it.resolve(context) else it }.toTypedArray())
 
     companion object {
         fun outcome(value: SyncOutcome) = UiMessage(when (value) {

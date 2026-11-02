@@ -79,6 +79,10 @@ jobs:
             build/android-elf-alignment.txt
             build/android-zipalign.txt
             build/ci-provenance.json
+      - name: Compile synthetic service instrumentation without running a device
+        run: |
+          RCS_DISPOSABLE_INTEGRATION=1 scripts/generate-bindings.sh
+          (cd android && ./gradlew --no-daemon -PdisposableIntegration=true compileDebugAndroidTestKotlin)
       - name: Build optional isolated fixtures
         if: github.event_name == 'workflow_dispatch' && inputs.fixtures
         run: |
@@ -105,4 +109,4 @@ jobs:
         env:
           APK_URL: ${{ steps.apk.outputs.artifact-url }}
         run: |
-          printf 'Android 0.1.3 · %s\n\n[Download APK and checksums](%s)\n\nNo simulator or physical-device result is implied by this build.\n' "$CI_COMMIT_SHORT_SHA" "$APK_URL" >> "$GITHUB_STEP_SUMMARY"
+          printf 'Android 0.1.4 · %s\n\n[Download APK and checksums](%s)\n\nNo simulator or physical-device result is implied by this build.\n' "$CI_COMMIT_SHORT_SHA" "$APK_URL" >> "$GITHUB_STEP_SUMMARY"
