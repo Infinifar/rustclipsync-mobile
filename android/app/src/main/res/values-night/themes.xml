@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.RustClipSync" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/rcs_background</item>
+        <item name="android:windowSplashScreenBackground">@color/rcs_background</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>

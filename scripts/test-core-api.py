@@ -8,6 +8,7 @@ import ssl
 import subprocess
 import tempfile
 import threading
+import time
 
 ROOT = Path(__file__).resolve().parents[1]
 EPOCH = '10000000-0000-4000-8000-000000000001'
@@ -25,13 +26,19 @@ def main():
     # Canned replies validate route selection, not a second implementation of the state machine.
     operations = [
         ('POST', 'devices', {'epoch': EPOCH, 'ackRevision': 0, 'currentRevision': 0}),
+        ('GET', f'devices/{DEVICE}/sync-direction', {'deviceId': DEVICE, 'sessionId': None, 'version': 0,
+                                                   'direction': None, 'paused': False, 'updatedAt': None,
+                                                   'expiresAt': None, 'revoked': False}),
+        ('PUT', f'devices/{DEVICE}/sync-direction', 'direction-ack'),
         ('GET', 'state', {'epoch': EPOCH, 'revision': 1, 'ackRevision': 0, 'messageId': MESSAGE,
-                          'sourceDeviceId': DEVICE, 'size': len(BODY), 'sensitive': False}),
+                          'deliveryRevision': 1, 'sourceDeviceId': DEVICE, 'size': len(BODY), 'sensitive': False}),
+        ('PUT', f'devices/{DEVICE}/sync-direction', 'direction-ack'),
         ('GET', f'changes?epoch={EPOCH}&after=0', None),
         ('GET', f'messages/{MESSAGE}/content', BODY),
         ('PUT', f'messages/{MESSAGE}', {'epoch': EPOCH, 'revision': 1, 'messageId': MESSAGE}),
         ('DELETE', f'messages/{MESSAGE}', {'state': 'cancelled'}),
         ('POST', 'ack', {'ackRevision': 1}),
+        ('DELETE', f'devices/{DEVICE}/sync-direction', 'direction-ack'),
     ]
     report = []
     with tempfile.TemporaryDirectory(prefix='rcs-mobile-api-') as temporary:
@@ -40,6 +47,7 @@ def main():
                         '-subj', '/CN=localhost', '-keyout', str(key), '-out', str(cert)],
                        check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         expected, observed, mismatches = [], [], []
+        accepted = [None]
 
         class Fixture(BaseHTTPRequestHandler):
             def log_message(self, *args):
@@ -51,7 +59,14 @@ def main():
                 if not 0 <= length <= 4096:
                     self.send_error(413)
                     return
-                self.rfile.read(length)
+                request_body = self.rfile.read(length)
+                if self.path.endswith('/api/ws') and self.headers.get('Upgrade', '').lower() == 'websocket':
+                    # This route fixture deliberately exercises the core's HTTPS fallback.
+                    self.send_response(503)
+                    self.send_header('X-RCS-Protocol', '3')
+                    self.send_header('Content-Length', '0')
+                    self.end_headers()
+                    return
                 actual = (self.command, self.path)
                 index = len(observed)
                 observed.append(actual)
@@ -60,12 +75,25 @@ def main():
                     self.send_error(404)
                     return
                 response = expected[index][2]
+                if self.headers.get('X-RCS-Protocol') != '3':
+                    mismatches.append(('protocol header', self.path))
+                if response == 'direction-ack':
+                    update = json.loads(request_body)
+                    accepted[0] = update['sessionId']
+                    now = int(time.time() * 1000)
+                    response = {'deviceId': DEVICE, 'sessionId': update['sessionId'], 'version': update['version'],
+                                'serverTime': now, 'expiresAt': None if self.command == 'DELETE' else now + 86400000,
+                                'revoked': self.command == 'DELETE'}
+                elif self.path.endswith(('/api/state', '/content', '/api/ack')) or '/api/changes?' in self.path or self.command == 'PUT':
+                    if accepted[0] is None or self.headers.get('X-RCS-Sync-Session') != accepted[0]:
+                        mismatches.append(('session header', self.path))
                 body = response if isinstance(response, bytes) else json.dumps(response).encode()
                 if response is None:
                     body = b''
                 self.send_response(204 if response is None else 200)
                 self.send_header('Content-Length', str(len(body)))
                 self.send_header('Content-Type', 'text/plain' if isinstance(response, bytes) else 'application/json')
+                self.send_header('X-RCS-Protocol', '3')
                 self.end_headers()
                 self.wfile.write(body)
 
@@ -85,6 +113,7 @@ def main():
                 expected[:] = [(method, prefix + '/api/' + path, response) for method, path, response in operations]
                 observed.clear()
                 mismatches.clear()
+                accepted[0] = None
                 result = subprocess.run([str(probe), f'https://127.0.0.1:{server.server_port}{base_path}'],
                                         env=environment, check=False, timeout=60)
                 wanted = [(method, path) for method, path, _ in expected]
@@ -96,7 +125,7 @@ def main():
             server.server_close()
             worker.join(timeout=5)
     revision = json.loads((ROOT / 'vendor/core-provenance.json').read_text())['revision']
-    text = f'Core revision: {revision}\nPASS: 14 real HTTPS requests; root and nested deployment paths\n' + '\n'.join(report) + '\n'
+    text = f'Core revision: {revision}\nPASS: 22 real HTTPS requests; protocol 3, direction ACK/lease refresh, WSS rejection/HTTP fallback, session headers, revocation, root and nested paths\n' + '\n'.join(report) + '\n'
     output = ROOT / 'build/core-api-routes.txt'
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(text)

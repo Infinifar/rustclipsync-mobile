@@ -2,13 +2,13 @@
 
 Independent Kotlin/Jetpack Compose Android and Swift/SwiftUI iOS clients sharing one
 Rust/UniFFI facade over a pinned rustclipsync-core revision.
-The core uses the current `/api/...` endpoints; configure the deployment base URL without
+Core **0.4.0** requires **protocol 3 / Server 3.0.0**, using `/api/...`; configure the deployment base URL without
 appending `/api` or `/v1`.
 The Apple client targets iPhone and iPad only. A macOS client belongs in the desktop repository.
 
 The shared executor, encrypted state integration, binding generation and host smoke tests
-are implemented. Android debug/test APK compilation, lint and static 16 KiB alignment
-checks pass in remote CI. Ten synthetic tests and an empty Compose screen launch
+are implemented. The current facade passes 22 synthetic Rust tests, strict Clippy, rustdoc and 22 real loopback HTTPS route checks. Android debug/test APK compilation, lint and static 16 KiB alignment
+checks passed for earlier builds in remote CI; the current protocol-3 build is verified separately. Ten synthetic tests and an empty Compose screen launch
 pass on isolated Android 12 and Android 15 emulators. Real-server integration also covers send/receive,
 sensitive policies, offline recovery and process/device/server restarts with a synthetic
 clipboard and isolated encrypted files. iOS compilation, real OS adapter behavior and
@@ -68,3 +68,26 @@ and English cover UI, status/errors and notifications through extensible Android
 The notification mask adapts to display width; About links to the project and checks public
 release metadata without using sync credentials. Private/unpublished releases are reported
 as unavailable rather than up to date. Device and visual checks remain user-owned.
+
+
+## Protocol 3 and current Android appearance
+
+The core is pinned to release commit `6a1ccd37b8ca3e515610d48bfa47f20b7c9b0ca4`,
+with an unchanged, checksummed vendor snapshot. Before data access the facade sets
+the selected direction through core and waits for its confirmation. Core owns
+WSS control, authenticated HTTP fallback, session fencing and per-device delivery
+revisions. Reconnect backfill comes from the server's configured window; it is not
+hardcoded in the app. Incompatible peers get a dedicated protocol-version error.
+Normal session close preserves pairing and offline eligibility.
+
+Android uses the [Omaclipsync S icon](https://github.com/Infinifar/omaclipsync/blob/main/assets/omaclipsync-icon.svg)
+as a bundled adaptive vector, with a monochrome layer for themed launchers. The
+system light/dark resource selects a white/black launcher background. App light/dark
+modes also use white/black main backgrounds, while retaining Material You accents.
+The notification status icon remains its separate transparent monochrome asset.
+
+The previous [Android build](https://github.com/Infinifar/rustclipsync-mobile/actions/runs/41374038090)
+failed on mixed-type reflection-array inference in `PrivilegedClipboardService.kt`.
+Both argument arrays now declare `Any?` explicitly; caller-UID, lock-screen and
+Shizuku ADB-mode checks are retained. Platform compilation is checked by the new
+Actions run; no new emulator, Shizuku-device or iOS validation is implied.

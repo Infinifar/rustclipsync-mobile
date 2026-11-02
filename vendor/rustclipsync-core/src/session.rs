@@ -12,6 +12,8 @@ use std::{
 use crate::{
     adapters::{Clipboard, ClipboardError, Direction, HistorySink, StateStore},
     client::Client,
+    control::Policy,
+    direction::{DirectionErrorCode, SyncDirection},
     state::{self, Ack, InboxItem, LocalCopy, Persisted, State},
     transport::Transport,
     Error, Filter, Outcome, MAX_TEXT_BYTES,
@@ -60,6 +62,14 @@ impl From<Error> for SyncError {
     fn from(value: Error) -> Self {
         match value {
             Error::Status(401 | 403) => Self::Epoch,
+            Error::Protocol(error)
+                if matches!(
+                    error.code,
+                    DirectionErrorCode::Unauthenticated | DirectionErrorCode::DeviceMismatch
+                ) =>
+            {
+                Self::Epoch
+            }
             other => Self::Remote(other),
         }
     }
@@ -93,6 +103,8 @@ pub struct Session<C, S, H, R = Client> {
     echo: Option<(String, Instant)>,
     needs_pending_check: bool,
     sensitive_inbox: bool,
+    sync_policy: Option<Policy>,
+    observed_revision: u64,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -138,7 +150,9 @@ impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H,
             persisted.state.recover_ambiguous_apply();
             storage.save(&state::seal(&key, &persisted)?)?;
         }
-        let needs_pending_check = persisted.state.pending.is_some();
+        let needs_pending_check =
+            persisted.state.pending.is_some() && !persisted.state.resolving_conflict;
+        let observed_revision = persisted.state.cursor;
         Ok(Self {
             remote,
             persisted,
@@ -153,7 +167,52 @@ impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H,
             echo: None,
             needs_pending_check,
             sensitive_inbox: false,
+            sync_policy: None,
+            observed_revision,
         })
+    }
+
+    /// Set direction and pause; unpaired identities only remember the local selection.
+    ///
+    /// The local filter takes effect even if reporting fails. Hosts must advance
+    /// their generation on policy changes before calling this blocking method.
+    ///
+    /// # Errors
+    /// Returns storage, transport or protocol errors. A failed report is unconfirmed.
+    pub fn set_sync_direction(
+        &mut self,
+        direction: SyncDirection,
+        paused: bool,
+    ) -> Result<(), SyncError> {
+        self.sync_policy = Some(Policy { direction, paused });
+        if paused || !direction.allows_push() {
+            self.persisted.state.local_clear();
+            self.needs_pending_check = false;
+            self.save()?;
+        }
+        self.remote
+            .set_sync_direction(&self.persisted, direction, paused)?;
+        Ok(())
+    }
+    /// Revoke direction on explicit logout; keep pairing and local settings separate.
+    ///
+    /// # Errors
+    /// Returns an unconfirmed transport/protocol error when revocation cannot complete.
+    pub fn revoke_sync_direction(&mut self) -> Result<(), SyncError> {
+        self.sync_policy = None;
+        self.persisted.state.local_clear();
+        self.needs_pending_check = false;
+        self.save()?;
+        self.remote.revoke_sync_direction(&self.persisted)?;
+        Ok(())
+    }
+    fn can_push(&self) -> bool {
+        self.sync_policy
+            .is_some_and(|p| !p.paused && p.direction.allows_push())
+    }
+    fn can_receive(&self) -> bool {
+        self.sync_policy
+            .is_some_and(|p| !p.paused && p.direction.allows_receive())
     }
 
     /// Opt in to retaining sensitive receives in encrypted session state, never
@@ -188,6 +247,7 @@ impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H,
 
     /// First registration records the then-current server version as baseline.
     pub fn check(&mut self) -> Result<(), SyncError> {
+        let policy = self.sync_policy.ok_or(Error::DirectionRequired)?;
         if self.needs_pending_check {
             let expected = self
                 .persisted
@@ -232,14 +292,25 @@ impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H,
             self.persisted.paired = true;
             self.save()?;
         }
+        self.remote.ensure_sync_direction(&self.persisted)?;
+        if policy.paused {
+            return Ok(());
+        }
         let remote = self.remote.state(&self.persisted)?;
         if remote.epoch != self.persisted.state.epoch
             || remote.revision < self.persisted.state.cursor
         {
             return Err(SyncError::Epoch);
         }
+        self.observed_revision = remote.revision;
         if remote.ack_revision > self.persisted.state.cursor {
             self.persisted.state.cursor = remote.ack_revision;
+            self.save()?;
+        }
+        if remote.message().is_none() && remote.revision > self.persisted.state.cursor {
+            // No authorized delivery exists at this revision. Advance observation,
+            // never rebase a copy already queued before this observation.
+            self.persisted.state.cursor = remote.revision;
             self.save()?;
         }
         Ok(())
@@ -252,6 +323,15 @@ impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H,
         sensitive: bool,
         now: Instant,
     ) -> Result<Outcome, SyncError> {
+        if self.persisted.state.resolving_conflict {
+            // Copies made before recovery finishes have no safe conflict base.
+            // Keep the platform selection intact, without queuing a stale retry.
+            return self.record_clear();
+        }
+        if !self.can_push() {
+            self.record_clear()?;
+            return Ok(Outcome::Paused);
+        }
         if self
             .echo
             .as_ref()
@@ -290,11 +370,114 @@ impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H,
     }
 
     pub fn has_pending(&self) -> bool {
-        self.persisted.state.pending.is_some() || self.persisted.state.ack.is_some()
+        self.persisted.state.pending.is_some()
+            || self.persisted.state.ack.is_some()
+            || self.persisted.state.resolving_conflict
     }
 
-    /// Only called after explicit confirmation, since pending data is discarded.
+    /// Whether an attempted outbox predates a server revision seen by `check`.
+    ///
+    /// Its commit may be uncertain. Hosts choosing safe skip recovery must use
+    /// cancellation, rather than resending or silently changing its base revision.
+    pub fn has_observed_upload_conflict(&self) -> bool {
+        self.persisted
+            .state
+            .pending
+            .as_ref()
+            .is_some_and(|pending| {
+                pending.attempted && pending.base_revision < self.observed_revision
+            })
+    }
+
+    /// Safely abandon a conflicting upload without replacing either clipboard.
+    ///
+    /// The host opts into skipping the conflict instead of asking for manual resolution.
+    /// Cancels the old outbox (including queued copies), skips the then-current
+    /// authorized remote delivery, and preserves the platform clipboard. Only
+    /// copies made after recovery completes can upload automatically. The durable
+    /// recovery marker makes [`Self::flush`] resume this decision after a restart.
+    ///
+    /// # Errors
+    /// Returns transport, epoch or persistence errors; uncertain work stays durable.
+    pub fn recover_upload_conflict(&mut self, observed: u64) -> Result<Outcome, SyncError> {
+        let policy = self.sync_policy.ok_or(Error::DirectionRequired)?;
+        if policy.paused {
+            return Ok(Outcome::Paused);
+        }
+        if !self.persisted.paired {
+            return Err(SyncError::Epoch);
+        }
+        if self.persisted.state.applying.is_some()
+            || (!self.persisted.state.resolving_conflict && self.persisted.state.pending.is_none())
+        {
+            return Err(SyncError::Conflict);
+        }
+        self.persisted.state.resolving_conflict = true;
+        self.persisted.state.local_clear();
+        self.echo = None;
+        self.needs_pending_check = false;
+        self.save()?;
+        self.remote.ensure_sync_direction(&self.persisted)?;
+        if let Some(pending) = self.persisted.state.pending.clone() {
+            match self.remote.cancel(&self.persisted, &pending) {
+                Ok(Some(revision)) => self
+                    .persisted
+                    .state
+                    .committed(&pending.copy.id, revision)
+                    .map_err(invalid_state)?,
+                Ok(None) => self
+                    .persisted
+                    .state
+                    .cancelled(&pending.copy.id)
+                    .map_err(invalid_state)?,
+                Err(Error::Status(409)) => return Err(SyncError::Epoch),
+                Err(error) => return Err(error.into()),
+            }
+            self.save()?;
+        }
+        let current = self.remote.state(&self.persisted)?;
+        if current.epoch != self.persisted.state.epoch
+            || current.revision < self.persisted.state.cursor
+        {
+            return Err(SyncError::Epoch);
+        }
+        if let Some(message) = current.message() {
+            self.persisted.state.ack = Some(Ack {
+                id: message.id,
+                revision: message.revision,
+                result: if message.source_device_id == self.persisted.state.device_id {
+                    "self"
+                } else {
+                    "skipped"
+                }
+                .into(),
+            });
+        }
+        self.persisted.state.cursor = current.revision;
+        self.persisted.state.resolving_conflict = false;
+        self.save()?;
+        self.flush(observed)?;
+        Ok(Outcome::Skipped)
+    }
+
+    /// Re-pair using the currently selected direction, after confirmed revocation.
+    ///
+    /// # Errors
+    /// Returns direction-required, unconfirmed revocation, persistence or pairing errors.
     pub fn re_pair(&mut self) -> Result<(), SyncError> {
+        let policy = self.sync_policy.ok_or(Error::DirectionRequired)?;
+        self.re_pair_with_direction(policy.direction, policy.paused)
+    }
+    /// Explicitly discard pending state only after revoking the old device direction.
+    ///
+    /// # Errors
+    /// Failed revocation leaves the old identity intact. Later errors require reopening state.
+    pub fn re_pair_with_direction(
+        &mut self,
+        direction: SyncDirection,
+        paused: bool,
+    ) -> Result<(), SyncError> {
+        self.remote.revoke_sync_direction(&self.persisted)?;
         self.persisted.token = state::random_token()?;
         self.persisted.state = State::new(String::new(), state::random_uuid()?, 0);
         self.persisted.paired = false;
@@ -302,12 +485,16 @@ impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H,
         self.needs_pending_check = false;
         self.echo = None;
         self.save()?;
+        self.set_sync_direction(direction, paused)?;
         self.check()
     }
 
     /// An explicit user action chooses the current local clipboard over the
     /// latest server value. Never silently rebase an automatic upload.
     pub fn push_now(&mut self, observed: u64) -> Result<Outcome, SyncError> {
+        if !self.can_push() {
+            return Ok(Outcome::Paused);
+        }
         if !self.persisted.paired || self.needs_pending_check {
             self.check()?;
         }
@@ -384,6 +571,9 @@ impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H,
     /// function. A new local event aborts an upload before it is sent.
     /// Restored pending content is checked against the clipboard before sending.
     pub fn flush(&mut self, observed: u64) -> Result<Outcome, SyncError> {
+        if self.persisted.state.resolving_conflict {
+            return self.recover_upload_conflict(observed);
+        }
         if !self.persisted.paired || self.needs_pending_check {
             self.check()?;
         }
@@ -399,7 +589,13 @@ impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H,
             self.persisted.state.local_clear();
             self.save()?;
         }
-        if let Some(ack) = self.persisted.state.ack.clone() {
+        if let Some(ack) = self
+            .persisted
+            .state
+            .ack
+            .clone()
+            .filter(|_| self.sync_policy.is_some())
+        {
             match self.remote.acknowledge(&self.persisted, &ack) {
                 Ok(()) => {}
                 Err(Error::Status(410)) => {
@@ -444,6 +640,9 @@ impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H,
             self.save()?;
             return Ok(Outcome::Current);
         }
+        if !self.can_push() {
+            return Ok(Outcome::Paused);
+        }
         let request = self.persisted.state.attempt().map_err(invalid_state)?;
         self.save()?;
         if self.generation.load(Ordering::SeqCst) != observed {
@@ -471,10 +670,16 @@ impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H,
     /// The time argument is retained for compatibility; echo suppression starts
     /// at the actual clipboard write, after any blocking network operations.
     pub fn pull(&mut self, observed: u64, _now: Instant) -> Result<Outcome, SyncError> {
+        if !self.can_receive() {
+            return Ok(Outcome::Paused);
+        }
         if !self.persisted.paired || self.needs_pending_check {
             self.check()?;
         }
-        if self.persisted.state.pending.is_some() || self.persisted.state.applying.is_some() {
+        if self.persisted.state.pending.is_some()
+            || self.persisted.state.applying.is_some()
+            || self.persisted.state.resolving_conflict
+        {
             return Ok(Outcome::Skipped);
         }
         self.pull_target(observed, ReceiveTarget::Foreground)
@@ -512,13 +717,19 @@ impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H,
         observed: u64,
         write_clipboard: bool,
     ) -> Result<Outcome, SyncError> {
+        if !self.can_receive() {
+            return Ok(Outcome::Paused);
+        }
         if (!write_clipboard && !self.sensitive_inbox)
             || !self.persisted.paired
             || self.needs_pending_check
         {
             return Ok(Outcome::Skipped);
         }
-        if self.persisted.state.pending.is_some() || self.persisted.state.applying.is_some() {
+        if self.persisted.state.pending.is_some()
+            || self.persisted.state.applying.is_some()
+            || self.persisted.state.resolving_conflict
+        {
             return Ok(Outcome::Skipped);
         }
         // There is no outbox here: flush only the durable acknowledgement,
@@ -535,13 +746,20 @@ impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H,
         Ok(result)
     }
 
+    fn receive_snapshot(&self) -> Result<Option<(String, bool)>, ClipboardError> {
+        match self.clipboard.snapshot(self.allow_sensitive) {
+            // Adapters may represent a disallowed selection as Sensitive or
+            // None. Neither exposes its body or prevents receiving ordinary text.
+            Err(ClipboardError::Sensitive) if !self.allow_sensitive => Ok(None),
+            result => result,
+        }
+    }
+
     fn pull_target(&mut self, observed: u64, target: ReceiveTarget) -> Result<Outcome, SyncError> {
         let before = if target != ReceiveTarget::Foreground {
             None
         } else {
-            self.clipboard
-                .snapshot(self.allow_sensitive)
-                .map_err(SyncError::Clipboard)?
+            self.receive_snapshot().map_err(SyncError::Clipboard)?
         };
         let remote = self.remote.state(&self.persisted)?;
         if remote.epoch != self.persisted.state.epoch
@@ -554,6 +772,10 @@ impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H,
             self.save()?;
         }
         let Some(message) = remote.message() else {
+            if remote.revision > self.persisted.state.cursor {
+                self.persisted.state.cursor = remote.revision;
+                self.save()?;
+            }
             return Ok(Outcome::Current);
         };
         if message.revision <= self.persisted.state.cursor {
@@ -604,11 +826,7 @@ impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H,
         }
         if self.generation.load(Ordering::SeqCst) != observed
             || (target == ReceiveTarget::Foreground
-                && self
-                    .clipboard
-                    .snapshot(self.allow_sensitive)
-                    .map_err(SyncError::Clipboard)?
-                    != before)
+                && self.receive_snapshot().map_err(SyncError::Clipboard)? != before)
         {
             return Ok(Outcome::Skipped);
         }
@@ -635,9 +853,7 @@ impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H,
         let unchanged = if self.generation.load(Ordering::SeqCst) != observed {
             Ok(false)
         } else if target == ReceiveTarget::Foreground {
-            self.clipboard
-                .snapshot(self.allow_sensitive)
-                .map(|snapshot| snapshot == before)
+            self.receive_snapshot().map(|snapshot| snapshot == before)
         } else {
             Ok(true)
         };

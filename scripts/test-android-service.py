@@ -15,6 +15,7 @@ import subprocess
 import tempfile
 import threading
 import time
+import uuid
 import notification_shade
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -98,17 +99,42 @@ def main():
                 try: backend.wait(timeout=5)
                 except subprocess.TimeoutExpired: backend.kill(); backend.wait(timeout=5)
 
-        def metadata(path='/api/state', basic=False, method='GET', body=None):
+        observer_session = None
+
+        def observer_request(method, path, body=None, session=None, basic=False):
             headers = {'Authorization': ('Basic ' + base64.b64encode(f'{USER}:{PASSWORD}'.encode()).decode()) if basic
-                       else f'Bearer {OBSERVER}:{TOKEN}'}
-            if body is not None: headers['Content-Type'] = 'application/json'; body = json.dumps(body).encode()
+                       else f'Bearer {OBSERVER}:{TOKEN}', 'X-RCS-Protocol': '3'}
+            if session is not None: headers['X-RCS-Sync-Session'] = session
+            if body is not None:
+                headers['Content-Type'] = 'application/json'
+                body = json.dumps(body).encode()
             connection = http.client.HTTPConnection('127.0.0.1', backend_port, timeout=5)
             try:
                 connection.request(method, path, body, headers)
                 response = connection.getresponse(); data = response.read()
-                assert response.status == 200, ('metadata status', response.status)
-                return json.loads(data)
+                assert response.getheader('X-RCS-Protocol') == '3'
+                return response.status, json.loads(data)
             finally: connection.close()
+
+        def connect_observer():
+            nonlocal observer_session
+            path = f'/api/devices/{OBSERVER}/sync-direction'
+            status, current = observer_request('GET', path)
+            assert status == 200
+            session = str(uuid.uuid4())
+            status, accepted = observer_request('PUT', path, {'sessionId': session,
+                'version': current['version'] + 1, 'direction': 'BIDIRECTIONAL', 'paused': False, 'connect': True})
+            assert status == 200 and accepted['sessionId'] == session
+            observer_session = session
+
+        def metadata(path='/api/state', basic=False, method='GET', body=None):
+            if not basic and observer_session is None: connect_observer()
+            status, data = observer_request(method, path, body, observer_session if not basic else None, basic)
+            if not basic and status == 409 and data.get('code') in {'SESSION_OFFLINE', 'SESSION_REVOKED'}:
+                connect_observer()
+                status, data = observer_request(method, path, body, observer_session)
+            assert status == 200, ('metadata status', status)
+            return data
 
         class Proxy(BaseHTTPRequestHandler):
             def log_message(self, *args): pass
@@ -132,10 +158,11 @@ def main():
                     entry = {'method': self.command, 'path': self.path, 'status': response.status}
                     if self.path == '/api/ack' and body:
                         ack = json.loads(body); entry.update(revision=ack['revision'], result=ack['result'])
-                    if self.command == 'PUT' and response.status == 200:
+                    message_put = self.command == 'PUT' and self.path.startswith('/api/messages/')
+                    if message_put and response.status == 200:
                         commit = json.loads(data); entry.update(revision=commit['revision'], duplicate=commit.get('duplicate', False))
                     report['requests'].append(entry)
-                    if self.command == 'PUT' and dropping.is_set():
+                    if message_put and dropping.is_set():
                         dropping.clear(); report['faults'].append('committed PUT response dropped')
                         self.connection.shutdown(socket.SHUT_RDWR); self.connection.close(); return
                     self.send_response(response.status)

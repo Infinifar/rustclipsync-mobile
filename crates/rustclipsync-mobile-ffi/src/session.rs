@@ -12,6 +12,7 @@ use rustclipsync_core::{
     Error, Filter, FilterMode, Outcome,
     adapters::{Clipboard, NoHistory},
     client::Client,
+    direction::{DirectionErrorCode, SyncDirection as CoreDirection},
     session::{Session, SessionConfig, SyncError},
     transport::Transport,
 };
@@ -404,6 +405,7 @@ impl Drop for MobileSession {
 
 struct Engine<R> {
     background_ready: bool,
+    direction_configured: bool,
     direction: crate::SyncDirection,
     filter_config: crate::FilterConfig,
     policy: SensitivePolicy,
@@ -440,6 +442,7 @@ fn open<R: Transport, F: FnOnce(&MobileConfig) -> Result<R, Error>>(
     apply_policy(&mut session, policy);
     Ok(Engine {
         background_ready: false,
+        direction_configured: false,
         direction: crate::SyncDirection::Both,
         filter_config: crate::FilterConfig::default(),
         policy,
@@ -481,6 +484,15 @@ fn execute<R: Transport>(
     let observed = generation.load(Ordering::SeqCst);
     let session = &mut engine.session;
     let result = (|| -> Result<Response, SyncError> {
+        if !engine.direction_configured
+            && matches!(
+                command,
+                Command::Check | Command::Send | Command::Retry | Command::Receive
+            )
+        {
+            session.set_sync_direction(core_direction(engine.direction), false)?;
+            engine.direction_configured = true;
+        }
         Ok(match command {
             Command::Status => Response::Status(SessionStatus {
                 device_id: session.persisted.state.device_id.clone(),
@@ -591,10 +603,10 @@ fn execute<R: Transport>(
                 Response::Outcome(outcome(session.flush(observed)?))
             }
             Command::Direction(direction) => {
-                if direction == crate::SyncDirection::Download && direction != engine.direction {
-                    session.record_clear()?;
-                }
                 engine.direction = direction;
+                engine.direction_configured = false;
+                session.set_sync_direction(core_direction(direction), false)?;
+                engine.direction_configured = true;
                 Response::Done
             }
             Command::Policy(policy) => {
@@ -650,6 +662,14 @@ fn execute<R: Transport>(
     })
 }
 
+fn core_direction(direction: crate::SyncDirection) -> CoreDirection {
+    match direction {
+        crate::SyncDirection::Both => CoreDirection::Bidirectional,
+        crate::SyncDirection::Upload => CoreDirection::PushOnly,
+        crate::SyncDirection::Download => CoreDirection::ReceiveOnly,
+    }
+}
+
 fn map_error(error: &SyncError) -> MobileError {
     match error {
         SyncError::Storage(_) => MobileError::Storage,
@@ -661,6 +681,21 @@ fn map_error(error: &SyncError) -> MobileError {
             Error::InvalidUrl | Error::TooLarge => MobileError::InvalidInput,
             Error::Status(401 | 403) => MobileError::Pairing,
             Error::Status(409) => MobileError::Conflict,
+            Error::Status(426) => MobileError::ProtocolUnsupported,
+            Error::DirectionRequired => MobileError::Protocol,
+            Error::Protocol(error) => match error.code {
+                DirectionErrorCode::ProtocolUnsupported => MobileError::ProtocolUnsupported,
+                DirectionErrorCode::Unauthenticated
+                | DirectionErrorCode::DeviceMismatch
+                | DirectionErrorCode::SessionRevoked
+                | DirectionErrorCode::VersionStale => MobileError::Pairing,
+                DirectionErrorCode::SessionOffline | DirectionErrorCode::RateLimited => {
+                    MobileError::Network
+                }
+                DirectionErrorCode::InvalidDirection | DirectionErrorCode::DirectionForbidden => {
+                    MobileError::Protocol
+                }
+            },
             Error::Http(_) | Error::Io(_) | Error::Status(_) => MobileError::Network,
             Error::Json(_) | Error::InvalidProfile | Error::HashMismatch | Error::Filtered => {
                 MobileError::Protocol

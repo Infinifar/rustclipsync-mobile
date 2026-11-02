@@ -79,6 +79,7 @@ final class SessionController: ObservableObject {
         case .Expired: return "待发送内容已过期"
         case .Network: return "网络不可用"
         case .Protocol: return "服务器响应无效"
+        case .ProtocolUnsupported: return "服务端协议不兼容，请使用支持协议 3 的服务端"
         case .Internal: return "会话异常，请重新连接"
         }
     }

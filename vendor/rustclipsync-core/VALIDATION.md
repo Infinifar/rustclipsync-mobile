@@ -1,5 +1,14 @@
 # 本地验证记录
 
+## 2026-11-02：敏感策略热切换回归
+
+- 旧代码的会话测试稳定返回 `Clipboard(Sensitive)`；真实 Wayland 会话中的临时客户端／临时 SQLCipher 服务端也复现了关闭敏感同步后接收不断失败的行为。诊断确认不是监听序号失配。
+- 新增会话测试覆盖双向／仅接收、原会话更新策略／重新打开会话；关闭后保留原标记文本且能继续接收普通文本，后续敏感消息仍被过滤，不产生上传。
+- 在接收的三次快照检查分别注入真实读取失败，验证不写入剪贴板、释放 apply journal，并可恢复重试。
+- `cargo test --locked` 共 63 项通过；严格 Clippy 和格式检查通过。
+- 实际 Wayland 验证完成 10 轮开关切换（20 次状态变更），同时验证拒收敏感消息与接收普通消息。使用临时服务端、临时身份与专用测试密钥存储；原插件短暂停用，结束后恢复原文本剪贴板和插件。没有修改正式服务或桌面密钥环。
+- 更长的快速切换批次曾触及测试服务端限流；保留限流保护后，以低于限额的批次验证，不把 429 重试记作本次敏感策略回归。
+
 日期：2026-10-31。环境：Linux x86_64，系统 Rust/Cargo 1.99.1。
 
 | 检查 | 结果 |
@@ -67,3 +76,32 @@ four background regressions (no clipboard access, ordinary receive deferred,
 foreground restore/opt-in guards, lifecycle invalidation, and explicit background writes under all three sensitive policies). `cargo fmt --all
 -- --check` and Clippy all-targets with warnings denied passed. No platform or
 physical-device validation is implied by these synthetic Rust tests.
+
+
+## Protocol 3 direction routing (development branch)
+
+The coordinated 0.4.0 core adds selected direction plus pause, report-before-data,
+explicit logout revocation, old-session fencing, HTTP fallback of the exact WSS
+operation, protocol response validation, and separate global/delivery revisions.
+The preceding mobile-background-inbox commits are preserved.
+
+Local validation runs on disposable in-memory state and loopback-only fixtures.
+`cargo test --locked --all-features` contains 61 tests. All 12 new regressions
+were observed failing under deliberate behavior-assertion inversion in a
+temporary source copy, with the working source unchanged. Format, strict Clippy
+and rustdoc are checked separately. No physical clipboard, installed client,
+keyring, production database, or deployed container is touched by these tests.
+
+`tests/server_e2e.py` runs the same protocol probe twice on separate encrypted
+server databases: first with actual WSS upgrades and **zero** HTTP direction PUTs,
+then with every WS upgrade explicitly rejected and HTTP direction fallback
+required. It checks registration, latest-only receive, stable retry IDs, restart
+without replay, sensitive filtering and conflict preservation under both modes.
+Windows native CI and physical Android/desktop integration remain platform
+checks; success of these protocol fixtures does not claim those validations.
+
+## 2026-11-02：显式安全冲突恢复
+
+新增回归测试在仅返回 Conflict 的实现下实测失败，再实现可选恢复并通过。
+覆盖旧上传／排队文本不重传、保留系统剪贴板、跳过当时远端、恢复后的新复制可发送；也覆盖取消时发现已经提交的上传、取消前后网络失败与重新打开、恢复期间禁止接收覆盖、持久化失败前无网络副作用、epoch 变化不被当作普通冲突恢复。
+旧默认冲突测试仍通过，调用方必须显式选择恢复。68 项 Rust 测试与严格 Clippy 通过。旧冲突迁移测试也实测先失败再通过：重开后即使当前剪贴板已改变，仍先识别旧基准的尝试上传并恢复，避免普通取消后立刻接收覆盖剪贴板。

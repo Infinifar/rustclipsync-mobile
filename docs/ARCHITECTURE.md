@@ -31,7 +31,7 @@ facade 提供两端共用的移动端命令、结果、事件与错误类型，�
 core 继续负责 HTTPS 协议、状态机、outbox、游标、确认、重试、冲突和 RCS1
 加密持久化格式。core 通过 Clipboard、StateStore、HistorySink 等边界使用适配器；
 文件落盘、权限、密钥保管及系统剪贴板调用本身不由 core 实现。
-当前 core 0.3.0 统一访问 `/api/...`；HTTP 路由只在上游 core 修改后更新快照，
+当前 core 0.4.0 统一访问 `/api/...` 并要求协议 3；方向上报、ACK、WSS/HTTP 降级、会话校验与每设备补发语义均由 core 负责。HTTP 路由只在上游 core 修改后更新快照，
 平台与 facade 不追加版本前缀，也不实现 `/v1` 探测或回退。服务器配置表示部署根地址。
 
 ## 当前目录

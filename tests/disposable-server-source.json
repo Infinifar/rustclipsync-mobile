@@ -1,8 +1,8 @@
 {
   "source_url": "https://github.com/Infinifar/rustclipsync-server",
-  "revision": "c0e1774adef185ee7e2979cb6ad20c1c244acbed",
-  "version": "2.0.0",
-  "archive_url": "https://codeload.github.com/Infinifar/rustclipsync-server/tar.gz/c0e1774adef185ee7e2979cb6ad20c1c244acbed",
-  "archive_sha256": "1a6a2796ff1beb5997a631ded3e7243c8d7f31518662a8d85b566755c78ec6b9",
+  "revision": "9ed68997476575fd042f3ed6807cfec4931ebbea",
+  "version": "3.0.0",
+  "archive_url": "https://codeload.github.com/Infinifar/rustclipsync-server/tar.gz/9ed68997476575fd042f3ed6807cfec4931ebbea",
+  "archive_sha256": "36d5e76568d08718a20b2a8615aed719c32281a769ceacd0d2e1cc4b17b095d6",
   "license": "MIT"
 }

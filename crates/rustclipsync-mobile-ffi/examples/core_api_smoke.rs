@@ -1,6 +1,7 @@
 //! Calls every core HTTP operation against the disposable loopback TLS route fixture.
 use rustclipsync_core::{
     client::Client,
+    direction::SyncDirection,
     state::{Ack, LocalCopy, Message, Outbox, Persisted, State},
 };
 use std::{env, error::Error, io};
@@ -40,6 +41,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
     let registration = client.register(&session)?;
     assert_eq!(registration.epoch, EPOCH, "registration epoch");
+    client.set_sync_direction(&session, SyncDirection::Bidirectional, false)?;
     assert_eq!(client.state(&session)?.revision, 1, "state revision");
     assert!(
         client.changes(&session)?.is_none(),
@@ -76,6 +78,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             result: "skipped".into(),
         },
     )?;
-    println!("All seven core HTTP operations completed against the synthetic fixture");
+    client.revoke_sync_direction(&session)?;
+    println!("Protocol-3 direction, data and revocation completed against the synthetic fixture");
     Ok(())
 }

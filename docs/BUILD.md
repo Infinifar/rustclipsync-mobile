@@ -58,7 +58,7 @@ BindingSmokeTest 只用内存 Platform，通过 Kotlin → Rust → Kotlin 验�
 或生产服务。平台适配器的 Keystore、实际剪贴板、
 断网/重启和权限行为需要后续独立测试设备验证，不能用这项 smoke 替代。
 
-当前 core 0.3.0 使用 `/api/...`，要求服务端提供同一套接口；不回退到 `/v1`。
+当前 core 0.4.0 使用 `/api/...`，要求协议 3／服务端 3.0.0；不回退到 `/v1`。
 服务器配置输入部署根地址（例如 `https://example.test/` 或 `https://example.test/sync/`），
 不附加 `/api` 或 `/v1`；端点拼接由 core 完成。
 
@@ -76,7 +76,7 @@ SDK API/provider 固定 13.1.5，AIDL 通过 Gradle 生成。授权、故障降�
 开发分支为 `codex/mobile-native-foundation`，入口为
 [Actions](https://github.com/Infinifar/rustclipsync-mobile/actions)。推送代码或发起 PR 自动执行：
 
-- `Rust facade`：vendor 校验、fmt、Clippy、12 项 synthetic 测试、rustdoc、路由与 host FFI smoke、双端绑定。
+- `Rust facade`：vendor 校验、fmt、Clippy、22 项 synthetic 测试、rustdoc、路由与 host FFI smoke、双端绑定。
 - `Android APK`：Ubuntu 24.04、JDK 17、Rust 1.99.1、SDK 36 / NDK 28.2，两个 ABI、应用与测试 APK、lint、APK / ELF 静态对齐。
 
 Actions 固定官方 action 提交，复用 Cargo / Gradle 缓存；同分支的新提交取消过时任务。

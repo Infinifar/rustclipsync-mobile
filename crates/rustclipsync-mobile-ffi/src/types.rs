@@ -145,6 +145,9 @@ pub enum MobileError {
     /// Server data failed core validation.
     #[error("invalid server response")]
     Protocol,
+    /// The peer does not implement the required RustClipSync wire protocol.
+    #[error("server protocol version unsupported")]
+    ProtocolUnsupported,
     /// An internal failure stopped the executor.
     #[error("session failed; reopen session")]
     Internal,

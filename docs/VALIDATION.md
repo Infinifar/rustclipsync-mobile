@@ -373,7 +373,20 @@ iOS 没有 macOS/Xcode 条件，未声称平台编译或真机通过。
 最终代码 `7b9b460670f58fa246f23dc9348be2f62a4bdff0`（Android 0.1.4 / versionCode 5）：
 [Rust CI 41374038027 已通过](https://github.com/Infinifar/rustclipsync-mobile/actions/runs/41374038027)；
 [Android APK / JVM / lint / 隔离测试源码编译 41374038090](https://github.com/Infinifar/rustclipsync-mobile/actions/runs/41374038090)
-在本次最终核对时仍构建中，尚不记为 Android 平台检查通过。完成后在同页 artifacts 下载。
+后续确认在 PrivilegedClipboardService.kt:47 因混合类型反射参数的 reified 类型推断而编译失败，没有生成 APK。修复与协议 3 升级的后续结果见下文。
 没有开启 watch 或持续轮询；前一个 93bb23a 的构建被最终代码替代，不能作为本轮产物。
 临时 Rust target、host 绑定和参考源码已清理，路径清单见本轮 evidence/cleanup.json。
 GitHub/GitLab 代码镜像均已推送；不修改远端共享 Runner、缓存或代理。
+
+
+## 2026-11-03：协议 3、构建修复与安卓外观
+
+- 固定共享 core 0.4.0 正式提交 `6a1ccd37b8ca3e515610d48bfa47f20b7c9b0ca4`，通过维护脚本重新导出完整、未修改的 31 个文件，校验 Git 来源与逐文件 SHA-256；Cargo.lock 固定新的依赖图。没有手改 vendor。
+- facade 在数据访问前通过 core 设置方向并等待确认；显式方向修改复用 core 的控制协议。元数据 status 不激活方向；后台首次使用仍须完成前台 check。拒绝不兼容的服务端，并通过新的 FFI 错误和中英文资源显示协议版本提示。
+- 全特性 facade 22 项 Rust 测试通过，fmt、Clippy workspace/all-targets/all-features `-D warnings`、rustdoc 通过。4 项新增协议测试分别验证方向上报、ACK 失败时不读取／上传剪贴板、较小的授权投递版本和错误分类；对 4 项实际断言分别反转后均实测失败，恢复后全套通过。
+- Kotlin/Swift 绑定重新生成，4 项 Python → Rust → Python host UniFFI 测试通过。它们不证明 iOS 平台编译或 Android 系统剪贴板正确性。
+- 回环真实 HTTPS 路由探针共 22 个请求通过，覆盖根路径／子路径、协议头、方向 ACK、WSS 拒绝后的 HTTP 降级、长轮询前租约刷新、数据会话头和撤销。
+- 将隔离服务端源码固定为正式 3.0.0／`9ed68997476575fd042f3ed6807cfec4931ebbea`，更新来源归档 SHA-256。Python 观察者复用同一协议门禁；用本机独立临时数据库实际验证注册、方向确认、撤销后重新连接及服务端重启。没有启动模拟器。
+- 修复 `PrivilegedClipboardService.kt:47`：两种反射签名的数组均声明 `arrayOf<Any?>`，保留原 Binder 调用者 UID、锁屏和 ADB Shizuku 模式检查。
+- 启动图标改为来自 Omaclipsync 的内置自适应矢量及单色层，浅色／深色背景分别白色／黑色；应用主背景同样使用纯白／纯黑，保留动态强调色。180 个中英文资源键／占位符和 XML 校验通过，并使用已有缓存 AAPT2／API 36 实际编译、链接全部资源及清单。
+- 没有重新安装 SDK、Gradle 或改变主机配置；完整 Android 双 ABI、Kotlin、lint 和 APK 对齐检查交 GitHub Actions。没有进行本轮模拟器、真机、Shizuku 或截图验收；iOS 无 Xcode 编译结果。

@@ -2,7 +2,7 @@
 
 先读 AGENTS.md、README-ZH.md、ARCHITECTURE.md，再查看 Git 状态。保持 Kotlin / Compose、
 Swift / SwiftUI、同一 Rust facade / UniFFI；协议、RCS1、重试、冲突由 core 负责。
-core 固定 1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e，通过完整未改动 vendor 独立构建；
+core 固定 6a1ccd37b8ca3e515610d48bfa47f20b7c9b0ca4，通过完整未改动 vendor 独立构建；
 统一 /api，不追加 /v1，不依赖相邻仓库。只做移动端，不增加 macOS / Catalyst 目标。
 
 ## 当前模型：Android 0.1.4
@@ -27,17 +27,17 @@ core 固定 1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e，通过完整未改动 ven
 - 显示/隐藏保持通知栏（不走 authenticationRequired）；复制走认证收起路径；私有服务
   仍校验解锁、票据和版本。透明单色图标、按宽度约 2/3 的星号掩码沿用。
 - 三页 UI 与设置“同步/过滤/外观/关于”；UUID、core 正则过滤、更新与项目链接沿用。
-  中英文 179 个资源键，支持系统语言、中文、English；新增语言走 Android resources。
+  中英文 180 个资源键，支持系统语言、中文、English；新增语言走 Android resources。
 
 ## 本轮验证与剩余工作
 
-本地已运行固定 core 49 项与 facade 18 项全特性 Rust 合成测试、fmt、Clippy all-targets/all-features -D warnings、
+本轮已运行 facade 22 项全特性 Rust 合成测试、fmt、Clippy all-targets/all-features -D warnings、
 rustdoc 和隔离 TLS 路由检查；Kotlin/Swift/Python UniFFI 绑定重新生成。详见 VALIDATION.md
 及本轮 evidence。新 API 缺失与重复上传的负向测试先失败，修复后通过。
 不把 mock / host ABI 当作真实系统剪贴板、Shizuku、Keystore 或设备行为验证。
 
-最终实现 7b9b460。Rust CI 41374038027 成功；Android CI 41374038090 在最终核对时仍构建中。
-不持续监控，尚不声称 Android 平台编译通过，后续结果以 VALIDATION 记录/该 run 为准。
+旧实现 7b9b460 的 Rust CI 41374038027 成功；Android CI 41374038090 已确认在 PrivilegedClipboardService.kt:47 编译失败，不能作为成功构建。
+当前已显式声明反射参数 Array<Any?>，升级 core 0.4.0／协议 3，更新 Omaclipsync 图标及白色／黑色背景。当前 Android 编译结果以新 CI 为准，不持续监控。
 不要用 0.1.3 的成功代替 0.1.4 平台编译；此前 0.1.3 的 Android run 41341560080 和
 Rust run 41341560187 已确认成功。历史 API 31/35 隔离模拟器结果只适用于对应旧构建。
 

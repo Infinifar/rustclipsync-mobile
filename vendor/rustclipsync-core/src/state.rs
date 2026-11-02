@@ -74,6 +74,9 @@ pub struct State {
     pub discard_pending: bool,
     pub applying: Option<Message>,
     pub ack: Option<Ack>,
+    /// Durable opt-in decision to cancel a conflict and skip its remote value.
+    #[serde(default)]
+    pub resolving_conflict: bool,
 }
 
 impl State {
@@ -87,6 +90,7 @@ impl State {
             discard_pending: false,
             applying: None,
             ack: None,
+            resolving_conflict: false,
         }
     }
 
@@ -99,7 +103,12 @@ impl State {
                     attempted: false,
                 })
             }
-            Some(p) if !p.attempted => p.copy = value,
+            Some(p) if !p.attempted => {
+                // This is a genuinely new copy created after the latest observed
+                // server revision, not a retry/rebase of the previous copy.
+                p.copy = value;
+                p.base_revision = self.cursor;
+            }
             Some(_) => {
                 self.queued = Some(value);
                 self.discard_pending = false;

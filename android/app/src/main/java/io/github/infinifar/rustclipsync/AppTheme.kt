@@ -7,6 +7,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 
@@ -20,9 +22,12 @@ internal fun AppTheme(content: @Composable (ThemeMode, (ThemeMode) -> Unit) -> U
         mutableStateOf(ThemeMode.entries.firstOrNull { it.name == preferences.getString("theme", null) } ?: ThemeMode.SYSTEM)
     }
     val dark = when (mode) { ThemeMode.SYSTEM -> isSystemInDarkTheme(); ThemeMode.DARK -> true; ThemeMode.LIGHT -> false }
-    val colors = if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+    val background = if (dark) Color.Black else Color.White
+    val colors = (if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context))
+        .copy(background = background, surface = background)
     SideEffect {
         (context as? Activity)?.window?.let { window ->
+            window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(background.toArgb()))
             WindowCompat.getInsetsController(window, window.decorView).apply {
                 isAppearanceLightStatusBars = !dark
                 isAppearanceLightNavigationBars = !dark

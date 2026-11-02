@@ -9,7 +9,7 @@ rust-version = "1.99"
 license = "MIT"
 
 [workspace.dependencies]
-rustclipsync-core = { git = "https://github.com/Infinifar/rustclipsync-core.git", rev = "1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e" }
+rustclipsync-core = { git = "https://github.com/Infinifar/rustclipsync-core.git", rev = "6a1ccd37b8ca3e515610d48bfa47f20b7c9b0ca4" }
 uniffi = "=0.32.2"
 futures = "0.3"
 thiserror = "2"

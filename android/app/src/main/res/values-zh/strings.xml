@@ -179,4 +179,5 @@
     <string name="review_sync_settings">查看同步与敏感内容设置</string>
     <string name="inbox_receive_filter_active">接收正则过滤已开启；被规则拒绝的消息不会进入收件箱。</string>
     <string name="shizuku_shell_required">此剪贴板来源需要通过无线调试 / ADB 启动 Shizuku（shell 模式）。暂不支持 root 模式，请改用 ADB 模式启动。</string>
+    <string name="error_protocol_unsupported">服务端协议不兼容，请使用支持协议 3 的 RustClipSync 服务端。</string>
 </resources>

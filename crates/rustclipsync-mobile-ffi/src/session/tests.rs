@@ -68,6 +68,8 @@ struct Remote {
     data: Arc<Mutex<Data>>,
     gate: Arc<Mutex<Option<StateGate>>>,
     fail_next_send: Arc<AtomicBool>,
+    direction: Arc<Mutex<Option<(CoreDirection, bool)>>>,
+    fail_direction: Arc<AtomicBool>,
 }
 const EPOCH: &str = "10000000-0000-4000-8000-000000000001";
 impl Remote {
@@ -92,6 +94,39 @@ impl Remote {
     }
 }
 impl Transport for Remote {
+    fn set_sync_direction(
+        &self,
+        session: &Persisted,
+        direction: CoreDirection,
+        paused: bool,
+    ) -> Result<(), Error> {
+        *self.direction.lock().unwrap() = Some((direction, paused));
+        if session.paired {
+            self.ensure_sync_direction(session)
+        } else {
+            Ok(())
+        }
+    }
+    fn ensure_sync_direction(&self, _: &Persisted) -> Result<(), Error> {
+        if self.fail_direction.load(Ordering::SeqCst) {
+            return Err(Error::Protocol(
+                rustclipsync_core::direction::SyncDirectionError {
+                    code: DirectionErrorCode::ProtocolUnsupported,
+                    version: None,
+                    minimum_protocol_version: Some(3),
+                },
+            ));
+        }
+        self.direction
+            .lock()
+            .unwrap()
+            .ok_or(Error::DirectionRequired)
+            .map(|_| ())
+    }
+    fn revoke_sync_direction(&self, _: &Persisted) -> Result<(), Error> {
+        *self.direction.lock().unwrap() = None;
+        Ok(())
+    }
     fn register(&self, _: &Persisted) -> Result<Registration, Error> {
         let d = self.data.lock().unwrap();
         Ok(Registration {
@@ -113,6 +148,7 @@ impl Transport for Remote {
             epoch: EPOCH.into(),
             revision: d.revision,
             ack_revision: 0,
+            delivery_revision: d.current.as_ref().map(|(m, _)| m.revision),
             message_id: d.current.as_ref().map(|(m, _)| m.id.clone()),
             source_device_id: d.current.as_ref().map(|(m, _)| m.source_device_id.clone()),
             size: d.current.as_ref().map(|(_, text)| text.len() as u64),
@@ -626,6 +662,127 @@ fn directions_block_disallowed_transfers_and_never_retry_a_receive_only_upload()
         assert_eq!(s.receive().await.unwrap(), SyncOutcome::Downloaded);
         s.shutdown().await.unwrap();
     });
+}
+
+#[test]
+fn protocol3_reports_direction_before_data_without_network_on_status() {
+    block_on(async {
+        let platform = Arc::new(FakePlatform::default());
+        let remote = Remote::default();
+        let s = start(&platform, &remote, SensitivePolicy::Disabled);
+        s.status().await.unwrap();
+        assert_eq!(
+            *remote.direction.lock().unwrap(),
+            None,
+            "metadata must not activate direction"
+        );
+        s.check().await.unwrap();
+        assert_eq!(
+            *remote.direction.lock().unwrap(),
+            Some((CoreDirection::Bidirectional, false)),
+            "first connection must report the selected direction"
+        );
+        s.update_direction(crate::SyncDirection::Upload)
+            .await
+            .unwrap();
+        assert_eq!(
+            *remote.direction.lock().unwrap(),
+            Some((CoreDirection::PushOnly, false))
+        );
+        s.update_direction(crate::SyncDirection::Download)
+            .await
+            .unwrap();
+        assert_eq!(
+            *remote.direction.lock().unwrap(),
+            Some((CoreDirection::ReceiveOnly, false))
+        );
+        s.shutdown().await.unwrap();
+    });
+}
+
+#[test]
+fn protocol3_failed_direction_ack_prevents_clipboard_capture_and_upload() {
+    block_on(async {
+        let platform = Arc::new(FakePlatform::default());
+        let remote = Remote::default();
+        let s = start(&platform, &remote, SensitivePolicy::Disabled);
+        s.check().await.unwrap();
+        let reads = platform.reads.load(Ordering::SeqCst);
+        remote.fail_direction.store(true, Ordering::SeqCst);
+        assert!(
+            matches!(
+                s.update_direction(crate::SyncDirection::Upload).await,
+                Err(MobileError::ProtocolUnsupported)
+            ),
+            "failed report must be surfaced"
+        );
+        assert!(
+            matches!(
+                s.send_clipboard().await,
+                Err(MobileError::ProtocolUnsupported)
+            ),
+            "unacknowledged direction must deny data"
+        );
+        assert_eq!(
+            platform.reads.load(Ordering::SeqCst),
+            reads,
+            "failed direction ACK must not read the clipboard"
+        );
+        assert!(remote.data.lock().unwrap().attempts.is_empty());
+        remote.fail_direction.store(false, Ordering::SeqCst);
+        s.check().await.unwrap();
+        s.shutdown().await.unwrap();
+    });
+}
+
+#[test]
+fn protocol3_authorized_delivery_can_precede_the_global_revision() {
+    block_on(async {
+        let platform = Arc::new(FakePlatform::default());
+        let remote = Remote::default();
+        let s = start(&platform, &remote, SensitivePolicy::Disabled);
+        s.check().await.unwrap();
+        remote.publish("authorized synthetic delivery", false);
+        remote.data.lock().unwrap().revision = 9;
+        assert_eq!(
+            s.receive().await.unwrap(),
+            SyncOutcome::Downloaded,
+            "global revision must not skip an older authorized delivery"
+        );
+        assert_eq!(s.status().await.unwrap().cursor, 1);
+        assert_eq!(
+            platform.clipboard.lock().unwrap().as_ref().unwrap().text,
+            "authorized synthetic delivery"
+        );
+        s.shutdown().await.unwrap();
+    });
+}
+
+#[test]
+fn protocol3_errors_distinguish_an_incompatible_peer_from_retryable_network_errors() {
+    assert_eq!(
+        map_error(&SyncError::Remote(Error::Status(426))),
+        MobileError::ProtocolUnsupported,
+        "a protocol gate must not be reported as an ordinary network retry"
+    );
+    for (code, expected) in [
+        (
+            DirectionErrorCode::ProtocolUnsupported,
+            MobileError::ProtocolUnsupported,
+        ),
+        (DirectionErrorCode::SessionRevoked, MobileError::Pairing),
+        (DirectionErrorCode::SessionOffline, MobileError::Network),
+        (DirectionErrorCode::RateLimited, MobileError::Network),
+    ] {
+        let error = SyncError::Remote(Error::Protocol(
+            rustclipsync_core::direction::SyncDirectionError {
+                code,
+                version: None,
+                minimum_protocol_version: Some(3),
+            },
+        ));
+        assert_eq!(map_error(&error), expected, "classification for {code:?}");
+    }
 }
 
 #[test]

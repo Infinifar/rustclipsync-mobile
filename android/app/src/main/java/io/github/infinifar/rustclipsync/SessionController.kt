@@ -347,6 +347,7 @@ internal class SessionController(
         is MobileException.Expired -> R.string.error_expired
         is MobileException.Network -> R.string.error_network
         is MobileException.Protocol -> R.string.error_protocol
+        is MobileException.ProtocolUnsupported -> R.string.error_protocol_unsupported
         is MobileException.Internal -> R.string.error_internal
         else -> R.string.error_platform
     })

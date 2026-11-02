@@ -1,6 +1,7 @@
 use rustclipsync_core::{
     adapters::{Clipboard, ClipboardError, NoHistory, StateStore},
     client::{Registration, RemoteState},
+    direction::SyncDirection,
     session::{Session, SessionConfig, SyncError},
     state::{self, Ack, Message, Outbox, Persisted},
     transport::Transport,
@@ -85,6 +86,13 @@ struct Remote {
     lose_response: AtomicBool,
     change_during_download: AtomicBool,
     generation: Arc<AtomicU64>,
+    control_log: Mutex<Vec<&'static str>>,
+    fail_report: AtomicBool,
+    fail_revoke: AtomicBool,
+    hide_delivery: AtomicBool,
+    fail_cancel: AtomicBool,
+    fail_state: AtomicBool,
+    cancellations: AtomicU64,
 }
 impl Remote {
     fn new(generation: Arc<AtomicU64>) -> Self {
@@ -102,6 +110,13 @@ impl Remote {
             lose_response: AtomicBool::new(false),
             change_during_download: AtomicBool::new(false),
             generation,
+            control_log: Mutex::new(Vec::new()),
+            fail_report: AtomicBool::new(false),
+            fail_revoke: AtomicBool::new(false),
+            hide_delivery: AtomicBool::new(false),
+            fail_cancel: AtomicBool::new(false),
+            fail_state: AtomicBool::new(false),
+            cancellations: AtomicU64::new(0),
         }
     }
     fn publish(&self, text: &str, sensitive: bool) {
@@ -119,6 +134,36 @@ impl Remote {
     }
 }
 impl Transport for Remote {
+    fn set_sync_direction(&self, s: &Persisted, _: SyncDirection, _: bool) -> Result<(), Error> {
+        self.control_log
+            .lock()
+            .unwrap()
+            .push(if s.paired { "update" } else { "configure" });
+        if s.paired && self.fail_report.load(Ordering::SeqCst) {
+            Err(Error::Status(503))
+        } else {
+            Ok(())
+        }
+    }
+    fn ensure_sync_direction(&self, _: &Persisted) -> Result<(), Error> {
+        self.control_log.lock().unwrap().push("ack");
+        if self.fail_report.load(Ordering::SeqCst) {
+            Err(Error::Status(503))
+        } else {
+            Ok(())
+        }
+    }
+    fn revoke_sync_direction(&self, s: &Persisted) -> Result<(), Error> {
+        if !s.paired {
+            return Ok(());
+        }
+        self.control_log.lock().unwrap().push("revoke");
+        if self.fail_revoke.load(Ordering::SeqCst) {
+            Err(Error::Status(503))
+        } else {
+            Ok(())
+        }
+    }
     fn register(&self, _: &Persisted) -> Result<Registration, Error> {
         let mut d = self.data.lock().unwrap();
         d.calls += 1;
@@ -130,16 +175,41 @@ impl Transport for Remote {
         })
     }
     fn state(&self, _: &Persisted) -> Result<RemoteState, Error> {
+        if self.fail_state.load(Ordering::SeqCst) {
+            return Err(Error::Status(503));
+        }
+        self.control_log.lock().unwrap().push("state");
         let mut d = self.data.lock().unwrap();
         d.calls += 1;
         Ok(RemoteState {
             epoch: d.epoch.clone(),
             revision: d.revision,
             ack_revision: d.ack,
-            message_id: d.current.as_ref().map(|v| v.0.id.clone()),
-            source_device_id: d.current.as_ref().map(|v| v.0.source_device_id.clone()),
-            size: d.current.as_ref().map(|v| v.1.len() as u64),
-            sensitive: d.current.as_ref().map(|v| v.0.sensitive),
+            delivery_revision: d
+                .current
+                .as_ref()
+                .filter(|_| !self.hide_delivery.load(Ordering::SeqCst))
+                .map(|v| v.0.revision),
+            message_id: d
+                .current
+                .as_ref()
+                .filter(|_| !self.hide_delivery.load(Ordering::SeqCst))
+                .map(|v| v.0.id.clone()),
+            source_device_id: d
+                .current
+                .as_ref()
+                .filter(|_| !self.hide_delivery.load(Ordering::SeqCst))
+                .map(|v| v.0.source_device_id.clone()),
+            size: d
+                .current
+                .as_ref()
+                .filter(|_| !self.hide_delivery.load(Ordering::SeqCst))
+                .map(|v| v.1.len() as u64),
+            sensitive: d
+                .current
+                .as_ref()
+                .filter(|_| !self.hide_delivery.load(Ordering::SeqCst))
+                .map(|v| v.0.sensitive),
         })
     }
     fn changes(&self, _: &Persisted) -> Result<Option<RemoteState>, Error> {
@@ -187,6 +257,10 @@ impl Transport for Remote {
         Ok(revision)
     }
     fn cancel(&self, _: &Persisted, o: &Outbox) -> Result<Option<u64>, Error> {
+        self.cancellations.fetch_add(1, Ordering::SeqCst);
+        if self.fail_cancel.load(Ordering::SeqCst) {
+            return Err(Error::Status(503));
+        }
         Ok(self.data.lock().unwrap().commits.get(&o.copy.id).copied())
     }
     fn acknowledge(&self, _: &Persisted, ack: &Ack) -> Result<(), Error> {
@@ -232,6 +306,11 @@ impl Fixture {
             NoHistory,
             self.generation.clone(),
         )
+        .map(|mut s| {
+            s.set_sync_direction(SyncDirection::Bidirectional, false)
+                .unwrap();
+            s
+        })
         .unwrap()
     }
     fn copy(&self, session: &mut TestSession, text: &str) {
@@ -320,6 +399,136 @@ fn conflict_does_not_silently_rebase_or_replace_clipboard() {
 }
 
 #[test]
+fn opted_in_conflict_recovery_skips_both_old_values_and_allows_a_fresh_copy() {
+    let f = Fixture::new();
+    let mut s = f.open();
+    s.check().unwrap();
+    f.copy(&mut s, "local conflicting value");
+    f.remote.publish("remote concurrent value", false);
+    assert!(matches!(s.flush(0), Err(SyncError::Conflict)));
+    f.copy(&mut s, "queued before conflict was resolved");
+    let before = f.clipboard.value.borrow().clone();
+    assert_eq!(s.recover_upload_conflict(0).unwrap(), Outcome::Skipped);
+    assert!(!s.has_pending());
+    assert_eq!(*f.clipboard.value.borrow(), before);
+    assert_eq!(f.clipboard.writes.get(), 0);
+    assert_eq!(f.remote.data.lock().unwrap().revision, 1);
+    assert_eq!(f.remote.data.lock().unwrap().sends.len(), 1);
+    assert_eq!(s.pull(0, Instant::now()).unwrap(), Outcome::Current);
+    drop(s);
+    let mut s = f.open();
+    s.check().unwrap();
+    assert_eq!(s.pull(0, Instant::now()).unwrap(), Outcome::Current);
+    f.copy(&mut s, "a genuinely new user copy");
+    assert_eq!(s.flush(0).unwrap(), Outcome::Uploaded);
+    assert_eq!(f.remote.data.lock().unwrap().revision, 2);
+}
+
+#[test]
+fn opted_in_conflict_recovery_recognizes_an_already_committed_upload() {
+    let f = Fixture::new();
+    let mut s = f.open();
+    s.check().unwrap();
+    f.copy(&mut s, "local committed value");
+    f.remote.lose_response.store(true, Ordering::SeqCst);
+    assert!(s.flush(0).is_err());
+    f.remote.publish("remote newer value", false);
+    let before = f.clipboard.value.borrow().clone();
+    assert_eq!(s.recover_upload_conflict(0).unwrap(), Outcome::Skipped);
+    assert_eq!(s.persisted.state.cursor, 2);
+    assert!(!s.has_pending());
+    assert_eq!(*f.clipboard.value.borrow(), before);
+    assert_eq!(f.clipboard.writes.get(), 0);
+    assert_eq!(f.remote.data.lock().unwrap().sends.len(), 1);
+}
+
+#[test]
+fn conflict_recovery_survives_restart_before_or_after_cancellation() {
+    for fail_cancel in [true, false] {
+        let f = Fixture::new();
+        let mut s = f.open();
+        s.check().unwrap();
+        f.copy(&mut s, "conflicting copy");
+        f.remote.publish("remote value to skip", false);
+        assert!(matches!(s.flush(0), Err(SyncError::Conflict)));
+        f.remote.fail_cancel.store(fail_cancel, Ordering::SeqCst);
+        f.remote.fail_state.store(!fail_cancel, Ordering::SeqCst);
+        assert!(s.recover_upload_conflict(0).is_err());
+        assert!(s.persisted.state.resolving_conflict);
+        assert!(s.has_pending());
+        let saved = state::open(&f.key, f.store.load().unwrap().unwrap()).unwrap();
+        assert!(
+            saved.state.resolving_conflict,
+            "recovery intent must survive cancellation uncertainty"
+        );
+        f.copy(&mut s, "copied during unresolved recovery");
+        assert!(s.persisted.state.queued.is_none());
+        drop(s);
+        f.remote.fail_cancel.store(false, Ordering::SeqCst);
+        f.remote.fail_state.store(false, Ordering::SeqCst);
+        // Recovery must not need access to a foreground clipboard after reopen.
+        f.clipboard.fail.set(true);
+        let mut s = f.open();
+        assert_eq!(s.pull(0, Instant::now()).unwrap(), Outcome::Skipped);
+        assert_eq!(s.flush(0).unwrap(), Outcome::Skipped);
+        assert!(!s.has_pending());
+        assert!(!s.persisted.state.resolving_conflict);
+        assert_eq!(s.persisted.state.cursor, 1);
+        assert_eq!(f.clipboard.writes.get(), 0);
+        assert_eq!(f.remote.data.lock().unwrap().sends.len(), 1);
+    }
+}
+
+#[test]
+fn conflict_recovery_requires_durable_intent_and_rejects_epoch_changes() {
+    let f = Fixture::new();
+    let mut s = f.open();
+    s.check().unwrap();
+    f.copy(&mut s, "local");
+    f.remote.publish("remote", false);
+    assert!(matches!(s.flush(0), Err(SyncError::Conflict)));
+    f.store.fail.set(true);
+    assert!(matches!(
+        s.recover_upload_conflict(0),
+        Err(SyncError::Storage(_))
+    ));
+    assert_eq!(f.remote.cancellations.load(Ordering::SeqCst), 0);
+    f.store.fail.set(false);
+    let original_epoch = s.persisted.state.epoch.clone();
+    f.remote.data.lock().unwrap().epoch = state::random_uuid().unwrap();
+    assert!(matches!(
+        s.recover_upload_conflict(0),
+        Err(SyncError::Epoch)
+    ));
+    assert_eq!(s.persisted.state.epoch, original_epoch);
+    assert!(s.persisted.state.resolving_conflict);
+    assert_eq!(f.clipboard.writes.get(), 0);
+}
+
+#[test]
+fn legacy_conflict_is_detected_after_reopen_even_when_clipboard_changed() {
+    let f = Fixture::new();
+    let mut s = f.open();
+    s.check().unwrap();
+    f.copy(&mut s, "stale pending");
+    f.remote.publish("newer remote", false);
+    assert!(matches!(s.flush(0), Err(SyncError::Conflict)));
+    assert!(!s.persisted.state.resolving_conflict);
+    drop(s);
+    *f.clipboard.value.borrow_mut() = Some(("later local value".into(), false));
+    let mut s = f.open();
+    s.check().unwrap();
+    assert!(s.has_observed_upload_conflict(), "a restored legacy outbox must be recovered before a normal cancel-and-pull can overwrite the clipboard");
+    assert_eq!(s.recover_upload_conflict(0).unwrap(), Outcome::Skipped);
+    assert_eq!(
+        *f.clipboard.value.borrow(),
+        Some(("later local value".into(), false))
+    );
+    assert_eq!(s.pull(0, Instant::now()).unwrap(), Outcome::Current);
+    assert_eq!(f.clipboard.writes.get(), 0);
+}
+
+#[test]
 fn received_message_is_not_reuploaded_or_replayed_after_clear_and_restart() {
     let f = Fixture::new();
     let mut s = f.open();
@@ -376,6 +585,67 @@ fn local_event_during_download_prevents_overwrite() {
     assert_eq!(s.pull(0, Instant::now()).unwrap(), Outcome::Skipped);
     assert_eq!(s.persisted.state.cursor, 0);
     assert_eq!(f.clipboard.writes.get(), 0);
+}
+
+#[test]
+fn disabling_sensitive_policy_keeps_normal_receives_working() {
+    for direction in [SyncDirection::Bidirectional, SyncDirection::ReceiveOnly] {
+        for reopen in [false, true] {
+            let f = Fixture::new();
+            let mut s = f.open_sensitive(true);
+            s.set_sync_direction(direction, false).unwrap();
+            s.check().unwrap();
+            f.remote.publish("marked fixture", true);
+            assert_eq!(s.pull(0, Instant::now()).unwrap(), Outcome::Downloaded);
+            assert!(f.clipboard.value.borrow().as_ref().unwrap().1);
+
+            if reopen {
+                s = f.open_sensitive(false);
+                s.set_sync_direction(direction, false).unwrap();
+            } else {
+                s.update_policy(Filter::new(FilterMode::Off, &[], false).unwrap(), false);
+            }
+            s.check().unwrap();
+            assert_eq!(
+                s.pull(0, Instant::now()).unwrap(),
+                Outcome::Current,
+                "disabled marked snapshot must not become a clipboard failure: {direction:?}, reopen={reopen}"
+            );
+            f.remote.publish("ordinary fixture", false);
+            assert_eq!(s.pull(0, Instant::now()).unwrap(), Outcome::Downloaded);
+            assert_eq!(
+                *f.clipboard.value.borrow(),
+                Some(("ordinary fixture".into(), false))
+            );
+            f.remote.publish("blocked marked fixture", true);
+            assert_eq!(s.pull(0, Instant::now()).unwrap(), Outcome::Filtered);
+            assert_eq!(f.clipboard.writes.get(), 2);
+            assert!(f.remote.data.lock().unwrap().sends.is_empty());
+            assert!(s.persisted.inbox.is_none());
+        }
+    }
+}
+
+#[test]
+fn sensitive_snapshot_normalization_preserves_real_clipboard_failures() {
+    for failed_read in [1, 2, 3] {
+        let f = Fixture::new();
+        let mut s = f.open();
+        s.check().unwrap();
+        *f.clipboard.value.borrow_mut() = Some(("marked local fixture".into(), true));
+        f.remote.publish("ordinary remote fixture", false);
+        f.clipboard.fail_on_snapshot.set(Some(failed_read));
+        assert!(matches!(
+            s.pull(0, Instant::now()),
+            Err(SyncError::Clipboard(ClipboardError::Unavailable))
+        ));
+        assert_eq!(f.clipboard.writes.get(), 0, "failed read {failed_read}");
+        assert!(s.persisted.state.applying.is_none());
+        f.clipboard.fail_on_snapshot.set(None);
+        assert_eq!(s.pull(0, Instant::now()).unwrap(), Outcome::Downloaded);
+        assert_eq!(f.clipboard.writes.get(), 1);
+        assert!(f.remote.data.lock().unwrap().sends.is_empty());
+    }
 }
 
 #[test]
@@ -908,4 +1178,152 @@ fn background_write_opt_in_never_reads_and_preserves_sensitive_policy() {
         assert_eq!(f.clipboard.writes.get(), writes + 1);
         assert_eq!(f.clipboard.snapshots.get(), reads);
     }
+}
+
+#[test]
+fn direction_must_be_acknowledged_before_metadata_and_unknown_fails_closed() {
+    let f = Fixture::new();
+    let mut s = f.open();
+    f.remote.fail_report.store(true, Ordering::SeqCst);
+    assert!(matches!(
+        s.check(),
+        Err(SyncError::Remote(Error::Status(503)))
+    ));
+    assert!(
+        !f.remote.control_log.lock().unwrap().contains(&"state"),
+        "no metadata before ACK"
+    );
+    f.remote.fail_report.store(false, Ordering::SeqCst);
+    s.check().unwrap();
+    let log = f.remote.control_log.lock().unwrap().clone();
+    assert!(log.iter().position(|v| *v == "ack") < log.iter().position(|v| *v == "state"));
+    s.revoke_sync_direction().unwrap();
+    assert!(matches!(
+        s.check(),
+        Err(SyncError::Remote(Error::DirectionRequired))
+    ));
+    assert_eq!(s.pull(0, Instant::now()).unwrap(), Outcome::Paused);
+    assert_eq!(
+        s.record_local("never-send", None, false, Instant::now())
+            .unwrap(),
+        Outcome::Paused
+    );
+}
+
+#[test]
+fn paused_direction_reports_without_reading_metadata_or_clipboard() {
+    let f = Fixture::new();
+    let mut s = f.open();
+    s.set_sync_direction(SyncDirection::Bidirectional, true)
+        .unwrap();
+    s.check().unwrap();
+    assert!(s.persisted.paired);
+    assert!(!f.remote.control_log.lock().unwrap().contains(&"state"));
+    assert_eq!(f.clipboard.snapshots.get(), 0);
+    assert_eq!(s.push_now(0).unwrap(), Outcome::Paused);
+    assert_eq!(s.pull_background(0, true).unwrap(), Outcome::Paused);
+}
+
+#[test]
+fn failed_direction_update_keeps_local_receive_and_upload_guards() {
+    let f = Fixture::new();
+    let mut s = f.open();
+    s.check().unwrap();
+    f.copy(&mut s, "queued-before-pause");
+    f.remote.fail_report.store(true, Ordering::SeqCst);
+    assert!(s
+        .set_sync_direction(SyncDirection::Bidirectional, true)
+        .is_err());
+    assert!(s.persisted.state.pending.is_none());
+    assert_eq!(s.push_now(0).unwrap(), Outcome::Paused);
+    assert_eq!(s.pull(0, Instant::now()).unwrap(), Outcome::Paused);
+    assert!(f.remote.data.lock().unwrap().sends.is_empty());
+}
+
+#[test]
+fn receive_only_and_pause_resolve_uncertain_upload_by_cancel_only() {
+    for (direction, paused) in [
+        (SyncDirection::ReceiveOnly, false),
+        (SyncDirection::Bidirectional, true),
+    ] {
+        let f = Fixture::new();
+        let mut s = f.open();
+        s.check().unwrap();
+        f.copy(&mut s, "uncertain");
+        f.remote.lose_response.store(true, Ordering::SeqCst);
+        assert!(s.flush(0).is_err());
+        s.set_sync_direction(direction, paused).unwrap();
+        assert!(s.persisted.state.discard_pending);
+        s.flush(0).unwrap();
+        assert!(s.persisted.state.pending.is_none());
+        assert_eq!(
+            f.remote.data.lock().unwrap().sends.len(),
+            1,
+            "direction changes must never retry the body"
+        );
+    }
+}
+
+#[test]
+fn absent_delivery_observes_global_revision_without_rebasing_existing_copy() {
+    let f = Fixture::new();
+    let mut s = f.open();
+    s.check().unwrap();
+    f.copy(&mut s, "older-local");
+    f.remote.publish("filtered-remote", false);
+    f.remote.hide_delivery.store(true, Ordering::SeqCst);
+    s.check().unwrap();
+    assert_eq!(s.persisted.state.cursor, 1);
+    assert_eq!(
+        s.persisted.state.pending.as_ref().unwrap().base_revision,
+        0,
+        "existing copies retain their conflict base"
+    );
+    f.copy(&mut s, "real-new-copy-after-observation");
+    assert_eq!(
+        s.persisted.state.pending.as_ref().unwrap().base_revision,
+        1,
+        "a new copy may use the already observed revision"
+    );
+    assert_eq!(s.flush(0).unwrap(), Outcome::Uploaded);
+}
+
+#[test]
+fn older_authorized_delivery_is_processed_before_advancing_to_global_revision() {
+    let f = Fixture::new();
+    let mut s = f.open();
+    s.check().unwrap();
+    f.remote.publish("eligible-backfill", false);
+    f.remote.data.lock().unwrap().revision = 9;
+    assert_eq!(s.pull(0, Instant::now()).unwrap(), Outcome::Downloaded);
+    assert_eq!(
+        s.persisted.state.cursor, 1,
+        "global metadata must not skip a valid older candidate"
+    );
+    assert_eq!(
+        f.clipboard.value.borrow().as_ref().unwrap().0,
+        "eligible-backfill"
+    );
+}
+
+#[test]
+fn repair_does_not_destroy_identity_when_old_direction_revocation_is_unconfirmed() {
+    let f = Fixture::new();
+    let mut s = f.open();
+    s.check().unwrap();
+    let old = s.persisted.clone();
+    f.remote.fail_revoke.store(true, Ordering::SeqCst);
+    assert!(s
+        .re_pair_with_direction(SyncDirection::ReceiveOnly, false)
+        .is_err());
+    assert_eq!(s.persisted, old);
+    f.remote.fail_revoke.store(false, Ordering::SeqCst);
+    s.re_pair_with_direction(SyncDirection::ReceiveOnly, true)
+        .unwrap();
+    assert_ne!(s.persisted.state.device_id, old.state.device_id);
+    assert_eq!(
+        s.record_local("not-uploaded", None, false, Instant::now())
+            .unwrap(),
+        Outcome::Paused
+    );
 }

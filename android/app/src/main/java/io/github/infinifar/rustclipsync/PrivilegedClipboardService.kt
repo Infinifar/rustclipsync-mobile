@@ -44,7 +44,7 @@ class PrivilegedClipboardService @Keep constructor(context: Context) : IPrivileg
         val method = Class.forName("android.content.IClipboard").methods.firstOrNull {
             it.name == "getPrimaryClip" && it.parameterTypes.size in 3..4 && it.parameterTypes.take(2).all { type -> type == String::class.java }
         } ?: throw RemoteException("Unsupported clipboard interface")
-        val args = if (method.parameterTypes.size == 4) arrayOf("com.android.shell", null, userId, 0) else arrayOf("com.android.shell", null, userId)
+        val args = if (method.parameterTypes.size == 4) arrayOf<Any?>("com.android.shell", null, userId, 0) else arrayOf<Any?>("com.android.shell", null, userId)
         val clip = method.invoke(service, *args) as? ClipData
         val result = Bundle()
         val value = if (clip != null && clip.itemCount > 0) clip.getItemAt(0).text?.toString() else null

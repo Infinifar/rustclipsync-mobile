@@ -179,4 +179,5 @@
     <string name="review_sync_settings">Review sync and sensitive content settings</string>
     <string name="inbox_receive_filter_active">Incoming regex filtering is active; rejected messages do not enter the inbox.</string>
     <string name="shizuku_shell_required">This clipboard source requires Shizuku started through wireless debugging / ADB (shell mode). Root mode is unsupported; restart Shizuku in ADB mode.</string>
+    <string name="error_protocol_unsupported">Server protocol unsupported. Use a RustClipSync server with protocol 3.</string>
 </resources>

@@ -6,7 +6,7 @@
 Apple 客户端只面向 iPhone / iPad；macOS 客户端之后在桌面端仓库考虑。
 
 已建立 Cargo workspace、UniFFI 双端绑定、串行会话与主动关闭，并接入两端原生源码。
-Rust core 49 项（此前）、本轮 facade 18 项全特性合成测试通过；Android 已在私有 GitLab 完成应用 / 测试 APK
+本轮 facade 22 项全特性合成测试通过；Android 已在私有 GitLab 完成应用 / 测试 APK
 编译、lint、16 KiB 静态对齐。Android 12 / API 31 与 Android 15 / API 35 各通过 10 项
 smoke，真实隔离服务覆盖发送 / 接收、敏感三策略、断网与重启恢复、后台通知及写入，
 两端均验证实际通知栏显示 / 隐藏 / 复制，API 35 另验证系统超时关闭。完整服务方法分别为 5 / 6 项，未完成探测单列。剪贴板为模拟适配器，状态使用
@@ -19,11 +19,11 @@ smoke，真实隔离服务覆盖发送 / 接收、敏感三策略、断网与重
 | Android 12+ / Compose | 界面、系统剪贴板、Keystore、权限与生命周期 |
 | iOS 18+ / SwiftUI | 界面、系统剪贴板、Keychain、权限与生命周期 |
 | 同一 Rust facade | UniFFI 接口、串行执行线程、错误映射、幂等关闭 |
-| core 0.3.0 | 协议、同步状态机、RCS1 格式、重试、确认与冲突 |
+| core 0.4.0 | 协议、同步状态机、RCS1 格式、重试、确认与冲突 |
 
-core 固定到 Git 提交 `1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e`，Cargo.lock 固定传递依赖，
+core 固定到 Git 提交 `6a1ccd37b8ca3e515610d48bfa47f20b7c9b0ca4`，Cargo.lock 固定传递依赖，
 通过 Cargo source replacement 使用同提交的带校验 vendor，不依赖相邻目录。
-当前 HTTP 接口统一为 `/api/...`，需要配套服务端；服务器配置填部署根地址（可含子路径），
+当前 HTTP 接口统一为 `/api/...`，要求协议 3／服务端 3.0.0，旧服务端不兼容；服务器配置填部署根地址（可含子路径），
 不额外附加 `/api` 或 `/v1`。端点全部由 core 维护。
 首版为前台手动发送/接收；敏感默认跳过，另有加密收件箱和显式自动写入。
 未标记文本无法保证识别为敏感内容。账户密码仅保存在会话内存；后台运行默认关闭，未启用时离开前台关闭会话。
@@ -98,3 +98,20 @@ Android 15+ 的 dataSync 每 24 小时累计 6 小时时限、Doze 与厂商限�
 新增语言：添加 `values-<语言标签>/strings.xml` 的完整翻译，登记 `AppLanguage` 和
 `res/xml/locales_config.xml`，运行 `python3 scripts/check-translations.py` 检查键与格式占位符一致。
 默认英文资源作为回退，规则／样例和服务端正文不会被翻译。视觉和真机测试继续交由用户。
+
+
+## 协议 3 与当前安卓外观
+
+客户端在数据访问前通过 core 上报已选方向并等待确认；WSS 控制、认证 HTTP 降级、
+会话隔离和每设备投递版本均由 core 维护。重连补发窗口由服务端管理页面决定，
+客户端不硬编码；不兼容的服务端显示明确协议版本提示。普通关闭会话保留配对和离线资格。
+
+启动图标沿用 [Omaclipsync 的 S 形标识](https://github.com/Infinifar/omaclipsync/blob/main/assets/omaclipsync-icon.svg)，
+以内置自适应矢量资源提供，并支持系统单色主题图标。图标背景随系统浅色／深色为白色／黑色；
+应用内浅色／深色模式的主背景也分别为白色／黑色，保留 Material You 强调色。
+通知状态栏仍使用独立的透明单色图标，不改动已验证的通知交互。
+
+[此前 Android CI](https://github.com/Infinifar/rustclipsync-mobile/actions/runs/41374038090)
+在 `PrivilegedClipboardService.kt:47` 因反射参数混合类型推断失败；现已将两种签名的参数数组
+显式声明为 `Any?`，保留调用者 UID、锁屏和 Shizuku ADB 模式检查。
+本轮平台编译由新的 Actions 结果确认，不将旧版本成功或 Rust 测试当成新 APK 验收。
