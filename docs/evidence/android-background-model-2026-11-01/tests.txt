@@ -1,53 +1,5 @@
-    Blocking waiting for file lock on build directory
-   Compiling serde_core v1.0.229
-   Compiling indexmap v2.14.2
-   Compiling winnow v1.0.4
-   Compiling siphasher v1.0.4
-   Compiling basic-toml v0.1.10
-   Compiling minimal-lexical v0.2.1
-   Compiling toml_writer v1.1.3+spec-1.1.0
-   Compiling glob v0.3.4
-   Compiling smawk v0.3.3
-   Compiling fs-err v3.3.2
-   Compiling scroll v0.12.0
-   Compiling toml_datetime v1.1.2+spec-1.1.0
-   Compiling serde_spanned v1.1.2
-   Compiling clap_lex v1.1.1
-   Compiling plain v0.2.3
-   Compiling textwrap v0.16.4
-   Compiling anstyle v1.0.14
-   Compiling strsim v0.11.1
-   Compiling clap_derive v4.6.7
-   Compiling nom v7.1.3
-   Compiling goblin v0.8.2
-   Compiling clap_builder v4.6.7
-   Compiling toml_parser v1.1.5+spec-1.1.0
-   Compiling uniffi_internal_macros v0.32.2
-   Compiling askama_parser v0.16.1
-   Compiling uniffi_pipeline v0.32.2
-   Compiling uniffi_meta v0.32.2
-   Compiling toml v1.1.8+spec-1.1.0
-   Compiling weedle2 v5.0.0
-   Compiling serde v1.0.229
-   Compiling serde_json v1.0.154
-   Compiling cargo-platform v0.3.3
-   Compiling semver v1.0.28
-   Compiling camino v1.2.6
-   Compiling clap v4.6.7
-   Compiling uniffi_macros v0.32.2
-   Compiling serde_urlencoded v0.7.1
-   Compiling cargo_metadata v0.23.1
-   Compiling reqwest v0.12.28
-   Compiling uniffi_udl v0.32.2
-   Compiling askama_derive v0.16.1
-   Compiling rustclipsync-core v0.3.0 (https://github.com/Infinifar/rustclipsync-core.git?rev=1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e#1a8ec6b9)
-   Compiling askama_macros v0.16.1
-   Compiling askama v0.16.1
-   Compiling uniffi_bindgen v0.32.2
-   Compiling uniffi v0.32.2
    Compiling rustclipsync-mobile-ffi v0.1.0 (/home/cassius/Projects/rustclipsync-mobile/crates/rustclipsync-mobile-ffi)
-   Compiling mobile-bindgen v0.1.0 (/home/cassius/Projects/rustclipsync-mobile/crates/mobile-bindgen)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 53.17s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.75s
      Running unittests src/main.rs (/tmp/rcs-background-model/debug/deps/mobile_bindgen-1af2a97a800cee1c)
 
 running 0 tests
@@ -58,22 +10,22 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
 running 18 tests
 test session::tests::disposable_constructor_rejects_every_non_loopback_root_destination ... ok
-test session::tests::executor_panic_terminates_session_and_reports_failed_shutdown ... ok
 test session::tests::clipboard_change_during_network_prevents_stale_receive ... ok
+test session::tests::executor_panic_terminates_session_and_reports_failed_shutdown ... ok
 test session::tests::close_is_nonblocking_rejects_queue_and_suppresses_late_clipboard_callbacks ... ok
-test session::tests::failed_os_write_is_never_acknowledged_as_applied ... ok
-test session::tests::retry_pending_preserves_the_existing_request_instead_of_recording_another_copy ... ok
-test session::tests::unmarked_text_is_not_heuristically_treated_as_sensitive ... ok
-test session::tests::background_write_binding_requires_opt_in_and_reads_no_platform_snapshot ... ok
 test session::tests::background_binding_stores_only_marked_inbox_without_platform_clipboard_calls ... ok
+test session::tests::background_write_binding_requires_opt_in_and_reads_no_platform_snapshot ... ok
+test session::tests::failed_os_write_is_never_acknowledged_as_applied ... ok
+test session::tests::directions_block_disallowed_transfers_and_never_retry_a_receive_only_upload ... ok
+test session::tests::retry_pending_preserves_the_existing_request_instead_of_recording_another_copy ... ok
+test session::tests::core_round_trip_uses_encrypted_durable_state_on_one_non_ui_thread ... ok
+test session::tests::unmarked_text_is_not_heuristically_treated_as_sensitive ... ok
+test session::tests::filter_sample_uses_core_semantics_and_device_uuid_survives_reopen ... ok
 test session::tests::storage_failure_terminates_and_corruption_never_resets_identity ... ok
 test session::tests::privileged_background_capture_does_not_reupload_unchanged_content_or_replace_retry_uuid ... ok
-test session::tests::directions_block_disallowed_transfers_and_never_retry_a_receive_only_upload ... ok
-test session::tests::core_round_trip_uses_encrypted_durable_state_on_one_non_ui_thread ... ok
-test session::tests::filter_sample_uses_core_semantics_and_device_uuid_survives_reopen ... ok
 test session::tests::configured_filter_survives_sensitive_policy_changes_and_rejects_invalid_rules ... ok
-test session::tests::sensitive_policy_distinguishes_skip_inbox_and_actual_clipboard_write ... ok
 test session::tests::background_sync_continues_owned_upload_and_obeys_all_directions_without_reading_clipboard ... ok
+test session::tests::sensitive_policy_distinguishes_skip_inbox_and_actual_clipboard_write ... ok
 test session::tests::unavailable_privileged_capture_preserves_receiving_and_sensitive_policy ... ok
 
 test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s

@@ -33,7 +33,7 @@ pub struct ClipboardText {
     pub text: String,
     /// True only for an explicit source mark or user choice.
     pub sensitive: bool,
-    /// Origin set when this application wrote a received message.
+    /// Origin set on received writes, or a host observation marker for a new local copy.
     pub origin: Option<String>,
 }
 

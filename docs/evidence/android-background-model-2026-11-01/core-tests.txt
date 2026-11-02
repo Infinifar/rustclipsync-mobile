@@ -1,0 +1,87 @@
+   Compiling rustclipsync-core v0.3.0 (https://github.com/Infinifar/rustclipsync-core.git?rev=1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e#1a8ec6b9)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.16s
+     Running unittests src/lib.rs (/tmp/rcs-background-model/debug/deps/rustclipsync_core-0a8272a4ed575f06)
+
+running 4 tests
+test state::tests::clear_and_ambiguous_apply_do_not_replay_old_values ... ok
+test state::tests::latest_and_uncertain_uploads_are_distinct ... ok
+test state::tests::encrypted_state_is_authenticated_and_compatible ... ok
+test client::tests::accepts_only_canonical_v4_ids_and_safe_urls ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/errors.rs (/tmp/rcs-background-model/debug/deps/errors-d3637d24bba140e9)
+
+running 3 tests
+test standard_error_conversion_preserves_remote_io_chain ... ok
+test clipboard_and_storage_errors_preserve_causes_without_displaying_private_details ... ok
+test json_and_http_causes_remain_accessible_without_displaying_input_or_urls ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/migration.rs (/tmp/rcs-background-model/debug/deps/migration-f5403083285cc2a7)
+
+running 1 test
+test reads_state_written_by_unmodified_omaclipsync_020 ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/session.rs (/tmp/rcs-background-model/debug/deps/session-d14c7c24352e0fe9)
+
+running 34 tests
+test background_inbox_aborts_when_lifecycle_changes_during_download ... ok
+test background_inbox_never_uses_clipboard_and_preserves_ordinary_receive ... ok
+test background_inbox_requires_opt_in_and_foreground_restore_check ... ok
+test cleared_pending_selection_does_not_upload_after_restart ... ok
+test construction_has_no_network_or_clipboard_effect_and_pairing_ignores_old_value ... ok
+test conflict_does_not_silently_rebase_or_replace_clipboard ... ok
+test ambiguous_write_is_skipped_durably_without_replay_in_same_session ... ok
+test corrupted_state_fails_closed_instead_of_registering_new_device ... ok
+test epoch_change_requires_repair ... ok
+test crash_during_apply_is_skipped_on_restart ... ok
+test persistence_failure_prevents_clipboard_side_effect ... ok
+test background_write_opt_in_never_reads_and_preserves_sensitive_policy ... ok
+test failed_write_recovery_save_reports_storage_and_preserves_crash_journal ... ok
+test failed_private_inbox_commit_does_not_ack_or_apply_and_can_recover ... ok
+test local_event_during_download_prevents_overwrite ... ok
+test persistence_failure_prevents_upload_side_effect ... ok
+test offline_queue_keeps_only_latest_copy ... ok
+test newer_copy_resolves_uncertain_commit_before_upload ... ok
+test received_message_is_not_reuploaded_or_replayed_after_clear_and_restart ... ok
+test regression_clipboard_failure_does_not_wedge_future_pulls ... ok
+test final_snapshot_failure_releases_journal_without_skipping_unwritten_message ... ok
+test regression_reopened_paired_session_checks_pending_before_flush ... ok
+test regression_new_filter_applies_to_pending_upload ... ok
+test regression_slow_pull_does_not_expire_echo_before_write ... ok
+test sensitive_content_is_filtered_in_both_directions_by_default ... ok
+test restored_stale_pending_does_not_block_direct_pull ... ok
+test restored_matching_pending_is_sent_without_explicit_check ... ok
+test private_sensitive_receive_is_durable_skipped_and_never_writes_clipboard ... ok
+test uncertain_upload_retries_same_id_without_second_revision ... ok
+test policy_change_resolves_uncertain_upload_without_resending_filtered_text ... ok
+test oversize_copy_reports_storage_failure_if_discard_cannot_be_persisted ... ok
+test oversize_text_never_enters_outbox ... ok
+test regression_oversize_new_copy_does_not_send_old_copy ... ok
+test oversize_copy_cancels_uncertain_upload_and_survives_restart ... ok
+
+test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/worker.rs (/tmp/rcs-background-model/debug/deps/worker-aeeda4518904ee5a)
+
+running 7 tests
+test worker_preserves_thread_and_unwind_auto_traits ... ok
+test dropping_worker_stops_terminal_notification_retry_with_full_queue ... ok
+test shutdown_and_join_wait_for_inflight_transport_to_return ... ok
+test join_reports_transport_panic_to_the_host ... ok
+test worker_retries_connected_when_initial_queue_was_full ... ok
+test terminal_error_delivers_disconnect_and_wakeup_before_exit ... ok
+test regression_worker_retries_disconnected_when_channel_was_full ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.00s
+
+   Doc-tests rustclipsync_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

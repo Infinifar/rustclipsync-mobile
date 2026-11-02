@@ -97,3 +97,7 @@ core 来源固定为 `1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e`，在 core 仓�
 `codex/mobile-background-inbox` 分支开发；未推送 core 的公共上游。mobile 包含该提交的完整
 校验快照，干净克隆通过 Cargo source replacement 构建，不需要相邻仓库或取得该 Git 提交。
 重新导出尚未公开的提交需使用包含该对象的 core 克隆；此步骤属于维护，不是构建前提。
+
+Android 对没有本应用写入 origin 的本地文本使用系统 ClipDescription.timestamp 观察标记，
+前台与 Shizuku 来源一致；同一快照不会重记，用户再次复制相同文本仍可成为新事件。
+此标记只用于平台事件观察，不改变 core 的消息 UUID 或协议。

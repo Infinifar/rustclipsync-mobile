@@ -713,6 +713,18 @@ fn privileged_background_capture_does_not_reupload_unchanged_content_or_replace_
             assert_eq!(data.attempts.len(), 2);
             assert_eq!(data.attempts[0], data.attempts[1]);
         }
+        // A genuine new OS copy has a fresh platform observation marker, even for identical text.
+        *platform.clipboard.lock().unwrap() = Some(ClipboardText {
+            text: "synthetic Shizuku copy".into(),
+            sensitive: false,
+            origin: Some("synthetic-local:2".into()),
+        });
+        for _ in 0..3 {
+            s.sync_background(crate::BackgroundClipboardSource::Privileged)
+                .await
+                .unwrap();
+        }
+        assert_eq!(remote.data.lock().unwrap().sends.len(), 2);
         // An actual successful incoming OS write is an observation too, even after echo timeout.
         remote.publish("synthetic received ordinary", false);
         assert_eq!(
@@ -727,7 +739,7 @@ fn privileged_background_capture_does_not_reupload_unchanged_content_or_replace_
                 .await
                 .unwrap();
         }
-        assert_eq!(remote.data.lock().unwrap().sends.len(), 1);
+        assert_eq!(remote.data.lock().unwrap().sends.len(), 2);
         s.shutdown().await.unwrap();
     });
 }

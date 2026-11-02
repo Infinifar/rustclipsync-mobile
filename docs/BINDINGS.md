@@ -143,3 +143,7 @@ Android 在配置成功后保存非敏感偏好，不改 RCS1。
 InvalidInput，保留原规则；敏感策略更新保留当前过滤器。过滤配置变化通过 core.record_clear
 撤销旧本地候选。`testFilter` 同步 API 必须在后台线程调用，限制样例 8192 字节，不记录样例。
 UUID 直接从 core.persisted.state.device_id 返回，不返回 token、密码或密钥。
+
+Android 对没有本应用写入 origin 的本地文本使用系统 ClipDescription.timestamp 观察标记，
+前台与 Shizuku 来源一致；同一快照不会重记，用户再次复制相同文本仍可成为新事件。
+此标记只用于平台事件观察，不改变 core 的消息 UUID 或协议。

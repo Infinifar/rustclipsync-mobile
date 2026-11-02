@@ -65,7 +65,7 @@ internal class AndroidPlatform(context: Context, private val state: SecureState)
             val value = clip.getItemAt(0).text?.toString() ?: return@call null
             if (value.toByteArray(Charsets.UTF_8).size > 10 * 1024 * 1024) throw AdapterException.Unavailable()
             val extras = clip.description.extras
-            ClipboardText(value, extras?.getBoolean(SENSITIVE, false) ?: false, extras?.getString(ORIGIN))
+            ClipboardText(value, extras?.getBoolean(SENSITIVE, false) ?: false, extras?.getString(ORIGIN) ?: "android-local:${clip.description.timestamp}")
         }
     }
     override fun clipboardWrite(value: ClipboardText) = gate.call {

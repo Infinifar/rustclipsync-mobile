@@ -348,10 +348,13 @@ Rust 原始记录见 [本轮证据目录](evidence/android-client-settings-2026-
 共享 sync_background 串行组合 core 既有操作，核心 27 个 vendor 文件校验未变。
 会话内观察记录防止轮询重复创建复制事件，并记录成功 OS 写入防止监听器迟到回传；
 网络 UUID、重试、取消、ack、敏感与过滤逻辑仍由 core 负责，协议及 RCS1 未变。
+Android 对本地复制使用系统时间戳观察标记，同样文本的真正再次复制仍可推送；成功 OS
+接收保留 core origin，因此不因晚到监听器或轮询反复回传。解绑后显示已授权待启用状态。
 
 已完成的本地检查：
 
 - fmt、Clippy --workspace --all-targets --all-features -D warnings、rustdoc。
+- 本轮另运行固定 core 的 49 项测试，全部通过。
 - Rust 全特性 18 项通过（默认 17 项）；覆盖三方向、已持有事务断网续传、特权读取失败
   不清除待发项、继续敏感三策略接收、仅接收不读，以及重复检查不重复上传/替换原 UUID。
 - 负向证据：新 API 缺失先编译失败；去重未实现时合成同一文本重复上传 3 次，断言失败。

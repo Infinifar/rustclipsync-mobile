@@ -44,7 +44,7 @@ internal class ShizukuClipboard(private val context: Context) {
             try { remote?.observe(callback); ready = true; status = UiMessage(R.string.shizuku_ready); wake?.invoke() }
             catch (_: Exception) { stop(); status = UiMessage(R.string.shizuku_failed) }
         }
-        override fun onServiceDisconnected(name: ComponentName?) { remote = null; binding = false; ready = false; status = UiMessage(R.string.shizuku_unavailable); wake?.invoke() }
+        override fun onServiceDisconnected(name: ComponentName?) { remote = null; binding = false; ready = false; status = idleStatus(); wake?.invoke() }
     }
     init {
         Shizuku.addBinderReceivedListenerSticky { main.post { refresh() } }
@@ -76,8 +76,9 @@ internal class ShizukuClipboard(private val context: Context) {
             catch (_: RuntimeException) { binding = false; status = UiMessage(R.string.shizuku_failed) }
         }
     }
+    private fun idleStatus() = UiMessage(if (authorized()) R.string.shizuku_authorized else R.string.shizuku_unavailable)
     private fun stop() {
-        remote = null; ready = false
+        remote = null; ready = false; status = idleStatus()
         if (binding) { binding = false; try { Shizuku.unbindUserService(args, connection, true) } catch (_: RuntimeException) { } }
     }
     fun snapshot(): ClipboardText? {

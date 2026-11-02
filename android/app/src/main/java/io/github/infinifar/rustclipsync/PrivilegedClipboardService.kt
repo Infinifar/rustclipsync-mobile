@@ -53,7 +53,7 @@ class PrivilegedClipboardService @Keep constructor(context: Context) : IPrivileg
         if (value.toByteArray(Charsets.UTF_8).size > 256 * 1024) throw RemoteException("Clipboard exceeds IPC limit")
         result.putString("text", value)
         result.putBoolean("sensitive", clip!!.description.extras?.getBoolean("android.content.extra.IS_SENSITIVE", false) ?: false)
-        result.putString("origin", clip.description.extras?.getString("io.github.infinifar.rustclipsync.ORIGIN")?.take(256))
+        result.putString("origin", clip.description.extras?.getString("io.github.infinifar.rustclipsync.ORIGIN")?.take(256) ?: "android-local:${clip.description.timestamp}")
         return result
     }
 
