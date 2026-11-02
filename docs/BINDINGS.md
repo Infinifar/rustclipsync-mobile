@@ -1,13 +1,15 @@
 # 共享绑定与会话契约
 
 实现：UniFFI **0.32.2** proc macros，同一个 `rustclipsync-mobile-ffi` crate 生成 Kotlin / Swift。
-core 固定到 `1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e`，版本 0.3.0；来源写在 workspace
+core 固定到正式提交 `6a1ccd37b8ca3e515610d48bfa47f20b7c9b0ca4`，版本 0.4.0；来源写在 workspace
 Cargo.toml 和 Cargo.lock。为避免 CI 到 GitHub 的 Git 连接反复超时，.cargo/config.toml 将该
 来源替换为同提交的完整 vendor 快照，保留许可证、Git tree 与逐文件 SHA-256 清单。
 快照按固定 Git 对象导出，不读取相邻 checkout 作为构建依赖，不直接修改 vendor。
-新增后台接收先在 core 的 codex/mobile-background-inbox 分支实现，再导出完整快照；
-该 core 分支尚未推送公共远端，干净构建由完整 vendor 保证。
-core 0.3.0 使用 `/api/...`，无 `/v1` 回退；RCS1 持久化与 HTTP 协议格式保持不变，facade 新增后台接收方法。
+后台接收、方向控制与恢复能力均来自已发布的 core，不在 facade 或平台层重写。
+core 0.4.0 使用 `/api/...` 并要求协议 3／服务端 3.0.0，无 `/v1` 或旧协议回退。
+本次 Rust API 与 wire 协议有不兼容变化，设备身份及 RCS1 加密状态继续保留。
+facade 在数据操作前设置方向并等待 core 的 ACK；`updateDirection` 同时修改服务端方向与本地限制。
+`ProtocolUnsupported` 通过 UniFFI 与平台安全文案明确报告版本不兼容；会话失效与网络错误分别映射。
 
 ## 评估结论
 
@@ -77,7 +79,8 @@ requestClose 是幂等的非阻塞请求：拒绝新命令、递增 generation�
 shutdown 是可重复、可并发 await 的共享完成 future，在线程释放 core 与平台适配器后完成；
 不在调用线程执行 Thread.join / Worker.join。Drop 只作为补充发出关闭请求。
 
-每次 HTTP 请求由 core 设有限超时（普通请求 10 秒；changes 长轮询 30 秒，首版不使用）。
+每次 HTTP 请求由 core 设有限超时（普通请求 10 秒；changes 长轮询 30 秒，当前应用不使用）。
+方向握手包含有截止时间的 WSS 操作及 HTTP 降级；失败重试同一会话／版本，不由 facade 另起协议会话。
 一个命令可能包含多个请求，不能把单请求超时描述成整个 shutdown 的固定时限。
 平台 SDK 卡住或进程被系统终止不属于 Rust 能保证正常退出的情形。
 
@@ -115,8 +118,9 @@ CI 检查普通包两个 Rust ABI 都没有该测试构造符号，测试包两�
 
 Android 服务测试通过真实 Kotlin → Rust → core HTTPS 调用，剪贴板是内存 Platform，
 存储使用独立 noBackup 子目录内的原始 RCS1 与公开的合成 key，不调用生产 Keystore。
-在 Disabled 策略下，本地快照仍有敏感标记时，core 会报告 Clipboard 错误；测试先验证
-拒绝行为，再模拟普通本地复制，确认未标记六位文本按普通内容接收。
+在 Disabled 策略下，core 将被禁止的本地敏感快照视为不可用正文，普通接收仍可继续；
+新的远端标记消息继续过滤。测试保留本地敏感标记，确认未标记六位文本仍按普通内容接收，
+不会为了继续同步而先要求用户清空剪贴板，也不使用密码格式猜测。
 
 
 ## 通知卡片可见性与接收解耦

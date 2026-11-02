@@ -31,7 +31,7 @@ core 固定 6a1ccd37b8ca3e515610d48bfa47f20b7c9b0ca4，通过完整未改动 ven
 
 ## 本轮验证与剩余工作
 
-本轮已运行 facade 22 项全特性 Rust 合成测试、fmt、Clippy all-targets/all-features -D warnings、
+本轮已运行 facade 23 项全特性 Rust 合成测试、fmt、Clippy all-targets/all-features -D warnings、
 rustdoc 和隔离 TLS 路由检查；Kotlin/Swift/Python UniFFI 绑定重新生成。详见 VALIDATION.md
 及本轮 evidence。新 API 缺失与重复上传的负向测试先失败，修复后通过。
 不把 mock / host ABI 当作真实系统剪贴板、Shizuku、Keystore 或设备行为验证。

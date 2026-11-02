@@ -76,7 +76,7 @@ SDK API/provider 固定 13.1.5，AIDL 通过 Gradle 生成。授权、故障降�
 开发分支为 `codex/mobile-native-foundation`，入口为
 [Actions](https://github.com/Infinifar/rustclipsync-mobile/actions)。推送代码或发起 PR 自动执行：
 
-- `Rust facade`：vendor 校验、fmt、Clippy、22 项 synthetic 测试、rustdoc、路由与 host FFI smoke、双端绑定。
+- `Rust facade`：vendor 校验、fmt、Clippy、23 项 synthetic 测试、rustdoc、路由与 host FFI smoke、双端绑定。
 - `Android APK`：Ubuntu 24.04、JDK 17、Rust 1.99.1、SDK 36 / NDK 28.2，两个 ABI、应用与测试 APK、lint、APK / ELF 静态对齐。
 
 Actions 固定官方 action 提交，复用 Cargo / Gradle 缓存；同分支的新提交取消过时任务。

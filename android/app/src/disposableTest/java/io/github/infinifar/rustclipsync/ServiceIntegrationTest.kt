@@ -354,11 +354,8 @@ class ServiceIntegrationTest {
             receiver.updatePolicy(SensitivePolicy.DISABLED)
             a.selection = copy("123456")
             assertEquals(SyncOutcome.UPLOADED, sender.sendClipboard()); sender.retryPending()
-            try { receiver.receive(); fail("disabled policy read a marked local selection") }
-            catch (_: MobileException.Clipboard) { }
-            // A fresh ordinary local selection is readable under Disabled; no format heuristic is used.
-            b.selection = copy("synthetic ordinary local selection")
-            receiver.clipboardChanged()
+            // A still-marked local selection must not block an ordinary receive
+            // after disabling sensitive sync; the digits are not a secret heuristic.
             assertEquals(SyncOutcome.DOWNLOADED, receiver.receive()); receiver.retryPending()
             assertEquals("123456", b.selection?.text)
             assertFalse(b.selection?.sensitive ?: true)

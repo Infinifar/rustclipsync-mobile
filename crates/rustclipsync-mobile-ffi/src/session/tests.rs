@@ -786,6 +786,46 @@ fn protocol3_errors_distinguish_an_incompatible_peer_from_retryable_network_erro
 }
 
 #[test]
+fn protocol3_disabling_sensitive_content_keeps_ordinary_receives_working() {
+    for direction in [crate::SyncDirection::Both, crate::SyncDirection::Download] {
+        block_on(async {
+            let platform = Arc::new(FakePlatform::default());
+            let remote = Remote::default();
+            let s = start(&platform, &remote, SensitivePolicy::AutoWrite);
+            s.update_direction(direction).await.unwrap();
+            s.check().await.unwrap();
+            remote.publish("synthetic marked selection", true);
+            assert_eq!(s.receive().await.unwrap(), SyncOutcome::Downloaded);
+            assert!(
+                platform
+                    .clipboard
+                    .lock()
+                    .unwrap()
+                    .as_ref()
+                    .unwrap()
+                    .sensitive
+            );
+            s.update_policy(SensitivePolicy::Disabled).await.unwrap();
+            remote.publish("123456", false);
+            assert_eq!(
+                s.receive().await.unwrap(),
+                SyncOutcome::Downloaded,
+                "a marked local selection must not block an ordinary receive after disabling sensitive sync"
+            );
+            assert_eq!(
+                platform.clipboard.lock().unwrap().as_ref().unwrap().text,
+                "123456"
+            );
+            remote.publish("synthetic blocked remote", true);
+            assert_eq!(s.receive().await.unwrap(), SyncOutcome::Filtered);
+            assert_eq!(platform.writes.load(Ordering::SeqCst), 2);
+            assert!(remote.data.lock().unwrap().sends.is_empty());
+            s.shutdown().await.unwrap();
+        });
+    }
+}
+
+#[test]
 fn background_sync_continues_owned_upload_and_obeys_all_directions_without_reading_clipboard() {
     block_on(async {
         for direction in [

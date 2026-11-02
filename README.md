@@ -7,7 +7,7 @@ appending `/api` or `/v1`.
 The Apple client targets iPhone and iPad only. A macOS client belongs in the desktop repository.
 
 The shared executor, encrypted state integration, binding generation and host smoke tests
-are implemented. The current facade passes 22 synthetic Rust tests, strict Clippy, rustdoc and 22 real loopback HTTPS route checks. Android debug/test APK compilation, lint and static 16 KiB alignment
+are implemented. The current facade passes 23 synthetic Rust tests, strict Clippy, rustdoc and 22 real loopback HTTPS route checks. Android debug/test APK compilation, lint and static 16 KiB alignment
 checks passed for earlier builds in remote CI; the current protocol-3 build is verified separately. Ten synthetic tests and an empty Compose screen launch
 pass on isolated Android 12 and Android 15 emulators. Real-server integration also covers send/receive,
 sensitive policies, offline recovery and process/device/server restarts with a synthetic
