@@ -368,3 +368,12 @@ JVM 测试与 lint 统一提交 GitHub 构建，最终链接/状态随后记录�
 没有本地 SDK 安装、模拟器、截图、真实剪贴板、Shizuku 设备运行或生产账户测试。
 按用户要求，可视化和 moto razr 60 u / Android 16 / MyUI 验收交用户，清单见 ANDROID-REVIEW.md。
 iOS 没有 macOS/Xcode 条件，未声称平台编译或真机通过。
+
+
+最终代码 `7b9b460670f58fa246f23dc9348be2f62a4bdff0`（Android 0.1.4 / versionCode 5）：
+[Rust CI 41374038027 已通过](https://github.com/Infinifar/rustclipsync-mobile/actions/runs/41374038027)；
+[Android APK / JVM / lint / 隔离测试源码编译 41374038090](https://github.com/Infinifar/rustclipsync-mobile/actions/runs/41374038090)
+在本次最终核对时仍构建中，尚不记为 Android 平台检查通过。完成后在同页 artifacts 下载。
+没有开启 watch 或持续轮询；前一个 93bb23a 的构建被最终代码替代，不能作为本轮产物。
+临时 Rust target、host 绑定和参考源码已清理，路径清单见本轮 evidence/cleanup.json。
+GitHub/GitLab 代码镜像均已推送；不修改远端共享 Runner、缓存或代理。

@@ -1,0 +1,15 @@
+{
+  "source": "7b9b460670f58fa246f23dc9348be2f62a4bdff0",
+  "rust": {
+    "run": 41374038027,
+    "conclusion": "success",
+    "url": "https://github.com/Infinifar/rustclipsync-mobile/actions/runs/41374038027"
+  },
+  "android": {
+    "run": 41374038090,
+    "status": "in_progress",
+    "conclusion": null,
+    "url": "https://github.com/Infinifar/rustclipsync-mobile/actions/runs/41374038090"
+  },
+  "scope": "One final status check; no watch or continuous polling. Android compilation is not yet claimed. No device or iOS validation."
+}

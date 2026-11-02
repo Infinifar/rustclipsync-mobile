@@ -36,7 +36,8 @@ rustdoc 和隔离 TLS 路由检查；Kotlin/Swift/Python UniFFI 绑定重新生�
 及本轮 evidence。新 API 缺失与重复上传的负向测试先失败，修复后通过。
 不把 mock / host ABI 当作真实系统剪贴板、Shizuku、Keystore 或设备行为验证。
 
-本轮 Android 编译/lint/APK 由 GitHub 执行，最终 run 状态以 VALIDATION 记录为准。
+最终实现 7b9b460。Rust CI 41374038027 成功；Android CI 41374038090 在最终核对时仍构建中。
+不持续监控，尚不声称 Android 平台编译通过，后续结果以 VALIDATION 记录/该 run 为准。
 不要用 0.1.3 的成功代替 0.1.4 平台编译；此前 0.1.3 的 Android run 41341560080 和
 Rust run 41341560187 已确认成功。历史 API 31/35 隔离模拟器结果只适用于对应旧构建。
 
