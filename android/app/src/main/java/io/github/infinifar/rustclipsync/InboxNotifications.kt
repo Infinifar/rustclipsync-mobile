@@ -160,11 +160,11 @@ internal class InboxNotifications(
                 && manager.getNotificationChannel(INBOX_CHANNEL)?.importance != NotificationManager.IMPORTANCE_NONE
         }
 
-        fun serviceNotification(context: Context, direction: SyncDirection): Notification {
+        fun serviceNotification(context: Context, direction: SyncDirection, paused: Boolean = false): Notification {
             channels(context)
             return Notification.Builder(context, SERVICE_CHANNEL)
                 .setSmallIcon(R.drawable.ic_stat_clipboard).setContentTitle(context.translated(R.string.notification_listener_title))
-                .setContentText(context.translated(R.string.notification_background_direction, context.translated(direction.title)))
+                .setContentText(if (paused) context.translated(R.string.sync_paused) else context.translated(R.string.notification_background_direction, context.translated(direction.title)))
                 .setOngoing(true).setOnlyAlertOnce(true).setLocalOnly(true)
                 .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
                 .setContentIntent(PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), FLAGS))

@@ -108,4 +108,26 @@ class ConnectionRestoreTest {
         }
     }
 
+    @Test fun pauseSurvivesReopeningWithoutDiscardingCredentials() = runBlocking {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val prefs = context.getSharedPreferences("sync-settings", 0)
+        val had = prefs.contains("paused")
+        val previous = prefs.getBoolean("paused", false)
+        try {
+            val first = controller(Store())
+            ready(first)
+            withContext(Dispatchers.Main) { first.setPaused(true); assertTrue(first.paused) }
+            val reopened = controller(Store())
+            ready(reopened)
+            withContext(Dispatchers.Main) {
+                assertTrue(reopened.paused)
+                assertEquals("synthetic-password", reopened.connectionPassword)
+                reopened.setPaused(false)
+                assertFalse(reopened.paused)
+            }
+        } finally {
+            prefs.edit().apply { if (had) putBoolean("paused", previous) else remove("paused") }.commit()
+        }
+    }
+
 }

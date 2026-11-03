@@ -43,7 +43,7 @@ scripts/check-android.sh
 并用 zipalign 检查 APK 16 KiB 对齐。APK 位于
 `android/app/build/outputs/apk/debug/app-debug.apk`，使用开发调试签名，不用于发布。
 脚本同时检查 JNA 和 Rust 所有打包 so 的 ELF 对齐；这些静态检查仍不足以证明整个 APK
-在 16 KiB 真机工作。正式发布签名与商店流程待完成；可选后台运行受系统时限约束。
+在 16 KiB 真机工作。正式 APK 发布走独立签名工作流，见 [SIGNING.md](../SIGNING.md)；未配置商店发布；可选后台运行受系统时限约束。
 
 有隔离模拟器时运行：
 
@@ -67,7 +67,7 @@ BindingSmokeTest 只用内存 Platform，通过 Kotlin → Rust → Kotlin 验�
 后台运行默认关闭，此时离开前台立即请求关闭，回到前台需重新连接。
 开启后按同步方向继续收发，普通接收写入剪贴板；后台捕获新复制需要显式 Shizuku 授权。
 SDK API/provider 固定 13.1.5，AIDL 通过 Gradle 生成。授权、故障降级和时限见 BACKGROUND.md。
-首版不保存账户密码。
+Android 会在连接成功后以独立 Keystore 密钥加密保存凭据；不写入普通设置。
 更换服务器不会静默清空旧身份，现有状态与服务器不匹配会报错；多账户/显式重新配对 UI 待做。
 
 ## GitHub Actions 开发构建
@@ -76,7 +76,7 @@ SDK API/provider 固定 13.1.5，AIDL 通过 Gradle 生成。授权、故障降�
 开发分支为 `codex/mobile-native-foundation`，入口为
 [Actions](https://github.com/Infinifar/rustclipsync-mobile/actions)。推送代码或发起 PR 自动执行：
 
-- `Rust facade`：vendor 校验、fmt、Clippy、23 项 synthetic 测试、rustdoc、路由与 host FFI smoke、双端绑定。
+- `Rust facade`：vendor 校验、fmt、Clippy、27 项 synthetic 测试、rustdoc、路由与 host FFI smoke、双端绑定。
 - `Android APK`：Ubuntu 24.04、JDK 17、Rust 1.99.1、SDK 36 / NDK 28.2，两个 ABI、应用与测试 APK、lint、APK / ELF 静态对齐。
 
 Actions 固定官方 action 提交，复用 Cargo / Gradle 缓存；同分支的新提交取消过时任务。
@@ -245,3 +245,10 @@ SDK UiAutomator 当前 SystemUI XML，并保存层级以复查实际按钮位置
 Rocky 部分任务容器继承的 Tailscale DNS 不可达时，GitLab pre_get_sources_script
 仅在该临时 Docker 作业内回退到 223.5.5.5 / 1.1.1.1，解决源码拉取前的解析失败；
 不改 Runner 配置、宿主 DNS 或 v2raya。依据为 GitLab 官方 hooks:pre_get_sources_script。
+
+## Android 正式发布 0.1.5
+
+主分支为 main。运行 Signed Android release；发布开关开启时会在全部检查及
+签名/证书、非调试标记、两个 ABI 和 16 KiB 静态对齐校验后，创建草稿 Release，
+下载并校验附件，最后正式发布。四个签名 Secrets 与长期密钥说明见 SIGNING.md。
+APK versionName 0.1.5 / versionCode 6，标签 v0.1.5。工作流不签名或发布 iOS。

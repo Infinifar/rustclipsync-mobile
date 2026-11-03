@@ -1078,3 +1078,108 @@ fn stale_upload_recovery_unblocks_receives_without_reuploading_the_old_clipboard
         });
     }
 }
+
+#[test]
+fn pause_blocks_all_transfers_and_preserves_identity_inbox_and_direction() {
+    block_on(async {
+        let p = Arc::new(FakePlatform::default());
+        let r = Remote::default();
+        let s = start(&p, &r, SensitivePolicy::EncryptedInbox);
+        s.check().await.unwrap();
+        r.publish("synthetic private inbox", true);
+        assert_eq!(s.receive().await.unwrap(), SyncOutcome::Stored);
+        let before = s.status().await.unwrap();
+        s.set_paused(true).await.unwrap();
+        assert_eq!(
+            *r.direction.lock().unwrap(),
+            Some((CoreDirection::Bidirectional, true))
+        );
+        let reads = p.reads.load(Ordering::SeqCst);
+        p.forbid_clipboard.store(true, Ordering::SeqCst);
+        r.publish("synthetic paused incoming", false);
+        assert_eq!(s.send_clipboard().await.unwrap(), SyncOutcome::Paused);
+        assert_eq!(s.receive().await.unwrap(), SyncOutcome::Paused);
+        assert_eq!(s.receive_inbox().await.unwrap(), SyncOutcome::Paused);
+        assert_eq!(
+            s.receive_background(true).await.unwrap(),
+            SyncOutcome::Paused
+        );
+        assert_eq!(s.retry_pending().await.unwrap(), SyncOutcome::Paused);
+        let tick = s
+            .sync_background(crate::BackgroundClipboardSource::Privileged)
+            .await
+            .unwrap();
+        assert_eq!(tick.sent, SyncOutcome::Paused);
+        assert_eq!(tick.received, SyncOutcome::Paused);
+        assert_eq!(tick.capture, crate::BackgroundCapture::NotRequested);
+        s.check().await.unwrap();
+        s.update_direction(crate::SyncDirection::Download)
+            .await
+            .unwrap();
+        assert_eq!(
+            *r.direction.lock().unwrap(),
+            Some((CoreDirection::ReceiveOnly, true))
+        );
+        let after = s.status().await.unwrap();
+        assert_eq!(after.device_id, before.device_id);
+        assert_eq!(after.inbox.unwrap().id, before.inbox.unwrap().id);
+        assert_eq!(after.cursor, before.cursor);
+        assert_eq!(p.reads.load(Ordering::SeqCst), reads);
+        assert_eq!(p.writes.load(Ordering::SeqCst), 0);
+        assert!(r.data.lock().unwrap().sends.is_empty());
+        p.forbid_clipboard.store(false, Ordering::SeqCst);
+        s.set_paused(false).await.unwrap();
+        assert_eq!(
+            *r.direction.lock().unwrap(),
+            Some((CoreDirection::ReceiveOnly, false))
+        );
+        assert_eq!(s.receive().await.unwrap(), SyncOutcome::Downloaded);
+        s.shutdown().await.unwrap();
+    });
+}
+
+#[test]
+fn failed_pause_and_resume_reports_never_reenable_clipboard_access() {
+    block_on(async {
+        let p = Arc::new(FakePlatform::default());
+        let r = Remote::default();
+        let s = start(&p, &r, SensitivePolicy::Disabled);
+        s.check().await.unwrap();
+        r.fail_direction.store(true, Ordering::SeqCst);
+        assert!(s.set_paused(true).await.is_err());
+        p.forbid_clipboard.store(true, Ordering::SeqCst);
+        assert_eq!(s.send_clipboard().await.unwrap(), SyncOutcome::Paused);
+        assert!(s.set_paused(false).await.is_err());
+        assert_eq!(s.receive().await.unwrap(), SyncOutcome::Paused);
+        r.fail_direction.store(false, Ordering::SeqCst);
+        s.set_paused(false).await.unwrap();
+        p.forbid_clipboard.store(false, Ordering::SeqCst);
+        r.publish("synthetic after confirmed resume", false);
+        assert_eq!(s.receive().await.unwrap(), SyncOutcome::Downloaded);
+        s.shutdown().await.unwrap();
+    });
+}
+
+#[test]
+fn pausing_invalidates_an_inflight_receive_before_any_clipboard_write() {
+    block_on(async {
+        let p = Arc::new(FakePlatform::default());
+        let r = Remote::default();
+        let s = start(&p, &r, SensitivePolicy::AutoWrite);
+        s.check().await.unwrap();
+        r.publish("synthetic in-flight receive", false);
+        let (entered, release) = r.block_next_state();
+        let mut receive = Box::pin(s.receive());
+        assert!(poll!(&mut receive).is_pending());
+        entered
+            .recv_timeout(std::time::Duration::from_secs(5))
+            .unwrap();
+        let mut pause = Box::pin(s.set_paused(true));
+        assert!(poll!(&mut pause).is_pending());
+        release.send(()).unwrap();
+        assert_eq!(receive.await.unwrap(), SyncOutcome::Skipped);
+        pause.await.unwrap();
+        assert_eq!(p.writes.load(Ordering::SeqCst), 0);
+        s.shutdown().await.unwrap();
+    });
+}

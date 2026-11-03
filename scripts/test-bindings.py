@@ -8,7 +8,7 @@ import unittest
 import weakref
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "build" / "python"))
-from rustclipsync_mobile_ffi import AdapterError, MobileConfig, MobileError, MobileSession, Platform, SensitivePolicy
+from rustclipsync_mobile_ffi import SyncOutcome, AdapterError, MobileConfig, MobileError, MobileSession, Platform, SensitivePolicy
 
 
 class MemoryPlatform(Platform):
@@ -76,6 +76,17 @@ class BindingSmokeTests(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(MobileError.Storage) as caught:
                 await session.status()
             self.assertNotIn("synthetic-only diagnostic", str(caught.exception))
+        finally:
+            await session.shutdown()
+
+    async def test_pause_crosses_ffi_without_network_or_clipboard_access(self):
+        session = MobileSession(config(), MemoryPlatform())
+        try:
+            await session.set_paused(True)
+            await session.check()
+            self.assertEqual(await session.send_clipboard(), SyncOutcome.PAUSED)
+            self.assertEqual(await session.receive(), SyncOutcome.PAUSED)
+            self.assertFalse((await session.status()).paired)
         finally:
             await session.shutdown()
 

@@ -155,3 +155,13 @@ UUID 直接从 core.persisted.state.device_id 返回，不返回 token、密码�
 Android 对没有本应用写入 origin 的本地文本使用系统 ClipDescription.timestamp 观察标记，
 前台与 Shizuku 来源一致；同一快照不会重记，用户再次复制相同文本仍可成为新事件。
 此标记只用于平台事件观察，不改变 core 的消息 UUID 或协议。
+
+## 暂停接口
+
+MobileSession.set_paused(bool) 是新增的 UniFFI 方法，原有 DTO 和方向接口不变。
+暂停先使在途 clipboard generation 失效，执行线程阻止发送、接收和重试、背景捕获；
+core 上报现有方向及 paused，清理本地候选，保留配对和加密收件箱。方向变更不会解除暂停。
+暂停上报失败时本地仍阻断，恢复须确认成功后才能放行；暂停时的 check 不读取剪贴板。
+Android 在 sync-settings 保存暂停选择，并在 native 会话访问数据前恢复；平台写入时
+另有 pause guard，显式的现有收件项复制使用 ID/epoch/focus 授权，不作为自动接收。
+iOS 可调用共享 API，本次不增加 iOS UI 或发布 iOS 构建。

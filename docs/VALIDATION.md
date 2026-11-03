@@ -433,3 +433,25 @@ GitHub/GitLab 代码镜像均已推送；不修改远端共享 Runner、缓存�
 all-targets/all-features -D warnings 和 rustdoc 通过；191 个翻译键检查通过。
 13 项 JVM 测试使用现有缓存工具执行，不安装 SDK/Gradle。Android APK、lint 和
 instrumentation 编译由新 Actions 验证；尚未在 moto/MyUI 实机验证。
+
+## 2026-11-03：独立 App 暂停及 0.1.5 正式发布
+
+用户确认 fe6c031 已实机验证，授权独立 App 增加暂停、合并 main 并发布；小企鹅
+合并 master、沿用原签名发布 0.1.5。本轮新增暂停/恢复 UI，偏好持久化，方向与暂停
+通过现有 core 0.4.0 协议上报；原方向 API/DTO 不变，新增 UniFFI set_paused 方法。
+平台额外撤销读/自动写权限，暂停上报失败也保持本地阻断，恢复确认后才放行。
+既有收件箱可按当前 ID/epoch/focus 显式复制；暂停不自动清空收件箱或设备身份。
+
+27 项 Rust 测试通过，包含各收发入口、后台捕获、方向切换保持暂停、失败上报不放行、
+在途接收失效、保留身份/收件箱及确认后恢复；移除 pause admission 的负向控制按预期失败。
+完整 check.sh 通过：fmt、workspace Clippy all-targets/all-features -D warnings、
+31 个 vendor 来源校验、196 个翻译键、27 Rust、22 HTTPS fixture、rustdoc、
+Kotlin/Swift 绑定生成与 5 项 host FFI（含暂停不触网/不碰剪贴板）。
+Android 新增暂停重建持久化 instrumentation，只交 CI 编译；本轮未启动模拟器或
+读取真实剪贴板/账户，不以 host 测试宣称手机暂停按钮已通过实机验收。
+
+独立 Android 正式密钥用现有 JDK keytool 生成 RSA-3072 PKCS12，四项 Actions
+Secrets 已设置。私钥/密码只在仓库外私有目录和 Secrets，版本库只提交公钥证书/摘要。
+新签名工作流仅允许 main，完整检查后构建非调试 release、核对证书/包名/版本及两 ABI
+16 KiB 静态对齐；先建草稿并回下载校验附件，再正式发布。此前 debug 签名不能直接
+覆盖，新正式签名将长期复用；不自动卸载设备或删除数据。实际发布状态以 Actions 为准。

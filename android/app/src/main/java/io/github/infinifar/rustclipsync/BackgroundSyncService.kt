@@ -52,7 +52,7 @@ class BackgroundSyncService : Service() {
         when (intent?.action) {
             InboxNotifications.START -> {
                 try {
-                    startForeground(InboxNotifications.SERVICE_ID, InboxNotifications.serviceNotification(this, session.direction), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+                    startForeground(InboxNotifications.SERVICE_ID, InboxNotifications.serviceNotification(this, session.direction, session.paused), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
                 } catch (_: RuntimeException) { session.serviceStopped(); stopSelf(); return START_NOT_STICKY }
                 if (!session.serviceStarted()) { stopSelf(); return START_NOT_STICKY }
                 session.backgroundWake = { wake.trySend(Unit); Unit }

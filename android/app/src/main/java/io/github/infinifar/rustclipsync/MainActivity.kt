@@ -134,14 +134,22 @@ private fun SyncScreen(session: SessionController, theme: ThemeMode, changeTheme
                             } else {
                                 Text(session.connectionServer.ifBlank { context.translated(R.string.current_server) }, style = MaterialTheme.typography.bodyLarge)
                                 Note(context.translated(R.string.sensitive_policy_prefix) + context.translated(policyTitle(session.policySelection)))
-                                Button(onClick = session::send, enabled = !session.busy && session.direction.sends, modifier = Modifier.fillMaxWidth()) { Text(context.translated(R.string.send_clipboard)) }
-                                OutlinedButton(onClick = session::receive, enabled = !session.busy && session.direction.receives, modifier = Modifier.fillMaxWidth()) { Text(context.translated(R.string.receive_latest)) }
+                                Button(onClick = session::send, enabled = !session.paused && !session.busy && session.direction.sends, modifier = Modifier.fillMaxWidth()) { Text(context.translated(R.string.send_clipboard)) }
+                                OutlinedButton(onClick = session::receive, enabled = !session.paused && !session.busy && session.direction.receives, modifier = Modifier.fillMaxWidth()) { Text(context.translated(R.string.receive_latest)) }
                                 if (session.status?.hasPending == true) {
-                                    OutlinedButton(onClick = session::retry, enabled = !session.busy, modifier = Modifier.fillMaxWidth()) { Text(if (session.direction.sends) context.translated(R.string.retry_pending) else context.translated(R.string.cancel_old_upload)) }
+                                    OutlinedButton(onClick = session::retry, enabled = !session.paused && !session.busy, modifier = Modifier.fillMaxWidth()) { Text(if (session.direction.sends) context.translated(R.string.retry_pending) else context.translated(R.string.cancel_old_upload)) }
                                 }
                                 TextButton(onClick = session::close) { Text(context.translated(R.string.close_session)) }
                             }
                             session.credentialMessage?.let { Note(it.resolve(context)) }
+                        }
+                        if (session.connected || session.paused) {
+                            OutlinedButton(onClick = { session.setPaused(!session.paused) },
+                                enabled = !session.pauseUpdating && !session.credentialsBusy && (session.connected || !session.busy),
+                                modifier = Modifier.fillMaxWidth()) {
+                                Text(context.translated(if (session.paused) R.string.resume_sync else R.string.pause_sync))
+                            }
+                            if (session.paused) Note(context.translated(R.string.pause_note))
                         }
                         Panel(context.translated(R.string.sync_status)) {
                             if (session.busy) LinearProgressIndicator(Modifier.fillMaxWidth())

@@ -191,4 +191,9 @@
     <string name="shizuku_requesting">Waiting for the Shizuku authorization result</string>
     <string name="shizuku_source_idle">Clipboard source idle; starts only while background operation includes sending and the app is backgrounded.</string>
     <string name="shizuku_source_connecting">Access granted; connecting the background clipboard source…</string>
+    <string name="pause_sync">Pause sync</string>
+    <string name="resume_sync">Resume sync</string>
+    <string name="sync_paused">Sync paused</string>
+    <string name="sync_resumed">Sync resumed</string>
+    <string name="pause_note">Sending and receiving are paused. Direction, pairing and the encrypted inbox are retained. The pause persists after reopening; select Resume sync to continue.</string>
 </resources>

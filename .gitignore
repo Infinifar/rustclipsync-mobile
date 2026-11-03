@@ -36,3 +36,5 @@ xcuserdata/
 /ios/Generated/
 /ios/RustClipSync.xcodeproj/
 /.ci-tools/
+
+/release-output/

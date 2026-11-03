@@ -57,6 +57,8 @@ internal class SessionController(
     var backgroundEnabled by mutableStateOf(preferences.getBoolean("enabled", false)); private set
     var backgroundRunning by mutableStateOf(false); private set
     var busy by mutableStateOf(false); private set
+    var paused by mutableStateOf(syncPreferences.getBoolean("paused", false)); private set
+    var pauseUpdating by mutableStateOf(false); private set
     var connected by mutableStateOf(false); private set
     // Application-owned memory survives Activity/locale recreation; never use rememberSaveable for secrets.
     var connectionServer by mutableStateOf("")
@@ -114,6 +116,44 @@ internal class SessionController(
     val message: String get() = statusText.resolve(application)
     private var statusText by mutableStateOf(UiMessage(R.string.status_idle)); private set
 
+    fun setPaused(value: Boolean) {
+        if (pauseUpdating || (!connected && busy)) return
+        fun save(selected: Boolean) {
+            paused = selected
+            syncPreferences.edit().putBoolean("paused", selected).apply()
+            native?.clipboardChanged()
+            updateWriteAccess()
+            syncNotification()
+            if (backgroundRunning) {
+                try { application.startService(Intent(application, BackgroundSyncService::class.java).setAction(InboxNotifications.START)) }
+                catch (_: RuntimeException) { /* Pausing still revokes local access. */ }
+            }
+        }
+        if (value) save(true)
+        val session = native
+        if (!connected || session == null) {
+            save(value)
+            statusText = UiMessage(if (value) R.string.sync_paused else R.string.sync_resumed)
+            return
+        }
+        val version = epoch
+        pauseUpdating = true
+        scope.launch {
+            try {
+                session.setPaused(value)
+                if (version == epoch) {
+                    save(value)
+                    status = session.status()
+                    statusText = UiMessage(if (value) R.string.sync_paused else R.string.sync_resumed)
+                    backgroundWake?.invoke()
+                }
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                if (version == epoch) statusText = safeError(error)
+            } finally { pauseUpdating = false }
+        }
+    }
+
     init {
         scope.launch {
             try {
@@ -161,7 +201,9 @@ internal class SessionController(
                 val session = try { open(MobileConfig(server, username, password, key, policy), adapter) }
                     finally { key.fill(0) }
                 platform = adapter; native = session
+                adapter.syncPaused(paused)
                 adapter.focus(focused); adapter.observe(session)
+                if (paused) session.setPaused(true)
                 session.updateDirection(io.github.infinifar.rustclipsync.bindings.SyncDirection.valueOf(direction.name))
                 session.updateFilter(filterConfig())
                 session.check()
@@ -229,9 +271,10 @@ internal class SessionController(
     }
 
     private fun updateWriteAccess() {
-        platform?.backgroundRead(backgroundEnabled && backgroundRunning && direction.sends && !foreground)
-        platform?.backgroundWrite(backgroundEnabled && backgroundRunning && direction.receives && !foreground)
-        privilegedClipboard.requireSource(backgroundEnabled && backgroundRunning && direction.sends && !foreground)
+        platform?.syncPaused(paused)
+        platform?.backgroundRead(!paused && backgroundEnabled && backgroundRunning && direction.sends && !foreground)
+        platform?.backgroundWrite(!paused && backgroundEnabled && backgroundRunning && direction.receives && !foreground)
+        privilegedClipboard.requireSource(!paused && backgroundEnabled && backgroundRunning && direction.sends && !foreground)
         privilegedClipboard.wake = { native?.clipboardChanged(); backgroundWake?.invoke() }
     }
 
@@ -267,10 +310,11 @@ internal class SessionController(
         statusText = UiMessage(R.string.status_service_timeout)
     }
 
-    fun notificationEligible(): Boolean = direction.receives && backgroundEnabled && backgroundRunning && connected && selectedPolicy == SensitivePolicy.ENCRYPTED_INBOX
+    fun notificationEligible(): Boolean = !paused && direction.receives && backgroundEnabled && backgroundRunning && connected && selectedPolicy == SensitivePolicy.ENCRYPTED_INBOX
 
     val inboxNotificationReady: Boolean get() = notificationEligible() && notificationAuthorized && status?.inbox != null
     val inboxNotificationHint: String get() = when {
+        paused -> application.translated(R.string.sync_paused)
         !connected -> application.translated(R.string.hint_connect_notification)
         !direction.receives -> application.translated(R.string.status_upload_only)
         !backgroundEnabled || !backgroundRunning -> application.translated(R.string.hint_start_listening)
@@ -295,6 +339,7 @@ internal class SessionController(
 
     /** A scheduling tick, not an upload retry loop. Core owns all receive/ack rules. */
     suspend fun pollBackground() {
+        if (paused || pauseUpdating) return
         refreshNotificationAuthorization()
         privilegedClipboard.refresh()
         when (SyncSchedule.tick(backgroundEnabled, backgroundRunning, connected, busy, foreground, focused, direction.receives)) {
@@ -340,9 +385,9 @@ internal class SessionController(
         finally { adapter.explicitCopy(null) { false } }
     }
 
-    fun send() { if (focused && direction.sends) command { UiMessage.outcome(sendClipboard()) } }
-    fun receive() { if (focused && direction.receives) command { UiMessage.outcome(receive()) } }
-    fun retry() { if (focused) command { UiMessage.outcome(retryPending()) } }
+    fun send() { if (!paused && focused && direction.sends) command { UiMessage.outcome(sendClipboard()) } }
+    fun receive() { if (!paused && focused && direction.receives) command { UiMessage.outcome(receive()) } }
+    fun retry() { if (!paused && focused) command { UiMessage.outcome(retryPending()) } }
     fun policy(value: SensitivePolicy) {
         if (busy) return
         fun save() {
@@ -355,7 +400,13 @@ internal class SessionController(
     }
     fun copyInbox() {
         val id = status?.inbox?.id ?: return
-        if (focused) command { copyInbox(id); UiMessage(R.string.status_copied) }
+        if (focused) command {
+            val version = epoch
+            val adapter = platform
+            adapter?.explicitCopy(id) { version == epoch && focused && this@SessionController.status?.inbox?.id == id }
+            try { copyInbox(id); UiMessage(R.string.status_copied) }
+            finally { adapter?.explicitCopy(null) { false } }
+        }
     }
     fun clearInbox() { val id = status?.inbox?.id ?: return; command { clearInbox(id); notifications.clear(); UiMessage(R.string.status_inbox_cleared) } }
     private fun command(operation: suspend MobileSession.() -> UiMessage) { scope.launch {

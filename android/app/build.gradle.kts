@@ -15,8 +15,8 @@ android {
         applicationId = "io.github.infinifar.rustclipsync" + if (disposableIntegration) ".disposable" else ""
         minSdk = 31
         targetSdk = 36
-        versionCode = 5
-        versionName = if (disposableIntegration) "0.1.4-disposable" else "0.1.4"
+        versionCode = 6
+        versionName = if (disposableIntegration) "0.1.5-disposable" else "0.1.5"
         buildConfigField("String", "BUILD_REVISION", "\"$revision\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk { abiFilters += listOf("arm64-v8a", "x86_64") }

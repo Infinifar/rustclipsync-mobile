@@ -43,6 +43,7 @@ enum Command {
     Policy(SensitivePolicy),
     Filter(crate::FilterConfig),
     Direction(crate::SyncDirection),
+    Pause(bool),
     ReadInbox(String),
     CopyInbox(String),
     ClearInbox(String),
@@ -200,6 +201,18 @@ impl MobileSession {
         self.request(Command::Direction(direction))
             .await
             .map(|_| ())
+    }
+
+    /// Pause transfers without discarding pairing, direction or the encrypted inbox.
+    ///
+    /// In-flight clipboard operations are invalidated. A failed pause report still
+    /// blocks local transfers; resuming requires a successful direction confirmation.
+    ///
+    /// # Errors
+    /// Returns protocol, storage, lifecycle or queue admission errors.
+    pub async fn set_paused(&self, paused: bool) -> Result<(), MobileError> {
+        self.clipboard_changed();
+        self.request(Command::Pause(paused)).await.map(|_| ())
     }
 
     /// Replace filtering rules through core on the session executor.
@@ -405,6 +418,7 @@ impl Drop for MobileSession {
 
 struct Engine<R> {
     background_ready: bool,
+    paused: bool,
     capture_baseline_needed: bool,
     direction_configured: bool,
     direction: crate::SyncDirection,
@@ -443,6 +457,7 @@ fn open<R: Transport, F: FnOnce(&MobileConfig) -> Result<R, Error>>(
     apply_policy(&mut session, policy);
     Ok(Engine {
         background_ready: false,
+        paused: false,
         capture_baseline_needed: false,
         direction_configured: false,
         direction: crate::SyncDirection::Both,
@@ -486,6 +501,23 @@ fn execute<R: Transport>(
     generation: &AtomicU64,
     command: Command,
 ) -> Result<Response, MobileError> {
+    if engine.paused {
+        match command {
+            Command::Send
+            | Command::Retry
+            | Command::Receive
+            | Command::ReceiveInbox
+            | Command::ReceiveBackground(_) => return Ok(Response::Outcome(SyncOutcome::Paused)),
+            Command::BackgroundSync(_) => {
+                return Ok(Response::Background(crate::BackgroundSyncResult {
+                    sent: SyncOutcome::Paused,
+                    received: SyncOutcome::Paused,
+                    capture: crate::BackgroundCapture::NotRequested,
+                }));
+            }
+            _ => {}
+        }
+    }
     if matches!(
         (&command, engine.direction),
         (Command::Send, crate::SyncDirection::Download)
@@ -510,7 +542,7 @@ fn execute<R: Transport>(
                 Command::Check | Command::Send | Command::Retry | Command::Receive
             )
         {
-            session.set_sync_direction(core_direction(engine.direction), false)?;
+            session.set_sync_direction(core_direction(engine.direction), engine.paused)?;
             engine.direction_configured = true;
         }
         Ok(match command {
@@ -525,8 +557,10 @@ fn execute<R: Transport>(
                 }),
             }),
             Command::Check => {
-                session.check()?;
-                engine.background_ready = true;
+                if !engine.paused {
+                    session.check()?;
+                    engine.background_ready = true;
+                }
                 Response::Done
             }
             Command::Send => {
@@ -644,8 +678,23 @@ fn execute<R: Transport>(
             Command::Direction(direction) => {
                 engine.direction = direction;
                 engine.direction_configured = false;
-                session.set_sync_direction(core_direction(direction), false)?;
+                session.set_sync_direction(core_direction(direction), engine.paused)?;
                 engine.direction_configured = true;
+                Response::Done
+            }
+            Command::Pause(paused) => {
+                if paused {
+                    engine.paused = true;
+                }
+                engine.direction_configured = false;
+                session.set_sync_direction(core_direction(engine.direction), paused)?;
+                if !paused {
+                    session.check()?;
+                    engine.background_ready = true;
+                }
+                engine.paused = paused;
+                engine.direction_configured = true;
+                engine.capture_baseline_needed = true;
                 Response::Done
             }
             Command::Policy(policy) => {
