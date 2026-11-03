@@ -68,6 +68,7 @@ struct Remote {
     data: Arc<Mutex<Data>>,
     gate: Arc<Mutex<Option<StateGate>>>,
     fail_next_send: Arc<AtomicBool>,
+    conflict_next_send: Arc<AtomicBool>,
     direction: Arc<Mutex<Option<(CoreDirection, bool)>>>,
     fail_direction: Arc<AtomicBool>,
 }
@@ -174,6 +175,9 @@ impl Transport for Remote {
         d.attempts.push(outbox.copy.id.clone());
         if self.fail_next_send.swap(false, Ordering::SeqCst) {
             return Err(Error::Io(std::io::Error::other("synthetic disconnect")));
+        }
+        if self.conflict_next_send.swap(false, Ordering::SeqCst) {
+            return Err(Error::Status(409));
         }
         d.sends.push(outbox.copy.text.clone());
         d.revision += 1;
@@ -1016,4 +1020,61 @@ fn unavailable_privileged_capture_preserves_receiving_and_sensitive_policy() {
             s.shutdown().await.unwrap();
         }
     });
+}
+
+#[test]
+fn stale_upload_recovery_unblocks_receives_without_reuploading_the_old_clipboard() {
+    for expired in [false, true] {
+        block_on(async {
+            let platform = Arc::new(FakePlatform::default());
+            let remote = Remote::default();
+            let s = start(&platform, &remote, SensitivePolicy::EncryptedInbox);
+            s.check().await.unwrap();
+            *platform.clipboard.lock().unwrap() = Some(text("synthetic stale local", false));
+            remote.fail_next_send.store(true, Ordering::SeqCst);
+            assert_eq!(s.send_clipboard().await, Err(MobileError::Network));
+            s.shutdown().await.unwrap();
+            if expired {
+                let mut saved =
+                    state::open(&[7; 32], platform.bytes.lock().unwrap().clone().unwrap()).unwrap();
+                saved.state.pending.as_mut().unwrap().copy.created_at = 1;
+                *platform.bytes.lock().unwrap() = Some(state::seal(&[7; 32], &saved).unwrap());
+            }
+            let s = start(&platform, &remote, SensitivePolicy::EncryptedInbox);
+            s.check().await.unwrap();
+            remote.publish("synthetic remote at recovery", true);
+            remote.conflict_next_send.store(!expired, Ordering::SeqCst);
+            let recovered = if expired {
+                s.retry_pending().await.unwrap()
+            } else {
+                s.sync_background(crate::BackgroundClipboardSource::PendingOnly)
+                    .await
+                    .unwrap()
+                    .sent
+            };
+            assert_eq!(recovered, SyncOutcome::Skipped, "expired={expired}");
+            assert!(!s.status().await.unwrap().has_pending);
+            assert_eq!(
+                platform.clipboard.lock().unwrap().as_ref().unwrap().text,
+                "synthetic stale local"
+            );
+            assert_eq!(platform.writes.load(Ordering::SeqCst), 0);
+            // Rebinding Shizuku must establish a baseline, not reinterpret the preserved old copy.
+            s.sync_background(crate::BackgroundClipboardSource::Privileged)
+                .await
+                .unwrap();
+            assert!(remote.data.lock().unwrap().sends.is_empty());
+            remote.publish("synthetic fresh sensitive receive", true);
+            assert_eq!(
+                s.sync_background(crate::BackgroundClipboardSource::Privileged)
+                    .await
+                    .unwrap()
+                    .received,
+                SyncOutcome::Stored
+            );
+            assert!(s.status().await.unwrap().inbox.is_some());
+            assert_eq!(platform.writes.load(Ordering::SeqCst), 0);
+            s.shutdown().await.unwrap();
+        });
+    }
 }

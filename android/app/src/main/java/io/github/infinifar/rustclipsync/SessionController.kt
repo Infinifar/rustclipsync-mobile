@@ -185,7 +185,7 @@ internal class SessionController(
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
                 if (version == epoch) { close(); statusText = safeError(error) }
-            } finally { if (version == epoch) busy = false }
+            } finally { if (version == epoch) { busy = false; backgroundWake?.invoke() } }
         }
     }
 
@@ -212,6 +212,7 @@ internal class SessionController(
         focused = value && foreground
         platform?.focus(focused)
         native?.clipboardChanged()
+        if (focused) backgroundWake?.invoke()
     }
 
     fun configureBackgroundRunning(value: Boolean) {
@@ -261,7 +262,8 @@ internal class SessionController(
     }
 
     fun serviceTimedOut() {
-        configureBackgroundRunning(false)
+        // End this run without changing the user's persistent opt-in or restarting in a loop.
+        close()
         statusText = UiMessage(R.string.status_service_timeout)
     }
 
@@ -295,7 +297,17 @@ internal class SessionController(
     suspend fun pollBackground() {
         refreshNotificationAuthorization()
         privilegedClipboard.refresh()
-        if (!backgroundEnabled || !backgroundRunning || !connected || foreground || busy) return
+        when (SyncSchedule.tick(backgroundEnabled, backgroundRunning, connected, busy, foreground, focused, direction.receives)) {
+            SyncSchedule.Tick.NONE -> return
+            SyncSchedule.Tick.FOREGROUND_RECEIVE -> {
+                perform {
+                    if (this@SessionController.status?.hasPending == true) retryPending()
+                    UiMessage.outcome(receive())
+                }
+                return
+            }
+            SyncSchedule.Tick.BACKGROUND -> Unit
+        }
         perform {
             val source = if (direction.sends && privilegedClipboard.ready)
                 io.github.infinifar.rustclipsync.bindings.BackgroundClipboardSource.PRIVILEGED

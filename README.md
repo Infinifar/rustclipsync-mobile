@@ -112,3 +112,16 @@ enabled and the app is backgrounded. Denial, unavailable Binder, unsupported roo
 mode and source errors remain distinct; live identity and permission checks guard
 reads. Local JVM regression tests pass; current Android compilation is delegated
 to Actions, while actual Keystore, Shizuku and restart behavior need device checks.
+
+An enabled, connected background session also automatically receives while the UI is
+focused; foreground sending remains manual. The service waits three seconds between
+completed ticks (network time is additional). Removing the recent task retains the
+background setting and the live service where Android permits. Process death,
+force-stop or reboot still requires foreground **Save and connect**. A system timeout
+ends the current session without erasing the opt-in or restarting in a loop.
+
+Background sync and retry use core's durable safe-skip recovery for conflicting or
+expired uploads: cancel the old transaction, preserve the clipboard and skip the
+remote message current at recovery. A subsequent capture establishes a baseline
+to avoid reuploading preserved old text. New receives continue normally; network
+failures keep pending work, while storage and pairing errors remain errors.

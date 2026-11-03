@@ -52,14 +52,14 @@
     <string name="checking_updates">Checking…</string>
     <string name="check_updates">Check for updates</string>
     <string name="inbox_masked_note">Content is hidden by default and stored in the local encrypted inbox.</string>
-    <string name="background_limits">Android 15 and later limit cumulative dataSync foreground service time. Shizuku does not remove this limit. The system may delay or stop the service. Reconnect after task removal or restart; account passwords are not saved.</string>
+    <string name="background_limits">The system can delay or stop the service. Removing the task preserves the setting and attempts to keep the current sync running. After process death, force-stop or reboot, select Save and connect in the foreground. Shizuku access does not establish a connection. Android 15+ dataSync time limits still apply.</string>
     <string name="notification_settings">System notification settings</string>
     <string name="continue_permission">Continue</string>
     <string name="device_uuid">Device UUID</string>
     <string name="account">Account</string>
     <string name="policy_skip">Skip marked sensitive messages</string>
     <string name="delete_inbox_warning">This permanently deletes this locally saved sensitive message.</string>
-    <string name="listener_connect_first">Connect in the foreground to start background operation</string>
+    <string name="listener_connect_first">Background operation is enabled; select Save and connect on the Sync page to start it</string>
     <string name="connect_register">Save and connect</string>
     <string name="connect_server">Connect to server</string>
     <string name="inbox_connect_note">Connect to receive marked sensitive messages.</string>
@@ -159,7 +159,7 @@
     <string name="error_protocol">Invalid server response</string>
     <string name="error_internal">Session failed; close and reconnect</string>
     <string name="background_execution">Run in background</string>
-    <string name="background_execution_note">Continue in the selected direction after leaving the app. Receiving ordinary messages writes the clipboard.</string>
+    <string name="background_execution_note">Keep syncing after leaving a connected app, and automatically receive while it is open. Ordinary messages write the clipboard; marked messages follow the selected policy.</string>
     <string name="background_execution_title">Enable background operation?</string>
     <string name="background_execution_warning">Continue sending and receiving in the selected direction. Incoming ordinary text may replace a recent copy from another app. Marked sensitive content follows its separate policy. Reading new background copies requires separate Shizuku authorization.</string>
     <string name="direction_background_note">Applies in the foreground and background. Send only never receives; receive only never uploads local content; two-way does both.</string>

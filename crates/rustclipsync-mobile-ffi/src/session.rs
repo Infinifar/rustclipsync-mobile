@@ -405,6 +405,7 @@ impl Drop for MobileSession {
 
 struct Engine<R> {
     background_ready: bool,
+    capture_baseline_needed: bool,
     direction_configured: bool,
     direction: crate::SyncDirection,
     filter_config: crate::FilterConfig,
@@ -442,6 +443,7 @@ fn open<R: Transport, F: FnOnce(&MobileConfig) -> Result<R, Error>>(
     apply_policy(&mut session, policy);
     Ok(Engine {
         background_ready: false,
+        capture_baseline_needed: false,
         direction_configured: false,
         direction: crate::SyncDirection::Both,
         filter_config: crate::FilterConfig::default(),
@@ -458,6 +460,24 @@ fn filter() -> Filter {
 fn apply_policy<R: Transport>(session: &mut CoreSession<R>, policy: SensitivePolicy) {
     session.update_policy(filter(), policy != SensitivePolicy::Disabled);
     session.use_sensitive_inbox(policy == SensitivePolicy::EncryptedInbox);
+}
+
+// Opt into core's durable safe-skip recovery, never rebase or overwrite a rejected upload.
+fn flush_automatic<R: Transport>(
+    session: &mut CoreSession<R>,
+    observed: u64,
+) -> Result<(Outcome, bool), SyncError> {
+    if session.has_observed_upload_conflict() || session.persisted.state.resolving_conflict {
+        return session
+            .recover_upload_conflict(observed)
+            .map(|value| (value, true));
+    }
+    match session.flush(observed) {
+        Err(SyncError::Conflict | SyncError::Expired) => session
+            .recover_upload_conflict(observed)
+            .map(|value| (value, true)),
+        result => result.map(|value| (value, false)),
+    }
 }
 
 fn execute<R: Transport>(
@@ -546,12 +566,27 @@ fn execute<R: Transport>(
                         capture: BackgroundCapture::NotRequested,
                     }));
                 }
+                if session.has_observed_upload_conflict()
+                    || session.persisted.state.resolving_conflict
+                {
+                    engine.capture_baseline_needed = true;
+                    let (sent, _) = flush_automatic(session, observed)?;
+                    return Ok(Response::Background(BackgroundSyncResult {
+                        sent: outcome(sent),
+                        received: SyncOutcome::Skipped,
+                        capture: BackgroundCapture::NotRequested,
+                    }));
+                }
                 let capture = if source == BackgroundClipboardSource::Privileged
                     && engine.direction != SyncDirection::Download
                 {
                     match host.read_snapshot() {
                         Ok(value) => {
-                            if host
+                            if engine.capture_baseline_needed {
+                                host.remember_snapshot(value)
+                                    .map_err(SyncError::Clipboard)?;
+                                engine.capture_baseline_needed = false;
+                            } else if host
                                 .snapshot_changed(&value)
                                 .map_err(SyncError::Clipboard)?
                             {
@@ -584,7 +619,9 @@ fn execute<R: Transport>(
                 {
                     session.record_clear()?;
                 }
-                let sent = outcome(session.flush(observed)?);
+                let (sent, recovered) = flush_automatic(session, observed)?;
+                engine.capture_baseline_needed |= recovered;
+                let sent = outcome(sent);
                 let received = if engine.direction == SyncDirection::Upload {
                     SyncOutcome::Paused
                 } else {
@@ -600,7 +637,9 @@ fn execute<R: Transport>(
                 if engine.direction == crate::SyncDirection::Download {
                     session.record_clear()?;
                 }
-                Response::Outcome(outcome(session.flush(observed)?))
+                let (value, recovered) = flush_automatic(session, observed)?;
+                engine.capture_baseline_needed |= recovered;
+                Response::Outcome(outcome(value))
             }
             Command::Direction(direction) => {
                 engine.direction = direction;

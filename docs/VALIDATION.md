@@ -411,3 +411,25 @@ GitHub/GitLab 代码镜像均已推送；不修改远端共享 Runner、缓存�
   不启动模拟器、不读取真实凭据/剪贴板、不操作手机。既有隔离服务测试注入内存凭据存储。
 - Rust/core/vendor/FFI、iOS 和敏感消息策略未修改；不以此前 facade 测试替代本轮平台验证。
   完整 Android APK、lint 和测试编译由推送后的 Actions 运行，不持续监控。
+
+## 2026-11-03：任务移除、前台接收与待处理事务
+
+- 用户确认 6e456dbe 已连接、游标 990、有待处理事务；从最近任务划掉后后台设置关闭。
+  确认 onTaskRemoved 调用 configureBackgroundRunning(false) 会持久化关闭；改为保留
+  设置及有效服务，超时只结束当前会话。进程被杀/强行停止/重启仍需前台重新连接。
+- 确认原 pollBackground 无条件跳过前台。启用并连接的会话现会在有焦点时处理待办并
+  自动接收，使用普通前台适配器；不因此启用 Shizuku 前台读取或自动前台发送。
+  tick 完成后等 3 秒，连接完成和焦点恢复时唤醒，不承诺固定网络延迟。
+- 新 Rust 回归测试在修复前实际返回 Conflict 失败；修复后覆盖冲突、过期重试、
+  保留原剪贴板、恢复后不重发旧文本，以及后续敏感消息仅入收件箱且零系统写入。
+  调用 core.recover_upload_conflict，不改 vendor、协议、状态格式或 FFI 公共 API。
+- 13 项本地 JVM 测试通过，含前台接收/未连接/失焦/仅发送/忙碌的调度准入，以及
+  移除任务的服务保留；临时恢复前台跳过和任务移除停止，测试按预期失败。
+- instrumentation 新增设置跨 controller、close、timeout 保留及显式关闭验证，
+  隔离服务用例增加自动前台普通/敏感接收并更新超时预期；本轮只交 Actions 编译，
+  不启动模拟器或操作用户真实剪贴板、账户和手机。
+
+本轮最终检查：24 项 Rust 全特性测试通过、fmt、workspace Clippy
+all-targets/all-features -D warnings 和 rustdoc 通过；191 个翻译键检查通过。
+13 项 JVM 测试使用现有缓存工具执行，不安装 SDK/Gradle。Android APK、lint 和
+instrumentation 编译由新 Actions 验证；尚未在 moto/MyUI 实机验证。

@@ -11,7 +11,7 @@ import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** No real credentials, Keystore, clipboard, service, native session or network. */
+/** Synthetic credentials and no native/clipboard access. Lifecycle checks require an isolated test app. */
 @RunWith(AndroidJUnit4::class)
 class ConnectionRestoreTest {
     private class Store : ConnectionStore {
@@ -79,4 +79,33 @@ class ConnectionRestoreTest {
             assertNull(store.value)
         }
     }
+    @Test fun stoppingASessionOrTimingOutDoesNotEraseBackgroundOptIn() = runBlocking {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val prefs = context.getSharedPreferences("background-running-v2", 0)
+        val had = prefs.contains("enabled")
+        val previous = prefs.getBoolean("enabled", false)
+        try {
+            val first = controller(Store())
+            ready(first)
+            withContext(Dispatchers.Main) {
+                first.configureBackgroundRunning(true)
+                first.close()
+                assertTrue(first.backgroundEnabled)
+                first.serviceTimedOut()
+                assertTrue(first.backgroundEnabled)
+                assertFalse(first.backgroundRunning)
+            }
+            val reopened = controller(Store())
+            ready(reopened)
+            withContext(Dispatchers.Main) {
+                assertTrue(reopened.backgroundEnabled)
+                assertFalse(reopened.connected)
+                reopened.configureBackgroundRunning(false)
+            }
+            assertFalse(prefs.getBoolean("enabled", true))
+        } finally {
+            prefs.edit().apply { if (had) putBoolean("enabled", previous) else remove("enabled") }.commit()
+        }
+    }
+
 }

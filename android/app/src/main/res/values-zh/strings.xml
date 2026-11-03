@@ -52,14 +52,14 @@
     <string name="checking_updates">检查中…</string>
     <string name="check_updates">检查更新</string>
     <string name="inbox_masked_note">正文默认隐藏，保存在本机加密收件箱。</string>
-    <string name="background_limits">Android 15 及以上的 dataSync 前台服务受累计时限约束；Shizuku 不解除该限制。系统可能延迟或停止服务，关闭任务或重启后需重新连接，不保存账户密码。</string>
+    <string name="background_limits">系统可能延迟或终止服务。划掉任务保留后台设置并尝试继续当前同步；系统杀死进程、强行停止或重启后需在前台点击“保存并连接”。Shizuku 授权不等于已经连接。Android 15+ 仍有 dataSync 累计时限。</string>
     <string name="notification_settings">系统通知设置</string>
     <string name="continue_permission">继续授权</string>
     <string name="device_uuid">设备 UUID</string>
     <string name="account">账户</string>
     <string name="policy_skip">跳过已标记敏感消息</string>
     <string name="delete_inbox_warning">这会删除本机保存的这一项敏感内容，无法撤销。</string>
-    <string name="listener_connect_first">连接后在前台启动后台运行</string>
+    <string name="listener_connect_first">后台设置已开启；请先在同步页点击“保存并连接”启动运行</string>
     <string name="connect_register">保存并连接</string>
     <string name="connect_server">连接服务器</string>
     <string name="inbox_connect_note">连接服务器后，可接收已标记的敏感消息。</string>
@@ -159,7 +159,7 @@
     <string name="error_protocol">服务端响应无效</string>
     <string name="error_internal">会话异常，请关闭后重新连接</string>
     <string name="background_execution">后台运行</string>
-    <string name="background_execution_note">离开应用后继续按同步方向运行；接收普通消息会写入剪贴板。</string>
+    <string name="background_execution_note">连接后离开应用继续同步；已启用时前台也自动接收。普通消息写入剪贴板，敏感消息遵守所选策略。</string>
     <string name="background_execution_title">启用后台运行？</string>
     <string name="background_execution_warning">按同步方向继续收发。接收的普通文本可能覆盖其他应用刚复制的内容；已标记敏感内容仍按下方策略处理。后台读取新复制内容需要另行授予 Shizuku 权限。</string>
     <string name="direction_background_note">此方向同时控制前台与后台。仅发送不接收；仅接收不推送本机内容；双向同时收发。</string>

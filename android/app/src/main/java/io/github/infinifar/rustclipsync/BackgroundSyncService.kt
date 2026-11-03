@@ -61,7 +61,7 @@ class BackgroundSyncService : Service() {
                     while (isActive && session.backgroundEnabled && session.connected) {
                         session.pollBackground()
                         // Clipboard wake signals are coalesced; core owns send/receive transitions.
-                        withTimeoutOrNull(30_000) { wake.receive() }
+                        withTimeoutOrNull(3_000) { wake.receive() }
                     }
                     stopSelf()
                 }
@@ -91,8 +91,9 @@ class BackgroundSyncService : Service() {
         stopSelf()
     }
     override fun onTaskRemoved(rootIntent: Intent?) {
-        session.configureBackgroundRunning(false)
-        stopSelf()
+        // Removing the UI task is not the notification's explicit Stop action.
+        if (!SyncSchedule.keepServiceOnTaskRemoval(session.backgroundEnabled, session.connected)) stopSelf()
+        super.onTaskRemoved(rootIntent)
     }
     override fun onDestroy() {
         session.backgroundWake = null

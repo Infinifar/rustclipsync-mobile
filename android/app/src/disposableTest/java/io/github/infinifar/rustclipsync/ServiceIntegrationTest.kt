@@ -204,6 +204,16 @@ class ServiceIntegrationTest {
             withContext(Dispatchers.Main) { controller.pollBackground() }
             eventually("marked still in inbox") { inbox() != null }
             assertEquals(2, b.writes.get())
+            // An enabled session must keep receiving when its UI is open, without a manual pull.
+            val previousInbox = main { controller.status?.inbox?.id }
+            main { controller.uiVisible(true); controller.clipboardFocus(true) }
+            publish("synthetic foreground private inbox", true)
+            eventually("automatic foreground inbox") { main { controller.status?.inbox?.id != previousInbox } }
+            assertEquals(2, b.writes.get())
+            publish("synthetic foreground ordinary receive", false)
+            eventually("automatic foreground ordinary clipboard") { b.selection?.text == "synthetic foreground ordinary receive" }
+            assertEquals(3, b.writes.get())
+            main { controller.uiVisible(false) }
             val obsolete = inbox()!!.actions[0].actionIntent
             main { controller.configureBackgroundRunning(false) }
             eventually("stop revokes session") { inbox() == null && main { !controller.backgroundRunning && !controller.connected } }
@@ -295,7 +305,7 @@ class ServiceIntegrationTest {
             main { controller.configureBackgroundRunning(true) }
             eventually("timeout service running") { main { controller.backgroundRunning } }
             instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
-            eventually("system timeout closes session") { main { !controller.backgroundEnabled && !controller.backgroundRunning && !controller.connected } }
+            eventually("system timeout closes session") { main { controller.backgroundEnabled && !controller.backgroundRunning && !controller.connected } }
             assertFalse(adapter.backgroundWriteAllowed)
             assertEquals(0, adapter.writes.get())
         } finally {
