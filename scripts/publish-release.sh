@@ -4,7 +4,7 @@ cd "$(dirname "$0")/.."
 : "${GITHUB_SHA:?Missing source revision}"
 : "${RUNNER_TEMP:?Missing temporary directory}"
 test "${GITHUB_REF:-}" = refs/heads/main
-version=1.0.0
+version=0.2.0
 tag="v$version"
 apk="rustclipsync-mobile-$version-android.apk"
 previous=$(gh release list --exclude-drafts --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName // empty')

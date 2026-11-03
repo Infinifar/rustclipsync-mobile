@@ -6,8 +6,8 @@ Standalone Android clipboard sync with a Kotlin / Jetpack Compose UI and a share
 Rust/UniFFI engine over [rustclipsync-core](https://github.com/Infinifar/rustclipsync-core).
 The Swift/SwiftUI iPhone/iPad client is in development; this release contains Android only.
 
-[Download Android 1.0.0](https://github.com/Infinifar/rustclipsync-mobile/releases/tag/v1.0.0)
-· [Release notes](releases/1.0.0.md)
+[Download Android 0.2.0](https://github.com/Infinifar/rustclipsync-mobile/releases/tag/v0.2.0)
+· [Release notes](releases/0.2.0.md)
 · [RustClipSync Server](https://github.com/Infinifar/rustclipsync-server)
 · [Desktop client](https://github.com/Infinifar/rustclipsync-desktop)
 · [Omaclipsync](https://github.com/Infinifar/omaclipsync)
@@ -37,7 +37,7 @@ Unmarked text cannot reliably be classified as sensitive. In particular, the [ch
 
 Connection credentials and core RCS1 state are stored encrypted in separate no-backup files. HTTPS protects transport; this is not end-to-end encryption. Do not publish credentials, pairing tokens, state keys or clipboard bodies.
 
-**Upgrading:** version 1.0.0 uses the same release certificate as 0.1.5 and supports in-place upgrades. Earlier temporary debug APKs have a different certificate under the same package name and cannot be overwritten. See [migration instructions](releases/1.0.0.md). Subsequent official updates use the same certificate. Public certificate and CI process: [SIGNING.md](SIGNING.md).
+**Upgrading:** version 0.2.0 uses the same release certificate as 0.1.5 and supports in-place upgrades. Earlier temporary debug APKs have a different certificate under the same package name and cannot be overwritten. See [migration instructions](releases/0.2.0.md). Subsequent official updates use the same certificate. Public certificate and CI process: [SIGNING.md](SIGNING.md).
 
 ## Development and validation
 

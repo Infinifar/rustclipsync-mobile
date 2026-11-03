@@ -16,7 +16,7 @@ android {
         minSdk = 31
         targetSdk = 36
         versionCode = 7
-        versionName = if (disposableIntegration) "1.0.0-disposable" else "1.0.0"
+        versionName = if (disposableIntegration) "0.2.0-disposable" else "0.2.0"
         buildConfigField("String", "BUILD_REVISION", "\"$revision\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk { abiFilters += listOf("arm64-v8a", "x86_64") }

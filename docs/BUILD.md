@@ -246,9 +246,9 @@ Rocky 部分任务容器继承的 Tailscale DNS 不可达时，GitLab pre_get_so
 仅在该临时 Docker 作业内回退到 223.5.5.5 / 1.1.1.1，解决源码拉取前的解析失败；
 不改 Runner 配置、宿主 DNS 或 v2raya。依据为 GitLab 官方 hooks:pre_get_sources_script。
 
-## Android 正式发布 1.0.0
+## Android 正式发布 0.2.0
 
 主分支为 main。运行 Signed Android release；发布开关开启时会在全部检查及
 签名/证书、非调试标记、两个 ABI 和 16 KiB 静态对齐校验后，创建草稿 Release，
 下载并校验附件，最后正式发布。四个签名 Secrets 与长期密钥说明见 SIGNING.md。
-APK versionName 1.0.0 / versionCode 7，标签 v1.0.0。工作流不签名或发布 iOS。
+APK versionName 0.2.0 / versionCode 7，标签 v0.2.0。工作流不签名或发布 iOS。

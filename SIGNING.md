@@ -27,4 +27,4 @@ no tooling automatically uninstalls a device app or deletes its data.
 本机私有备份位于上述仓库外目录，请另做离线备份。后续版本必须沿用本次正式密钥。
 小企鹅沿用它原有的独立密钥，不受本仓库配置影响。
 
-Current release: **1.0.0**, Android versionCode **7**. It retains the 0.1.5 certificate for in-place upgrades. Use the installed system JRE keytool locally; Android compilation runs on GitHub Actions, without reinstalling a local JDK.
+Current release: **0.2.0**, Android versionCode **7**. It retains the 0.1.5 certificate for in-place upgrades. Use the installed system JRE keytool locally; Android compilation runs on GitHub Actions, without reinstalling a local JDK.
