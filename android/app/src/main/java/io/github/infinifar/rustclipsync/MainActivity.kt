@@ -144,7 +144,7 @@ private fun SyncScreen(session: SessionController, theme: ThemeMode, changeTheme
                             session.credentialMessage?.let { Note(it.resolve(context)) }
                         }
                         if (session.connected || session.paused) {
-                            OutlinedButton(onClick = { session.setPaused(!session.paused) },
+                            OutlinedButton(onClick = { session.configurePause(!session.paused) },
                                 enabled = !session.pauseUpdating && !session.credentialsBusy && (session.connected || !session.busy),
                                 modifier = Modifier.fillMaxWidth()) {
                                 Text(context.translated(if (session.paused) R.string.resume_sync else R.string.pause_sync))

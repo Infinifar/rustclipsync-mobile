@@ -455,3 +455,13 @@ Secrets 已设置。私钥/密码只在仓库外私有目录和 Secrets，版本
 新签名工作流仅允许 main，完整检查后构建非调试 release、核对证书/包名/版本及两 ABI
 16 KiB 静态对齐；先建草稿并回下载校验附件，再正式发布。此前 debug 签名不能直接
 覆盖，新正式签名将长期复用；不自动卸载设备或删除数据。实际发布状态以 Actions 为准。
+
+## 2026-11-03：0.1.5 Android JVM 编译冲突修复
+
+正式发布 run 41577743431 的 Rust/FFI 检查通过，但 compileDebugKotlin 失败：
+SessionController.paused 的属性 setter 与新增 setPaused(Boolean) 方法同为 JVM
+setPaused(Z)V。修正 Android 控制入口为 configurePause，更新 UI 和 instrumentation
+调用；Rust/UniFFI 的 MobileSession.setPaused 保持不变，暂停语义不变。
+使用系统 JRE 与既有缓存 Kotlin compiler 复现旧名冲突，并验证改名后的最小委托属性
+用例可编译；未重新安装 JDK，不把该验证当成完整 Android APK 编译或设备测试。
+完整 APK 与正式签名发布重新从修复后的 main 触发，成功后仍发布 0.1.5。

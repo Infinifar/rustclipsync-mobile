@@ -116,13 +116,13 @@ class ConnectionRestoreTest {
         try {
             val first = controller(Store())
             ready(first)
-            withContext(Dispatchers.Main) { first.setPaused(true); assertTrue(first.paused) }
+            withContext(Dispatchers.Main) { first.configurePause(true); assertTrue(first.paused) }
             val reopened = controller(Store())
             ready(reopened)
             withContext(Dispatchers.Main) {
                 assertTrue(reopened.paused)
                 assertEquals("synthetic-password", reopened.connectionPassword)
-                reopened.setPaused(false)
+                reopened.configurePause(false)
                 assertFalse(reopened.paused)
             }
         } finally {

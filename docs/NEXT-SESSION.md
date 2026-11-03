@@ -101,3 +101,10 @@ ShizukuAccess 将授权生命周期与来源连接分离，匹配授权请求码
 签名流程在全部检查后自动发布 v0.1.5；不得把进行中的 run 当成已发布。
 用户不要求持续 watch，不启动模拟器、不自动安装或卸载设备应用。调试包与首个正式包
 签名不同，迁移由用户处理并保留所需内容。
+
+Android 暂停界面控制方法命名为 SessionController.configurePause，不能命名 setPaused：
+paused 委托属性的 private setter 已占用 JVM setPaused(Z)V。Rust/UniFFI 方法仍是
+MobileSession.setPaused，两个层级不要一并重命名。0.1.5 首次签名构建因此 Kotlin
+冲突失败，修复后从新 main 重新启动签名发布；旧的失败 run 不能直接重跑旧源码。
+本机缓存 JDK 已按用户要求删除，仅用 /usr/bin/java 和 /usr/bin/keytool（系统 JRE）；
+不要重新安装本机 JDK，完整 Android 编译使用 GitHub Actions。

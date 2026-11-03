@@ -116,7 +116,7 @@ internal class SessionController(
     val message: String get() = statusText.resolve(application)
     private var statusText by mutableStateOf(UiMessage(R.string.status_idle)); private set
 
-    fun setPaused(value: Boolean) {
+    fun configurePause(value: Boolean) {
         if (pauseUpdating || (!connected && busy)) return
         fun save(selected: Boolean) {
             paused = selected
