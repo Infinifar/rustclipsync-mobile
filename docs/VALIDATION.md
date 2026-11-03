@@ -392,3 +392,22 @@ GitHub/GitLab 代码镜像均已推送；不修改远端共享 Runner、缓存�
 - 修复 `PrivilegedClipboardService.kt:47`：两种反射签名的数组均声明 `arrayOf<Any?>`，保留原 Binder 调用者 UID、锁屏和 ADB Shizuku 模式检查。
 - 启动图标改为来自 Omaclipsync 的内置自适应矢量及单色层，浅色／深色背景分别白色／黑色；应用主背景同样使用纯白／纯黑，保留动态强调色。180 个中英文资源键／占位符和 XML 校验通过，并使用已有缓存 AAPT2／API 36 实际编译、链接全部资源及清单。
 - 没有重新安装 SDK、Gradle 或改变主机配置；完整 Android 双 ABI、Kotlin、lint 和 APK 对齐检查交 GitHub Actions。没有进行本轮模拟器、真机、Shizuku 或截图验收；iOS 无 Xcode 编译结果。
+
+## 2026-11-03：Android 保存连接与 Shizuku 授权显示
+
+- 确认旧 UI 仅以 Compose 内存保存账号/密码，点击连接还会清空密码，未实现持久化。
+  新版在成功连接后使用独立 Keystore AES-256-GCM key 加密保存服务器/账号/密码，
+  AtomicFile 原子替换；应用级 controller 异步恢复，读取失败不抹除或覆盖，显式删除与
+  core 配对和收件箱隔离。不自动连接，不保存到 SavedState Bundle 或普通偏好设置。
+- Shizuku 的授权状态与来源状态分离，匹配请求码、显式拒绝覆盖 SDK 旧授权缓存，
+  Binder 死亡撤销状态；新授权仍须通过服务身份/版本/权限探测。
+- 10 项本地 JVM 测试通过：加密往返、随机 IV、防篡改/截断/错误密钥/版本/大小检查，
+  授权成功显示、等待/拒绝/重授权/撤销/死亡/异常/不支持模式。
+  在临时源码中分别移除密码恢复和忽略授权回调，回归测试按预期失败；原源码不改动。
+- SecureConnectionStore 已使用本机现有 Android 36 public API jar 编译通过；这不是
+  Gradle APK 构建，也不代表 Android Keystore 实机成功。191 项中英文键及占位符检查通过。
+- 新增 4 项 Android instrumentation 测试覆盖新 store 重开与删除隔离、文件损坏及
+  密钥丢失不重置、controller 恢复与显式删除、读取失败保护；本轮仅交 Actions 编译，
+  不启动模拟器、不读取真实凭据/剪贴板、不操作手机。既有隔离服务测试注入内存凭据存储。
+- Rust/core/vendor/FFI、iOS 和敏感消息策略未修改；不以此前 facade 测试替代本轮平台验证。
+  完整 Android APK、lint 和测试编译由推送后的 Actions 运行，不持续监控。

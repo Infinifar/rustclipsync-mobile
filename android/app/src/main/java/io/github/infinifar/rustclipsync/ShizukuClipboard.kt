@@ -29,7 +29,14 @@ internal class ShizukuClipboard(private val context: Context) {
     private var binding = false
     private var required = false
     var ready by mutableStateOf(false); private set
-    var status by mutableStateOf(UiMessage(R.string.shizuku_unavailable)); private set
+    var access by mutableStateOf(ShizukuAccessState.UNAVAILABLE); private set
+    var status by mutableStateOf(UiMessage(R.string.shizuku_source_idle)); private set
+    private val authorization = ShizukuAccess(
+        probe = ::probeAccess,
+        request = Shizuku::requestPermission,
+        rationale = Shizuku::shouldShowRequestPermissionRationale,
+        changed = { access = it },
+    )
     var wake: (() -> Unit)? = null
     private val callback = object : IClipboardWake.Stub() {
         override fun changed() {
@@ -44,41 +51,41 @@ internal class ShizukuClipboard(private val context: Context) {
             try { remote?.observe(callback); ready = true; status = UiMessage(R.string.shizuku_ready); wake?.invoke() }
             catch (_: Exception) { stop(); status = UiMessage(R.string.shizuku_failed) }
         }
-        override fun onServiceDisconnected(name: ComponentName?) { remote = null; binding = false; ready = false; status = idleStatus(); wake?.invoke() }
+        override fun onServiceDisconnected(name: ComponentName?) { remote = null; binding = false; ready = false; status = UiMessage(if (required) R.string.shizuku_failed else R.string.shizuku_source_idle); wake?.invoke() }
     }
     init {
-        Shizuku.addBinderReceivedListenerSticky { main.post { refresh() } }
-        Shizuku.addBinderDeadListener { main.post { remote = null; binding = false; ready = false; status = UiMessage(R.string.shizuku_unavailable); wake?.invoke() } }
-        Shizuku.addRequestPermissionResultListener { _, _ -> main.post { refresh() } }
+        Shizuku.addBinderReceivedListenerSticky { main.post { authorization.binderReceived(); refresh() } }
+        Shizuku.addBinderDeadListener { main.post { authorization.binderDied(); stop(); wake?.invoke() } }
+        Shizuku.addRequestPermissionResultListener { code, result -> main.post {
+            if (authorization.result(code, result == PackageManager.PERMISSION_GRANTED)) refresh()
+        } }
+    }
+    private fun probeAccess(): ShizukuAccessState = when {
+        !Shizuku.pingBinder() || Shizuku.getVersion() < 13 -> ShizukuAccessState.UNAVAILABLE
+        Shizuku.getUid() != 2000 -> ShizukuAccessState.SHELL_REQUIRED
+        Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED -> ShizukuAccessState.AUTHORIZED
+        else -> ShizukuAccessState.NOT_AUTHORIZED
     }
     private fun authorized(): Boolean = try {
-        Shizuku.pingBinder() && Shizuku.getVersion() >= 13 && Shizuku.getUid() == 2000 && Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
+        access == ShizukuAccessState.AUTHORIZED && probeAccess() == ShizukuAccessState.AUTHORIZED
     } catch (_: RuntimeException) { false }
 
     fun requestPermission() {
-        try {
-            if (!Shizuku.pingBinder() || Shizuku.getVersion() < 13) { status = UiMessage(R.string.shizuku_unavailable); return }
-            if (Shizuku.getUid() != 2000) { status = UiMessage(R.string.shizuku_shell_required); return }
-            if (authorized()) refresh()
-            else if (Shizuku.shouldShowRequestPermissionRationale()) status = UiMessage(R.string.shizuku_denied)
-            else Shizuku.requestPermission(41)
-        } catch (_: RuntimeException) { status = UiMessage(R.string.shizuku_unavailable) }
+        authorization.requestPermission()
+        if (access == ShizukuAccessState.AUTHORIZED) refresh()
     }
     fun requireSource(value: Boolean) { required = value; if (value) refresh() else stop() }
     fun refresh() {
-        if (Shizuku.pingBinder() && try { Shizuku.getUid() != 2000 } catch (_: RuntimeException) { false }) {
-            stop(); status = UiMessage(R.string.shizuku_shell_required); return
-        }
-        if (!authorized()) { stop(); status = UiMessage(R.string.shizuku_unavailable); return }
-        status = UiMessage(if (ready) R.string.shizuku_ready else R.string.shizuku_authorized)
+        authorization.refresh()
+        if (access != ShizukuAccessState.AUTHORIZED) { stop(); return }
+        status = UiMessage(when { ready -> R.string.shizuku_ready; required -> R.string.shizuku_source_connecting; else -> R.string.shizuku_source_idle })
         if (required && !binding) {
             try { binding = true; Shizuku.bindUserService(args, connection) }
             catch (_: RuntimeException) { binding = false; status = UiMessage(R.string.shizuku_failed) }
         }
     }
-    private fun idleStatus() = UiMessage(if (authorized()) R.string.shizuku_authorized else R.string.shizuku_unavailable)
     private fun stop() {
-        remote = null; ready = false; status = idleStatus()
+        remote = null; ready = false; status = UiMessage(R.string.shizuku_source_idle)
         if (binding) { binding = false; try { Shizuku.unbindUserService(args, connection, true) } catch (_: RuntimeException) { } }
     }
     fun snapshot(): ClipboardText? {

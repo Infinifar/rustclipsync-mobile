@@ -95,8 +95,12 @@ MobileConfig / ClipboardText（部分语言的生成 record 自带包含字段�
 平台仅存放 core::state::seal 返回的原始 RCS1 字节，core::state::open 负责读取。
 64 MiB 上限沿用 core；只有 ENOENT / 对应的明确不存在错误返回 None。
 Android 在 noBackupFilesDir 用 Keystore AES-GCM 包装随机 32 字节 state key；iOS 用
-WhenUnlockedThisDeviceOnly、不可同步 Keychain 条目。明文账户密码只留在会话内存，
-首版尚不提供记住密码。平台临时文件写入、同步、原子 rename 和目录同步后才报告成功。
+WhenUnlockedThisDeviceOnly、不可同步 Keychain 条目。iOS 明文账户密码只留在会话内存。
+Android 另用独立 Keystore AES-256-GCM 密钥和 AtomicFile 保存连接凭据，放在
+noBackupFilesDir/connection，不改动 RCS1、配对 key 或收件箱。连接校验成功后保存，
+应用级 controller 异步恢复字段；不写入普通设置或 SavedState Bundle，不自动连接。
+读取失败不覆盖或抹除，必须显式删除连接配置；关闭会话保留配置，删除凭据不撤销令牌。
+core 状态的临时文件写入、同步、原子 rename 和目录同步后才报告成功。
 密钥丢失、解密失败、权限错误或损坏不重置身份；Storage 错误终止本会话，必须从磁盘重开。
 
 Disabled → core 跳过标记内容；EncryptedInbox → core 加密收件箱、skipped ack、无 OS 写入；

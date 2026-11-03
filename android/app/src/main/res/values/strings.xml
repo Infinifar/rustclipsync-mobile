@@ -31,7 +31,7 @@
     <string name="enable">Enable</string>
     <string name="copy_sensitive">Copy sensitive content</string>
     <string name="password">Password</string>
-    <string name="connection_note">The password stays in this session only. Enter the deployment base URL. Configure sensitive handling in Settings.</string>
+    <string name="connection_note">Connection details are encrypted with Android Keystore after a successful connection and restored when reopened. Enter the deployment base URL. Reconnect in the foreground.</string>
     <string name="notification_actions_note">Show and Hide keep the notification shade open; Copy closes it. Unlock before showing or copying.</string>
     <string name="sensitive_policy_prefix">"Sensitive policy: "</string>
     <string name="current_server">Current server</string>
@@ -60,7 +60,7 @@
     <string name="policy_skip">Skip marked sensitive messages</string>
     <string name="delete_inbox_warning">This permanently deletes this locally saved sensitive message.</string>
     <string name="listener_connect_first">Connect in the foreground to start background operation</string>
-    <string name="connect_register">Connect and register</string>
+    <string name="connect_register">Save and connect</string>
     <string name="connect_server">Connect to server</string>
     <string name="inbox_connect_note">Connect to receive marked sensitive messages.</string>
     <string name="notification_channel_settings">Notification permission and channels</string>
@@ -170,7 +170,7 @@
     <string name="shizuku_setup">Shizuku installation and startup</string>
     <string name="shizuku_unavailable">Unavailable: start Shizuku and grant access</string>
     <string name="shizuku_ready">Authorized background clipboard source connected</string>
-    <string name="shizuku_authorized">Authorized; connects when background operation includes sending</string>
+    <string name="shizuku_authorized">Shizuku access granted</string>
     <string name="shizuku_denied">Access denied; allow this app in Shizuku application management</string>
     <string name="shizuku_failed">Clipboard source failed; check Shizuku and retry</string>
     <string name="shizuku_capture_failed">Last background capture was unavailable: the device may be locked, access revoked, the OS interface unsupported, or text over 256 KiB. Receiving and already-owned uploads continue.</string>
@@ -180,4 +180,15 @@
     <string name="inbox_receive_filter_active">Incoming regex filtering is active; rejected messages do not enter the inbox.</string>
     <string name="shizuku_shell_required">This clipboard source requires Shizuku started through wireless debugging / ADB (shell mode). Root mode is unsupported; restart Shizuku in ADB mode.</string>
     <string name="error_protocol_unsupported">Server protocol unsupported. Use a RustClipSync server with protocol 3.</string>
+    <string name="credentials_restored">Saved connection restored. Select Save and connect to reconnect.</string>
+    <string name="credentials_saved">Connection saved securely on this device.</string>
+    <string name="credentials_save_failed">Connected, but the connection could not be saved. Keep the app open or enter the details again next time.</string>
+    <string name="credentials_load_failed">The saved connection could not be decrypted or read. It has not been erased. To enter new details, explicitly delete the saved credentials below. Device pairing and inbox are separate.</string>
+    <string name="credentials_forget">Delete saved credentials</string>
+    <string name="credentials_deleted">Saved credentials deleted. Device pairing and encrypted inbox are unchanged.</string>
+    <string name="credentials_delete_failed">Could not delete saved credentials. Please retry.</string>
+    <string name="shizuku_not_authorized">Shizuku is running; this app has not been authorized</string>
+    <string name="shizuku_requesting">Waiting for the Shizuku authorization result</string>
+    <string name="shizuku_source_idle">Clipboard source idle; starts only while background operation includes sending and the app is backgrounded.</string>
+    <string name="shizuku_source_connecting">Access granted; connecting the background clipboard source…</string>
 </resources>

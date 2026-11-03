@@ -27,7 +27,7 @@ core 固定 6a1ccd37b8ca3e515610d48bfa47f20b7c9b0ca4，通过完整未改动 ven
 - 显示/隐藏保持通知栏（不走 authenticationRequired）；复制走认证收起路径；私有服务
   仍校验解锁、票据和版本。透明单色图标、按宽度约 2/3 的星号掩码沿用。
 - 三页 UI 与设置“同步/过滤/外观/关于”；UUID、core 正则过滤、更新与项目链接沿用。
-  中英文 180 个资源键，支持系统语言、中文、English；新增语言走 Android resources。
+  中英文 191 个资源键，支持系统语言、中文、English；新增语言走 Android resources。
 
 ## 本轮验证与剩余工作
 
@@ -64,3 +64,15 @@ Git SSH gitlab-rocky:20820 登录 @Cassius；管理 shell 为 root@turbo-rocky:2
 绕过远端构建偏好。可用现有 Rust toolchain 做共享层检查，临时 target 完成后清理。
 完整 check.sh 生成绑定、跑 host ABI、隔离 TLS fixture，不接真实账户；构建步骤见 BUILD.md。
 所有报告区分 mock、ABI、平台编译、模拟器和真机。临时服务、容器、证书、数据库用后清理。
+
+## Android 凭据恢复与 Shizuku 授权修复
+
+Android “保存并连接”在连接成功后加密保存凭据。SecureConnectionStore 使用独立
+Android Keystore AES-256-GCM key + AtomicFile，noBackupFilesDir/connection；与 core
+状态及 wrapping key 分离，不改协议或 vendor。SessionController 异步恢复三个字段，
+Activity/语言重建不丢失、不写 SavedState、不自动连接；关闭保留，显式删除只清连接。
+读取失败保留文件并阻止覆盖；旧版未保存的内容无法找回，首次升级需连接一次。
+ShizukuAccess 将授权生命周期与来源连接分离，匹配授权请求码、处理拒绝和 Binder 死亡，
+结果不覆盖身份/版本/权限检查。UI 同时显示授权成功与来源空闲/就绪。
+新增 10 项本地 JVM 加密/授权回归测试，4 项 Android 恢复/Keystore instrumentation
+只编写交 CI 编译，本轮未启动模拟器或操作真实设备。iOS 凭据行为不变。

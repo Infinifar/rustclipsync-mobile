@@ -69,6 +69,7 @@ facade 作为独立 crate，避免给 core 加入 Android、iOS 或 UI 依赖。
 - 固定 core 依赖来源，记录提交、版本和更新方式，确保新 clone 可独立构建。
 - 沿用 core 的事务与加密格式，不在 facade 定义另一个同步状态文件格式。
 - StateStore 提交必须满足原子替换和故障恢复约定；存储或密钥错误不得被当成首次安装。
+- Android 连接凭据属于平台配置，另用独立 Keystore 密钥和 AtomicFile 加密保存；不扩展或修改 core 的 RCS1。应用级 controller 恢复填写，不自动连接或放宽剪贴板权限；删除配置不删除配对。
 - 保留消息 ID、敏感标记、游标与原有客户端的协议语义；不要为移动 UI 修改协议行为。
 - 需要修改 core 时，在 core 仓库单独实现并验证，再更新这里固定的依赖。
 

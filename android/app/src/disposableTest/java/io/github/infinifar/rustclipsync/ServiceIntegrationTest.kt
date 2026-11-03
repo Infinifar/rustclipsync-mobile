@@ -28,6 +28,12 @@ class ServiceIntegrationTest {
         check(it.packageName.endsWith(".disposable"))
         check(InstrumentationRegistry.getArguments().getString("disposableFixture") == "1")
     }
+    // Synthetic integration must not write even synthetic account passwords to app Keystore storage.
+    private val connectionStore = object : ConnectionStore {
+        override fun load(): ConnectionCredentials? = null
+        override fun save(value: ConnectionCredentials) { }
+        override fun clear() { }
+    }
     private val root = File(context.noBackupFilesDir, "disposable-service-e2e")
     private val server = InstrumentationRegistry.getArguments().getString("server") ?: error("fixture URL required")
     private class FilePlatform(directory: File) : SessionPlatform {
@@ -125,7 +131,7 @@ class ServiceIntegrationTest {
         val controller = main {
             previous.close()
             context.getSharedPreferences("background-running-v2", 0).edit().clear().commit()
-            SessionController(context, { b to ByteArray(32) { 0x42 } }, MobileSession::forDisposableTest)
+            SessionController(context, { b to ByteArray(32) { 0x42 } }, MobileSession::forDisposableTest, credentials = { connectionStore })
                 .also { app.session = it }
         }
         fun inbox() = notifications.activeNotifications.firstOrNull { it.id == InboxNotifications.INBOX_ID }?.notification
@@ -228,7 +234,7 @@ class ServiceIntegrationTest {
         val controller = main {
             previous.close()
             context.getSharedPreferences("background-running-v2", 0).edit().clear().commit()
-            SessionController(context, { b to ByteArray(32) { 0x42 } }, MobileSession::forDisposableTest)
+            SessionController(context, { b to ByteArray(32) { 0x42 } }, MobileSession::forDisposableTest, credentials = { connectionStore })
                 .also { app.session = it }
         }
         val manager = context.getSystemService(NotificationManager::class.java)
@@ -275,7 +281,7 @@ class ServiceIntegrationTest {
         val controller = main {
             previous.close()
             context.getSharedPreferences("background-running-v2", 0).edit().clear().commit()
-            SessionController(context, { adapter to ByteArray(32) { 0x42 } }, MobileSession::forDisposableTest)
+            SessionController(context, { adapter to ByteArray(32) { 0x42 } }, MobileSession::forDisposableTest, credentials = { connectionStore })
                 .also { app.session = it }
         }
         try {

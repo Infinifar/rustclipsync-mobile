@@ -61,9 +61,6 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun SyncScreen(session: SessionController, theme: ThemeMode, changeTheme: (ThemeMode) -> Unit) {
-    var server by rememberSaveable { mutableStateOf("") }
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
     val policy = session.policySelection
     var settingsPage by rememberSaveable { mutableIntStateOf(0) }
     var updateChecking by remember { mutableStateOf(false) }
@@ -74,7 +71,7 @@ private fun SyncScreen(session: SessionController, theme: ThemeMode, changeTheme
     var confirmAutoWrite by remember { mutableStateOf(false) }
     var confirmBackgroundRun by remember { mutableStateOf(false) }
     var notificationRationale by remember { mutableStateOf(false) }
-    val editable = !session.connected && !session.busy
+    val editable = !session.connected && !session.busy && !session.credentialsBusy
     val context = LocalContext.current
     val notificationPreferences = remember { context.getSharedPreferences("notification-permission", Context.MODE_PRIVATE) }
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -120,18 +117,22 @@ private fun SyncScreen(session: SessionController, theme: ThemeMode, changeTheme
                     0 -> {
                         Panel(if (session.connected) context.translated(R.string.session_connected) else context.translated(R.string.connect_server)) {
                             if (!session.connected) {
-                                OutlinedTextField(server, { server = it }, label = { Text(context.translated(R.string.server_address)) },
+                                OutlinedTextField(session.connectionServer, { session.connectionServer = it }, label = { Text(context.translated(R.string.server_address)) },
                                     modifier = Modifier.fillMaxWidth(), enabled = editable, singleLine = true)
-                                OutlinedTextField(username, { username = it }, label = { Text(context.translated(R.string.account)) },
+                                OutlinedTextField(session.connectionUsername, { session.connectionUsername = it }, label = { Text(context.translated(R.string.account)) },
                                     modifier = Modifier.fillMaxWidth(), enabled = editable, singleLine = true)
-                                OutlinedTextField(password, { password = it }, label = { Text(context.translated(R.string.password)) },
+                                OutlinedTextField(session.connectionPassword, { session.connectionPassword = it }, label = { Text(context.translated(R.string.password)) },
                                     modifier = Modifier.fillMaxWidth(), enabled = editable, singleLine = true,
                                     visualTransformation = PasswordVisualTransformation())
                                 Note(context.translated(R.string.connection_note))
-                                Button(onClick = { session.connect(server.trim(), username, password, policy); password = "" },
-                                    enabled = editable && server.isNotBlank(), modifier = Modifier.fillMaxWidth()) { Text(context.translated(R.string.connect_register)) }
+                                if (session.credentialsBusy) LinearProgressIndicator(Modifier.fillMaxWidth())
+                                Button(onClick = { session.connect(session.connectionServer.trim(), session.connectionUsername, session.connectionPassword, policy) },
+                                    enabled = editable && !session.credentialLoadFailed && session.connectionServer.isNotBlank(), modifier = Modifier.fillMaxWidth()) { Text(context.translated(R.string.connect_register)) }
+                                if (session.savedCredentials || session.credentialLoadFailed) {
+                                    TextButton(onClick = session::forgetCredentials, enabled = editable) { Text(context.translated(R.string.credentials_forget)) }
+                                }
                             } else {
-                                Text(server.ifBlank { context.translated(R.string.current_server) }, style = MaterialTheme.typography.bodyLarge)
+                                Text(session.connectionServer.ifBlank { context.translated(R.string.current_server) }, style = MaterialTheme.typography.bodyLarge)
                                 Note(context.translated(R.string.sensitive_policy_prefix) + context.translated(policyTitle(session.policySelection)))
                                 Button(onClick = session::send, enabled = !session.busy && session.direction.sends, modifier = Modifier.fillMaxWidth()) { Text(context.translated(R.string.send_clipboard)) }
                                 OutlinedButton(onClick = session::receive, enabled = !session.busy && session.direction.receives, modifier = Modifier.fillMaxWidth()) { Text(context.translated(R.string.receive_latest)) }
@@ -140,6 +141,7 @@ private fun SyncScreen(session: SessionController, theme: ThemeMode, changeTheme
                                 }
                                 TextButton(onClick = session::close) { Text(context.translated(R.string.close_session)) }
                             }
+                            session.credentialMessage?.let { Note(it.resolve(context)) }
                         }
                         Panel(context.translated(R.string.sync_status)) {
                             if (session.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -237,6 +239,7 @@ private fun SyncScreen(session: SessionController, theme: ThemeMode, changeTheme
                             Note(context.translated(R.string.background_limits))
                         }
                         if (settingsPage == 0 && session.direction.sends) Panel(context.translated(R.string.shizuku_title)) {
+                            Text(context.translated(session.privilegedClipboard.access.message))
                             Text(session.privilegedClipboard.status.resolve(context))
                             Note(context.translated(R.string.shizuku_note))
                             if (session.captureUnavailable) Note(context.translated(R.string.shizuku_capture_failed))

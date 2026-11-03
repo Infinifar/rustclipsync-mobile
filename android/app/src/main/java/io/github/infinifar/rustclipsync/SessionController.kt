@@ -30,8 +30,10 @@ internal class SessionController(
         val store = SecureState(it); AndroidPlatform(it, store) to store.key()
     },
     private val open: (MobileConfig, Platform) -> MobileSession = { config, adapter -> MobileSession(config, adapter) },
+    private val credentials: (Context) -> ConnectionStore = { SecureConnectionStore(it) },
 ) {
     private val application = context.applicationContext
+    private val connectionStore by lazy { credentials(application) }
     private val preferences = application.getSharedPreferences("background-running-v2", Context.MODE_PRIVATE)
     private val syncPreferences = application.getSharedPreferences("sync-settings", Context.MODE_PRIVATE)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -56,6 +58,14 @@ internal class SessionController(
     var backgroundRunning by mutableStateOf(false); private set
     var busy by mutableStateOf(false); private set
     var connected by mutableStateOf(false); private set
+    // Application-owned memory survives Activity/locale recreation; never use rememberSaveable for secrets.
+    var connectionServer by mutableStateOf("")
+    var connectionUsername by mutableStateOf("")
+    var connectionPassword by mutableStateOf("")
+    var credentialsBusy by mutableStateOf(true); private set
+    var savedCredentials by mutableStateOf(false); private set
+    var credentialLoadFailed by mutableStateOf(false); private set
+    var credentialMessage by mutableStateOf<UiMessage?>(null); private set
     var status by mutableStateOf<SessionStatus?>(null); private set
     var direction by mutableStateOf(SyncDirection.entries.firstOrNull { it.key == syncPreferences.getString("direction", "both") } ?: SyncDirection.BOTH); private set
     var filterMode by mutableStateOf(TextFilterMode.entries.firstOrNull { it.name == syncPreferences.getString("filter-mode", "OFF") } ?: TextFilterMode.OFF); private set
@@ -104,8 +114,42 @@ internal class SessionController(
     val message: String get() = statusText.resolve(application)
     private var statusText by mutableStateOf(UiMessage(R.string.status_idle)); private set
 
+    init {
+        scope.launch {
+            try {
+                val value = withContext(Dispatchers.IO) { connectionStore.load() }
+                if (value != null) {
+                    connectionServer = value.server; connectionUsername = value.username; connectionPassword = value.password
+                    savedCredentials = true
+                    credentialMessage = UiMessage(R.string.credentials_restored)
+                }
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                credentialLoadFailed = true
+                credentialMessage = UiMessage(R.string.credentials_load_failed)
+            } finally { credentialsBusy = false }
+        }
+    }
+
+    fun forgetCredentials() {
+        if (busy || connected || credentialsBusy) return
+        credentialsBusy = true
+        busy = true
+        scope.launch {
+            try {
+                withContext(Dispatchers.IO) { connectionStore.clear() }
+                connectionServer = ""; connectionUsername = ""; connectionPassword = ""
+                savedCredentials = false; credentialLoadFailed = false
+                credentialMessage = UiMessage(R.string.credentials_deleted)
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                credentialMessage = UiMessage(R.string.credentials_delete_failed)
+            } finally { credentialsBusy = false; busy = false }
+        }
+    }
+
     fun connect(server: String, username: String, password: String, policy: SensitivePolicy) {
-        if (busy || native != null || !foreground || !focused) return
+        if (busy || credentialsBusy || credentialLoadFailed || native != null || !foreground || !focused) return
         val version = ++epoch
         selectedPolicy = policy
         busy = true
@@ -122,6 +166,18 @@ internal class SessionController(
                 session.updateFilter(filterConfig())
                 session.check()
                 val value = session.status()
+                if (version == epoch) {
+                    connectionServer = server; connectionUsername = username; connectionPassword = password
+                    credentialsBusy = true
+                    try {
+                        withContext(Dispatchers.IO) { connectionStore.save(ConnectionCredentials(server, username, password)) }
+                        savedCredentials = true
+                        credentialMessage = UiMessage(R.string.credentials_saved)
+                    } catch (error: Exception) {
+                        if (error is CancellationException) throw error
+                        credentialMessage = UiMessage(R.string.credentials_save_failed)
+                    } finally { credentialsBusy = false }
+                }
                 if (version == epoch) {
                     status = value; connected = true; statusText = UiMessage(R.string.status_connected)
                     startBackgroundIfEnabled()

@@ -91,3 +91,24 @@ failed on mixed-type reflection-array inference in `PrivilegedClipboardService.k
 Both argument arrays now declare `Any?` explicitly; caller-UID, lock-screen and
 Shizuku ADB-mode checks are retained. Platform compilation is checked by the new
 Actions run; no new emulator, Shizuku-device or iOS validation is implied.
+
+## Android saved connections and Shizuku status
+
+**Save and connect** saves the deployment base URL, account and password only after
+a successful connection. An independent non-exportable Android Keystore key
+encrypts them with AES-256-GCM in an atomic, app-private, no-backup file. Reopening
+or recreating the Activity restores the fields with a masked password; reconnecting
+still requires a foreground action. Closing a session retains the saved connection.
+**Delete saved credentials** removes only that profile, preserving device pairing
+and the encrypted inbox; it does not revoke the server token. Read/decryption errors
+keep the file intact and require explicit deletion before replacement. An old
+build that never saved credentials requires one successful connection after upgrade.
+iOS still keeps account passwords in session memory.
+
+Shizuku authorization and clipboard-source readiness are separate: a successful
+callback shows **Shizuku access granted**, including while the source is idle.
+The source still starts only when the background service is running, sending is
+enabled and the app is backgrounded. Denial, unavailable Binder, unsupported root
+mode and source errors remain distinct; live identity and permission checks guard
+reads. Local JVM regression tests pass; current Android compilation is delegated
+to Actions, while actual Keystore, Shizuku and restart behavior need device checks.
