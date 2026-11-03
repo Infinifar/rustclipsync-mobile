@@ -1,0 +1,35 @@
+{
+  "artifact_source": {
+    "job": 286,
+    "sha": "19ecaef5f8c68f09939455de49c307716c463d61"
+  },
+  "final_verification": false,
+  "reason": "Diagnostic runs on the restoration fix before the separate notification group. Harness fixes evolved during these runs. Their partial and focused results are excluded from the final complete-suite counts.",
+  "runs": {
+    "probe-first-ui-api35": "Original full run completed five service methods but the added manual notification stage timed out while investigating the Android CLI layout root shape.",
+    "probe-ui-tools-api35": "Actual Show click reached the app. System auto grouping collapsed the child on update; manual Hide stage timed out. This motivated an independent notification group.",
+    "probe-ui-tools-api31": "Four full service methods completed; SDK UI dump failed at the notification stage. Retries and disabled animations were then added.",
+    "probe-ui-success-api31": "Focused saved-inbox scenario passed actual SystemUI Show, Hide and Copy. Not a full recovery suite.",
+    "probe-ui-success-api35": "Focused saved-inbox scenario passed actual SystemUI Show, Hide and Copy. Not a full recovery suite."
+  },
+  "ci_network_probes": [
+    {
+      "pipeline": 129,
+      "job": 288,
+      "sha": "3b633fb91f6475001e4447a2ad5937c8c2080007",
+      "result": "Android compilation/lint passed; codeload.github.com resolution failed while preparing the isolated server."
+    },
+    {
+      "pipeline": 130,
+      "job": 290,
+      "sha": "90d1f12e2a18ea59b110548f276737f51d8d74d6",
+      "result": "Android assembly passed; lint dependency downloads failed with Maven DNS resolution errors."
+    }
+  ],
+  "ci292_runs": {
+    "probe-ci292-full-api31-ui-tools": "Four service methods passed; automated UI dump failed after the test selected a clickable row instead of the native expander. Whole run incomplete.",
+    "probe-ci292-ui-connection-api31": "Stopping the preceding target process did not resolve the misselected expander and subsequent UI query conflict. Whole run incomplete.",
+    "probe-ci292-manual-timeout-api31": "Manual stage readiness was missed while output was buffered; no successful actual button sequence. Focused run incomplete.",
+    "probe-ci292-manual-timeout2-api31": "Repeated focused manual attempt reached the actual collapsed card hierarchy, but Show was not completed before timeout. Empty screencap output was not retained as proof."
+  }
+}

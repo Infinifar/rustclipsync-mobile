@@ -1,0 +1,1479 @@
+[
+  {
+    "window-title": "Navigation bar",
+    "type": "SYSTEM",
+    "layer": 1,
+    "bounds": "[0,2208][1080,2340]",
+    "content": [
+      {
+        "class": "android.widget.FrameLayout",
+        "resource-id": "com.android.systemui:id/navigation_bar_frame",
+        "bounds": "[0,2208][1080,2340]",
+        "center": "[540,2274]",
+        "children": [
+          {
+            "class": "android.widget.FrameLayout",
+            "resource-id": "com.android.systemui:id/navigation_bar_view",
+            "bounds": "[0,2208][1080,2340]",
+            "center": "[540,2274]",
+            "children": [
+              {
+                "class": "android.widget.FrameLayout",
+                "resource-id": "com.android.systemui:id/navigation_inflater",
+                "bounds": "[0,2208][1080,2340]",
+                "center": "[540,2274]",
+                "children": [
+                  {
+                    "class": "android.widget.FrameLayout",
+                    "resource-id": "com.android.systemui:id/horizontal",
+                    "bounds": "[50,2208][1030,2340]",
+                    "center": "[540,2274]",
+                    "children": [
+                      {
+                        "class": "android.widget.FrameLayout",
+                        "resource-id": "com.android.systemui:id/nav_buttons",
+                        "bounds": "[72,2208][1008,2340]",
+                        "center": "[540,2274]",
+                        "children": [
+                          {
+                            "class": "android.widget.LinearLayout",
+                            "resource-id": "com.android.systemui:id/ends_group",
+                            "bounds": "[72,2208][1008,2340]",
+                            "center": "[540,2274]",
+                            "children": [
+                              {
+                                "class": "android.widget.RelativeLayout",
+                                "bounds": "[72,2208][165,2340]",
+                                "center": "[118,2274]"
+                              },
+                              {
+                                "class": "android.widget.RelativeLayout",
+                                "bounds": "[165,2208][352,2340]",
+                                "center": "[258,2274]",
+                                "children": [
+                                  {
+                                    "class": "android.widget.ImageView",
+                                    "resource-id": "com.android.systemui:id/back",
+                                    "content-desc": "Back",
+                                    "interactions": [
+                                      "CLICKABLE",
+                                      "FOCUSABLE"
+                                    ],
+                                    "bounds": "[165,2208][352,2340]",
+                                    "center": "[258,2274]"
+                                  }
+                                ]
+                              },
+                              {
+                                "class": "android.widget.RelativeLayout",
+                                "bounds": "[726,2208][914,2340]",
+                                "center": "[820,2274]",
+                                "children": [
+                                  {
+                                    "class": "android.widget.ImageView",
+                                    "resource-id": "com.android.systemui:id/recent_apps",
+                                    "content-desc": "Overview",
+                                    "interactions": [
+                                      "CLICKABLE",
+                                      "FOCUSABLE"
+                                    ],
+                                    "bounds": "[726,2208][914,2340]",
+                                    "center": "[820,2274]"
+                                  }
+                                ]
+                              },
+                              {
+                                "class": "android.widget.RelativeLayout",
+                                "bounds": "[914,2208][1008,2340]",
+                                "center": "[961,2274]"
+                              }
+                            ]
+                          },
+                          {
+                            "class": "android.widget.LinearLayout",
+                            "resource-id": "com.android.systemui:id/center_group",
+                            "bounds": "[430,2208][650,2340]",
+                            "center": "[540,2274]",
+                            "children": [
+                              {
+                                "class": "android.widget.ImageView",
+                                "resource-id": "com.android.systemui:id/home",
+                                "content-desc": "Home",
+                                "interactions": [
+                                  "CLICKABLE",
+                                  "LONG_CLICKABLE",
+                                  "FOCUSABLE"
+                                ],
+                                "bounds": "[430,2208][650,2340]",
+                                "center": "[540,2274]"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "window-title": "",
+    "type": "SYSTEM",
+    "active": true,
+    "focused": true,
+    "layer": 0,
+    "bounds": "[0,0][1080,2340]",
+    "content": [
+      {
+        "class": "android.widget.FrameLayout",
+        "bounds": "[0,0][1080,2340]",
+        "center": "[540,1170]",
+        "children": [
+          {
+            "class": "android.view.View",
+            "resource-id": "com.android.systemui:id/scrim_behind",
+            "interactions": [
+              "CLICKABLE",
+              "FOCUSABLE"
+            ],
+            "bounds": "[0,0][1080,2340]",
+            "center": "[540,1170]"
+          },
+          {
+            "class": "android.view.View",
+            "resource-id": "com.android.systemui:id/scrim_notifications",
+            "interactions": [
+              "FOCUSABLE"
+            ],
+            "bounds": "[0,0][1080,2340]",
+            "center": "[540,1170]"
+          },
+          {
+            "class": "android.view.View",
+            "resource-id": "com.android.systemui:id/scrim_in_front",
+            "interactions": [
+              "FOCUSABLE"
+            ],
+            "bounds": "[0,0][1080,2340]",
+            "center": "[540,1170]"
+          },
+          {
+            "class": "android.widget.FrameLayout",
+            "resource-id": "com.android.systemui:id/notification_panel",
+            "bounds": "[0,0][1080,2340]",
+            "center": "[540,1170]",
+            "children": [
+              {
+                "class": "android.view.ViewGroup",
+                "resource-id": "com.android.systemui:id/notification_container_parent",
+                "bounds": "[0,0][1080,2340]",
+                "center": "[540,1170]",
+                "children": [
+                  {
+                    "class": "android.widget.FrameLayout",
+                    "resource-id": "com.android.systemui:id/qs_frame",
+                    "bounds": "[0,0][1080,2208]",
+                    "center": "[540,1104]",
+                    "children": [
+                      {
+                        "class": "android.widget.FrameLayout",
+                        "resource-id": "com.android.systemui:id/quick_settings_container",
+                        "bounds": "[0,0][1080,607]",
+                        "center": "[540,303]",
+                        "children": [
+                          {
+                            "class": "android.widget.ScrollView",
+                            "resource-id": "com.android.systemui:id/expanded_qs_scroll_view",
+                            "interactions": [
+                              "FOCUSABLE"
+                            ],
+                            "bounds": "[44,0][1036,607]",
+                            "center": "[540,303]"
+                          },
+                          {
+                            "class": "android.widget.FrameLayout",
+                            "resource-id": "com.android.systemui:id/header",
+                            "bounds": "[44,0][1036,607]",
+                            "center": "[540,303]",
+                            "children": [
+                              {
+                                "class": "android.widget.RelativeLayout",
+                                "resource-id": "com.android.systemui:id/qs_container",
+                                "bounds": "[44,0][1036,607]",
+                                "center": "[540,303]",
+                                "children": [
+                                  {
+                                    "class": "android.widget.LinearLayout",
+                                    "resource-id": "com.android.systemui:id/quick_qs_status_icons",
+                                    "interactions": [
+                                      "FOCUSABLE"
+                                    ],
+                                    "bounds": "[44,0][1036,145]",
+                                    "center": "[540,72]",
+                                    "children": [
+                                      {
+                                        "class": "android.widget.TextView",
+                                        "resource-id": "com.android.systemui:id/clock",
+                                        "text": "6:16",
+                                        "content-desc": "6:16 PM",
+                                        "hidden": true
+                                      },
+                                      {
+                                        "class": "android.widget.LinearLayout",
+                                        "resource-id": "com.android.systemui:id/carrier_group",
+                                        "interactions": [
+                                          "CLICKABLE",
+                                          "FOCUSABLE"
+                                        ],
+                                        "hidden": true,
+                                        "children": [
+                                          {
+                                            "class": "android.widget.TextView",
+                                            "resource-id": "com.android.systemui:id/no_carrier_text",
+                                            "text": "No service",
+                                            "interactions": [
+                                              "CLICKABLE",
+                                              "FOCUSABLE"
+                                            ],
+                                            "state": [
+                                              "SELECTED"
+                                            ],
+                                            "hidden": true
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "class": "android.widget.FrameLayout",
+                                        "resource-id": "com.android.systemui:id/rightLayout",
+                                        "bounds": "[836,0][1036,145]",
+                                        "center": "[936,72]",
+                                        "children": [
+                                          {
+                                            "class": "android.widget.LinearLayout",
+                                            "bounds": "[836,0][1036,145]",
+                                            "center": "[936,72]",
+                                            "children": [
+                                              {
+                                                "class": "android.widget.LinearLayout",
+                                                "resource-id": "com.android.systemui:id/statusIcons",
+                                                "bounds": "[836,0][901,145]",
+                                                "center": "[868,72]",
+                                                "children": [
+                                                  {
+                                                    "class": "android.widget.FrameLayout",
+                                                    "resource-id": "com.android.systemui:id/wifi_combo",
+                                                    "content-desc": "Wifi signal full.,No internet",
+                                                    "bounds": "[836,42][884,103]",
+                                                    "center": "[860,72]",
+                                                    "children": [
+                                                      {
+                                                        "class": "android.widget.LinearLayout",
+                                                        "resource-id": "com.android.systemui:id/wifi_group",
+                                                        "bounds": "[843,42][884,103]",
+                                                        "center": "[863,72]",
+                                                        "children": [
+                                                          {
+                                                            "class": "android.widget.FrameLayout",
+                                                            "resource-id": "com.android.systemui:id/wifi_combo",
+                                                            "bounds": "[843,52][884,93]",
+                                                            "center": "[863,72]",
+                                                            "children": [
+                                                              {
+                                                                "class": "android.widget.ImageView",
+                                                                "resource-id": "com.android.systemui:id/wifi_signal",
+                                                                "bounds": "[843,52][884,93]",
+                                                                "center": "[863,72]"
+                                                              }
+                                                            ]
+                                                          }
+                                                        ]
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "class": "android.widget.LinearLayout",
+                                                "resource-id": "com.android.systemui:id/batteryRemainingIcon",
+                                                "content-desc": "Battery charging, 100 percent.",
+                                                "bounds": "[901,0][1036,145]",
+                                                "center": "[968,72]",
+                                                "children": [
+                                                  {
+                                                    "class": "android.widget.ImageView",
+                                                    "bounds": "[901,54][922,90]",
+                                                    "center": "[911,72]"
+                                                  },
+                                                  {
+                                                    "class": "android.widget.TextView",
+                                                    "resource-id": "com.android.systemui:id/battery_percentage_view",
+                                                    "text": "100%",
+                                                    "bounds": "[922,0][1030,145]",
+                                                    "center": "[976,72]"
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "class": "android.widget.LinearLayout",
+                                    "resource-id": "com.android.systemui:id/quick_qs_panel",
+                                    "interactions": [
+                                      "FOCUSABLE"
+                                    ],
+                                    "bounds": "[44,189][1036,607]",
+                                    "center": "[540,398]",
+                                    "children": [
+                                      {
+                                        "class": "android.view.ViewGroup",
+                                        "interactions": [
+                                          "FOCUSABLE"
+                                        ],
+                                        "bounds": "[44,189][1036,541]",
+                                        "center": "[540,365]",
+                                        "children": [
+                                          {
+                                            "class": "android.widget.Switch",
+                                            "text": "On",
+                                            "content-desc": "Internet,AndroidWifi",
+                                            "interactions": [
+                                              "CHECKABLE",
+                                              "CLICKABLE",
+                                              "LONG_CLICKABLE",
+                                              "FOCUSABLE"
+                                            ],
+                                            "state": [
+                                              "CHECKED"
+                                            ],
+                                            "bounds": "[44,189][529,354]",
+                                            "center": "[286,271]",
+                                            "children": [
+                                              {
+                                                "class": "android.view.ViewGroup",
+                                                "bounds": "[88,244][143,299]",
+                                                "center": "[115,271]",
+                                                "children": [
+                                                  {
+                                                    "class": "android.widget.FrameLayout",
+                                                    "bounds": "[88,244][143,299]",
+                                                    "center": "[115,271]",
+                                                    "children": [
+                                                      {
+                                                        "class": "android.widget.ImageView",
+                                                        "bounds": "[88,244][143,299]",
+                                                        "center": "[115,271]"
+                                                      }
+                                                    ]
+                                                  },
+                                                  {
+                                                    "class": "android.widget.ImageView",
+                                                    "hidden": true
+                                                  },
+                                                  {
+                                                    "class": "android.widget.ImageView",
+                                                    "hidden": true
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "class": "android.widget.LinearLayout",
+                                                "bounds": "[171,245][413,298]",
+                                                "center": "[292,271]",
+                                                "children": [
+                                                  {
+                                                    "class": "android.widget.TextView",
+                                                    "resource-id": "com.android.systemui:id/tile_label",
+                                                    "text": "Internet",
+                                                    "bounds": "[171,245][312,298]",
+                                                    "center": "[241,271]"
+                                                  },
+                                                  {
+                                                    "class": "android.widget.TextView",
+                                                    "resource-id": "com.android.systemui:id/app_label",
+                                                    "text": "AndroidWifi",
+                                                    "off-screen": true,
+                                                    "hidden": true
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "class": "android.widget.FrameLayout",
+                                                "bounds": "[441,244][496,299]",
+                                                "center": "[468,271]",
+                                                "children": [
+                                                  {
+                                                    "class": "android.widget.ImageView",
+                                                    "resource-id": "com.android.systemui:id/chevron",
+                                                    "bounds": "[441,244][496,299]",
+                                                    "center": "[468,271]"
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "class": "android.widget.Switch",
+                                            "text": "On",
+                                            "content-desc": "Bluetooth.",
+                                            "interactions": [
+                                              "CHECKABLE",
+                                              "CLICKABLE",
+                                              "LONG_CLICKABLE",
+                                              "FOCUSABLE"
+                                            ],
+                                            "state": [
+                                              "CHECKED"
+                                            ],
+                                            "bounds": "[551,189][1036,354]",
+                                            "center": "[793,271]",
+                                            "children": [
+                                              {
+                                                "class": "android.view.ViewGroup",
+                                                "bounds": "[595,244][650,299]",
+                                                "center": "[622,271]",
+                                                "children": [
+                                                  {
+                                                    "class": "android.widget.ImageView",
+                                                    "resource-id": "android:id/icon",
+                                                    "bounds": "[595,244][650,299]",
+                                                    "center": "[622,271]"
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "class": "android.widget.LinearLayout",
+                                                "bounds": "[678,245][975,298]",
+                                                "center": "[826,271]",
+                                                "children": [
+                                                  {
+                                                    "class": "android.widget.TextView",
+                                                    "resource-id": "com.android.systemui:id/tile_label",
+                                                    "text": "Bluetooth",
+                                                    "bounds": "[678,245][852,298]",
+                                                    "center": "[765,271]"
+                                                  },
+                                                  {
+                                                    "class": "android.widget.TextView",
+                                                    "resource-id": "com.android.systemui:id/app_label",
+                                                    "text": "On",
+                                                    "off-screen": true,
+                                                    "hidden": true
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "class": "android.widget.FrameLayout",
+                                                "off-screen": true,
+                                                "hidden": true
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "class": "android.widget.Switch",
+                                            "text": "Off",
+                                            "content-desc": "Flashlight",
+                                            "interactions": [
+                                              "CHECKABLE",
+                                              "CLICKABLE",
+                                              "FOCUSABLE"
+                                            ],
+                                            "bounds": "[44,376][529,541]",
+                                            "center": "[286,458]",
+                                            "children": [
+                                              {
+                                                "class": "android.view.ViewGroup",
+                                                "bounds": "[88,431][143,486]",
+                                                "center": "[115,458]",
+                                                "children": [
+                                                  {
+                                                    "class": "android.widget.ImageView",
+                                                    "resource-id": "android:id/icon",
+                                                    "bounds": "[88,431][143,486]",
+                                                    "center": "[115,458]"
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "class": "android.widget.LinearLayout",
+                                                "bounds": "[171,432][468,485]",
+                                                "center": "[319,458]",
+                                                "children": [
+                                                  {
+                                                    "class": "android.widget.TextView",
+                                                    "resource-id": "com.android.systemui:id/tile_label",
+                                                    "text": "Flashlight",
+                                                    "bounds": "[171,432][346,485]",
+                                                    "center": "[258,458]"
+                                                  },
+                                                  {
+                                                    "class": "android.widget.TextView",
+                                                    "resource-id": "com.android.systemui:id/app_label",
+                                                    "text": "Off",
+                                                    "off-screen": true,
+                                                    "hidden": true
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "class": "android.widget.FrameLayout",
+                                                "off-screen": true,
+                                                "hidden": true
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "class": "android.widget.Switch",
+                                            "text": "Off",
+                                            "content-desc": "Do Not Disturb.",
+                                            "interactions": [
+                                              "CHECKABLE",
+                                              "CLICKABLE",
+                                              "LONG_CLICKABLE",
+                                              "FOCUSABLE"
+                                            ],
+                                            "bounds": "[551,376][1036,541]",
+                                            "center": "[793,458]",
+                                            "children": [
+                                              {
+                                                "class": "android.view.ViewGroup",
+                                                "bounds": "[595,431][650,486]",
+                                                "center": "[622,458]",
+                                                "children": [
+                                                  {
+                                                    "class": "android.widget.ImageView",
+                                                    "resource-id": "android:id/icon",
+                                                    "bounds": "[595,431][650,486]",
+                                                    "center": "[622,458]"
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "class": "android.widget.LinearLayout",
+                                                "bounds": "[678,432][975,485]",
+                                                "center": "[826,458]",
+                                                "children": [
+                                                  {
+                                                    "class": "android.widget.TextView",
+                                                    "resource-id": "com.android.systemui:id/tile_label",
+                                                    "text": "Do Not Disturb",
+                                                    "bounds": "[678,432][940,485]",
+                                                    "center": "[809,458]"
+                                                  },
+                                                  {
+                                                    "class": "android.widget.TextView",
+                                                    "resource-id": "com.android.systemui:id/app_label",
+                                                    "text": "Off",
+                                                    "off-screen": true,
+                                                    "hidden": true
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "class": "android.widget.FrameLayout",
+                                                "off-screen": true,
+                                                "hidden": true
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "class": "android.widget.LinearLayout",
+                                "resource-id": "com.android.systemui:id/quick_status_bar_date_privacy",
+                                "interactions": [
+                                  "CLICKABLE",
+                                  "FOCUSABLE"
+                                ],
+                                "bounds": "[44,0][1036,145]",
+                                "center": "[540,72]",
+                                "children": [
+                                  {
+                                    "class": "android.widget.FrameLayout",
+                                    "resource-id": "com.android.systemui:id/date_container",
+                                    "bounds": "[136,0][586,145]",
+                                    "center": "[361,72]",
+                                    "children": [
+                                      {
+                                        "class": "android.widget.TextView",
+                                        "resource-id": "com.android.systemui:id/date",
+                                        "text": "Sun, Nov 1",
+                                        "bounds": "[136,46][328,99]",
+                                        "center": "[232,72]"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "class": "android.widget.FrameLayout",
+                                    "resource-id": "com.android.systemui:id/privacy_container",
+                                    "bounds": "[586,0][1036,145]",
+                                    "center": "[811,72]"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "class": "android.widget.ScrollView",
+                    "resource-id": "com.android.systemui:id/notification_stack_scroller",
+                    "interactions": [
+                      "SCROLLABLE",
+                      "FOCUSABLE"
+                    ],
+                    "bounds": "[0,0][1080,2120]",
+                    "center": "[540,1060]",
+                    "children": [
+                      {
+                        "class": "android.widget.FrameLayout",
+                        "resource-id": "com.android.systemui:id/expandableNotificationRow",
+                        "interactions": [
+                          "CLICKABLE",
+                          "FOCUSABLE"
+                        ],
+                        "bounds": "[44,651][1036,975]",
+                        "center": "[540,813]",
+                        "children": [
+                          {
+                            "class": "android.widget.Button",
+                            "resource-id": "com.android.systemui:id/veto",
+                            "interactions": [
+                              "CLICKABLE",
+                              "FOCUSABLE"
+                            ],
+                            "off-screen": true,
+                            "hidden": true
+                          },
+                          {
+                            "class": "android.widget.FrameLayout",
+                            "resource-id": "com.android.systemui:id/expandedPublic",
+                            "off-screen": true,
+                            "hidden": true
+                          },
+                          {
+                            "class": "android.view.View",
+                            "resource-id": "com.android.systemui:id/backgroundNormal",
+                            "bounds": "[44,651][1036,975]",
+                            "center": "[540,813]"
+                          },
+                          {
+                            "class": "android.view.View",
+                            "resource-id": "com.android.systemui:id/backgroundDimmed",
+                            "bounds": "[44,651][1036,975]",
+                            "center": "[540,813]"
+                          },
+                          {
+                            "class": "android.widget.FrameLayout",
+                            "resource-id": "com.android.systemui:id/expanded",
+                            "bounds": "[44,651][1036,975]",
+                            "center": "[540,813]",
+                            "children": [
+                              {
+                                "class": "android.widget.FrameLayout",
+                                "resource-id": "android:id/status_bar_latest_event_content",
+                                "bounds": "[44,651][1036,975]",
+                                "center": "[540,813]",
+                                "children": [
+                                  {
+                                    "class": "android.widget.LinearLayout",
+                                    "resource-id": "android:id/notification_action_list_margin_target",
+                                    "bounds": "[44,651][1036,920]",
+                                    "center": "[540,785]",
+                                    "children": [
+                                      {
+                                        "class": "android.widget.FrameLayout",
+                                        "bounds": "[44,651][1036,920]",
+                                        "center": "[540,785]",
+                                        "children": [
+                                          {
+                                            "class": "android.widget.RelativeLayout",
+                                            "resource-id": "android:id/notification_header",
+                                            "bounds": "[44,651][1036,805]",
+                                            "center": "[540,728]",
+                                            "children": [
+                                              {
+                                                "class": "android.view.ViewGroup",
+                                                "resource-id": "android:id/notification_top_line",
+                                                "bounds": "[44,651][882,805]",
+                                                "center": "[463,728]",
+                                                "children": [
+                                                  {
+                                                    "class": "android.widget.TextView",
+                                                    "resource-id": "android:id/app_name_text",
+                                                    "text": "Android System",
+                                                    "bounds": "[187,706][422,750]",
+                                                    "center": "[304,728]"
+                                                  },
+                                                  {
+                                                    "class": "android.widget.ImageView",
+                                                    "resource-id": "android:id/alerted_icon",
+                                                    "content-desc": "Alerted",
+                                                    "bounds": "[439,713][472,746]",
+                                                    "center": "[455,729]"
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "class": "android.widget.FrameLayout",
+                                                "resource-id": "android:id/alternate_expand_target",
+                                                "interactions": [
+                                                  "CLICKABLE",
+                                                  "FOCUSABLE"
+                                                ],
+                                                "bounds": "[44,651][187,805]",
+                                                "center": "[115,728]"
+                                              },
+                                              {
+                                                "class": "android.widget.ImageView",
+                                                "resource-id": "android:id/icon",
+                                                "bounds": "[88,695][154,761]",
+                                                "center": "[121,728]"
+                                              },
+                                              {
+                                                "class": "android.widget.Button",
+                                                "resource-id": "android:id/expand_button",
+                                                "content-desc": "Collapse",
+                                                "interactions": [
+                                                  "CLICKABLE",
+                                                  "FOCUSABLE"
+                                                ],
+                                                "bounds": "[882,651][1036,805]",
+                                                "center": "[959,728]",
+                                                "children": [
+                                                  {
+                                                    "class": "android.widget.LinearLayout",
+                                                    "resource-id": "android:id/expand_button_pill",
+                                                    "bounds": "[926,695][992,761]",
+                                                    "center": "[959,728]",
+                                                    "children": [
+                                                      {
+                                                        "class": "android.widget.ImageView",
+                                                        "resource-id": "android:id/expand_button_icon",
+                                                        "bounds": "[926,695][992,761]",
+                                                        "center": "[959,728]"
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "class": "android.widget.LinearLayout",
+                                            "resource-id": "android:id/notification_main_column",
+                                            "bounds": "[187,789][992,920]",
+                                            "center": "[589,854]",
+                                            "children": [
+                                              {
+                                                "class": "android.widget.TextView",
+                                                "resource-id": "android:id/title",
+                                                "text": "Configure physical keyboard",
+                                                "bounds": "[187,789][992,848]",
+                                                "center": "[589,818]"
+                                              },
+                                              {
+                                                "class": "android.widget.TextView",
+                                                "resource-id": "android:id/text",
+                                                "text": "Tap to select language and layout",
+                                                "bounds": "[187,865][992,920]",
+                                                "center": "[589,892]"
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "class": "android.widget.FrameLayout",
+                            "resource-id": "com.android.systemui:id/fake_shadow",
+                            "bounds": "[44,651][1036,975]",
+                            "center": "[540,813]"
+                          }
+                        ]
+                      },
+                      {
+                        "class": "android.widget.FrameLayout",
+                        "interactions": [
+                          "CLICKABLE",
+                          "FOCUSABLE"
+                        ],
+                        "bounds": "[44,1025][1036,1157]",
+                        "center": "[540,1091]",
+                        "children": [
+                          {
+                            "class": "android.widget.LinearLayout",
+                            "resource-id": "com.android.systemui:id/content",
+                            "bounds": "[55,1025][1025,1157]",
+                            "center": "[540,1091]",
+                            "children": [
+                              {
+                                "class": "android.widget.FrameLayout",
+                                "bounds": "[55,1025][893,1157]",
+                                "center": "[474,1091]",
+                                "children": [
+                                  {
+                                    "class": "android.widget.TextView",
+                                    "resource-id": "com.android.systemui:id/header_label",
+                                    "text": "Silent",
+                                    "interactions": [
+                                      "CLICKABLE",
+                                      "FOCUSABLE"
+                                    ],
+                                    "bounds": "[55,1025][221,1157]",
+                                    "center": "[138,1091]"
+                                  }
+                                ]
+                              },
+                              {
+                                "class": "android.widget.ImageView",
+                                "resource-id": "com.android.systemui:id/btn_clear_all",
+                                "content-desc": "Clear all silent notifications",
+                                "interactions": [
+                                  "CLICKABLE",
+                                  "FOCUSABLE"
+                                ],
+                                "bounds": "[893,1025][1025,1157]",
+                                "center": "[959,1091]"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "class": "android.widget.FrameLayout",
+                        "resource-id": "com.android.systemui:id/expandableNotificationRow",
+                        "interactions": [
+                          "CLICKABLE",
+                          "FOCUSABLE"
+                        ],
+                        "bounds": "[44,1163][1036,1595]",
+                        "center": "[540,1379]",
+                        "children": [
+                          {
+                            "class": "android.widget.Button",
+                            "resource-id": "com.android.systemui:id/veto",
+                            "interactions": [
+                              "CLICKABLE",
+                              "FOCUSABLE"
+                            ],
+                            "off-screen": true,
+                            "hidden": true
+                          },
+                          {
+                            "class": "android.widget.FrameLayout",
+                            "resource-id": "com.android.systemui:id/expandedPublic",
+                            "off-screen": true,
+                            "hidden": true
+                          },
+                          {
+                            "class": "android.view.View",
+                            "resource-id": "com.android.systemui:id/backgroundNormal",
+                            "bounds": "[44,1163][1036,1595]",
+                            "center": "[540,1379]"
+                          },
+                          {
+                            "class": "android.view.View",
+                            "resource-id": "com.android.systemui:id/backgroundDimmed",
+                            "bounds": "[44,1163][1036,1595]",
+                            "center": "[540,1379]"
+                          },
+                          {
+                            "class": "android.widget.FrameLayout",
+                            "resource-id": "com.android.systemui:id/expanded",
+                            "bounds": "[44,1163][1036,1595]",
+                            "center": "[540,1379]",
+                            "children": [
+                              {
+                                "class": "android.widget.FrameLayout",
+                                "resource-id": "android:id/status_bar_latest_event_content",
+                                "bounds": "[44,1163][1036,1595]",
+                                "center": "[540,1379]",
+                                "children": [
+                                  {
+                                    "class": "android.widget.RelativeLayout",
+                                    "resource-id": "android:id/notification_header",
+                                    "bounds": "[44,1163][1036,1317]",
+                                    "center": "[540,1240]",
+                                    "children": [
+                                      {
+                                        "class": "android.view.ViewGroup",
+                                        "resource-id": "android:id/notification_top_line",
+                                        "bounds": "[44,1163][882,1317]",
+                                        "center": "[463,1240]",
+                                        "children": [
+                                          {
+                                            "class": "android.widget.TextView",
+                                            "resource-id": "android:id/app_name_text",
+                                            "text": "RustClipSync",
+                                            "bounds": "[187,1218][380,1262]",
+                                            "center": "[283,1240]"
+                                          },
+                                          {
+                                            "class": "android.widget.TextView",
+                                            "resource-id": "android:id/header_text_divider",
+                                            "text": "•",
+                                            "bounds": "[392,1218][403,1262]",
+                                            "center": "[397,1240]"
+                                          },
+                                          {
+                                            "class": "android.widget.TextView",
+                                            "resource-id": "android:id/header_text",
+                                            "text": "展开可显示／隐藏、复制",
+                                            "bounds": "[415,1218][778,1262]",
+                                            "center": "[596,1240]"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "class": "android.widget.FrameLayout",
+                                        "resource-id": "android:id/alternate_expand_target",
+                                        "interactions": [
+                                          "CLICKABLE",
+                                          "FOCUSABLE"
+                                        ],
+                                        "bounds": "[44,1163][187,1317]",
+                                        "center": "[115,1240]"
+                                      },
+                                      {
+                                        "class": "android.widget.ImageView",
+                                        "resource-id": "android:id/icon",
+                                        "bounds": "[88,1207][154,1273]",
+                                        "center": "[121,1240]"
+                                      },
+                                      {
+                                        "class": "android.widget.Button",
+                                        "resource-id": "android:id/expand_button",
+                                        "content-desc": "Collapse",
+                                        "interactions": [
+                                          "CLICKABLE",
+                                          "FOCUSABLE"
+                                        ],
+                                        "bounds": "[882,1163][1036,1317]",
+                                        "center": "[959,1240]",
+                                        "children": [
+                                          {
+                                            "class": "android.widget.LinearLayout",
+                                            "resource-id": "android:id/expand_button_pill",
+                                            "bounds": "[926,1207][992,1273]",
+                                            "center": "[959,1240]",
+                                            "children": [
+                                              {
+                                                "class": "android.widget.ImageView",
+                                                "resource-id": "android:id/expand_button_icon",
+                                                "bounds": "[926,1207][992,1273]",
+                                                "center": "[959,1240]"
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "class": "android.widget.LinearLayout",
+                                    "resource-id": "android:id/notification_action_list_margin_target",
+                                    "bounds": "[44,1301][1036,1595]",
+                                    "center": "[540,1448]",
+                                    "children": [
+                                      {
+                                        "class": "android.widget.LinearLayout",
+                                        "resource-id": "android:id/notification_main_column",
+                                        "bounds": "[44,1301][1036,1430]",
+                                        "center": "[540,1365]",
+                                        "children": [
+                                          {
+                                            "class": "android.widget.TextView",
+                                            "resource-id": "android:id/title",
+                                            "text": "加密收件箱",
+                                            "bounds": "[187,1301][992,1360]",
+                                            "center": "[589,1330]"
+                                          },
+                                          {
+                                            "class": "android.widget.TextView",
+                                            "resource-id": "android:id/big_text",
+                                            "text": "**",
+                                            "bounds": "[187,1377][992,1430]",
+                                            "center": "[589,1403]"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "class": "android.widget.FrameLayout",
+                                        "resource-id": "android:id/actions_container",
+                                        "bounds": "[44,1430][1036,1595]",
+                                        "center": "[540,1512]",
+                                        "children": [
+                                          {
+                                            "class": "android.widget.LinearLayout",
+                                            "resource-id": "android:id/actions_container_layout",
+                                            "bounds": "[44,1430][1036,1595]",
+                                            "center": "[540,1512]",
+                                            "children": [
+                                              {
+                                                "class": "android.widget.LinearLayout",
+                                                "resource-id": "android:id/actions",
+                                                "bounds": "[44,1430][1003,1595]",
+                                                "center": "[523,1512]",
+                                                "children": [
+                                                  {
+                                                    "class": "android.widget.Button",
+                                                    "resource-id": "android:id/action0",
+                                                    "text": "显示",
+                                                    "content-desc": "显示",
+                                                    "interactions": [
+                                                      "CLICKABLE",
+                                                      "FOCUSABLE"
+                                                    ],
+                                                    "bounds": "[154,1446][298,1578]",
+                                                    "center": "[226,1512]"
+                                                  },
+                                                  {
+                                                    "class": "android.widget.Button",
+                                                    "resource-id": "android:id/action0",
+                                                    "text": "复制",
+                                                    "content-desc": "复制",
+                                                    "interactions": [
+                                                      "CLICKABLE",
+                                                      "FOCUSABLE"
+                                                    ],
+                                                    "bounds": "[309,1446][453,1578]",
+                                                    "center": "[381,1512]"
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "class": "android.widget.LinearLayout",
+                                                "bounds": "[1003,1430][1036,1595]",
+                                                "center": "[1019,1512]"
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "class": "android.widget.FrameLayout",
+                            "resource-id": "com.android.systemui:id/fake_shadow",
+                            "bounds": "[44,1163][1036,1595]",
+                            "center": "[540,1379]"
+                          }
+                        ]
+                      },
+                      {
+                        "class": "android.widget.FrameLayout",
+                        "resource-id": "com.android.systemui:id/expandableNotificationRow",
+                        "interactions": [
+                          "CLICKABLE",
+                          "FOCUSABLE"
+                        ],
+                        "bounds": "[44,1601][1036,1843]",
+                        "center": "[540,1722]",
+                        "children": [
+                          {
+                            "class": "android.widget.Button",
+                            "resource-id": "com.android.systemui:id/veto",
+                            "interactions": [
+                              "CLICKABLE",
+                              "FOCUSABLE"
+                            ],
+                            "off-screen": true,
+                            "hidden": true
+                          },
+                          {
+                            "class": "android.widget.FrameLayout",
+                            "resource-id": "com.android.systemui:id/expandedPublic",
+                            "off-screen": true,
+                            "hidden": true
+                          },
+                          {
+                            "class": "android.view.View",
+                            "resource-id": "com.android.systemui:id/backgroundNormal",
+                            "bounds": "[44,1601][1036,2035]",
+                            "center": "[540,1818]"
+                          },
+                          {
+                            "class": "android.view.View",
+                            "resource-id": "com.android.systemui:id/backgroundDimmed",
+                            "bounds": "[44,1601][1036,2035]",
+                            "center": "[540,1818]"
+                          },
+                          {
+                            "class": "android.widget.FrameLayout",
+                            "resource-id": "com.android.systemui:id/expanded",
+                            "bounds": "[44,1601][1036,2035]",
+                            "center": "[540,1818]",
+                            "children": [
+                              {
+                                "class": "android.widget.FrameLayout",
+                                "resource-id": "android:id/status_bar_latest_event_content",
+                                "bounds": "[44,1601][1036,1843]",
+                                "center": "[540,1722]",
+                                "children": [
+                                  {
+                                    "class": "android.widget.FrameLayout",
+                                    "resource-id": "android:id/alternate_expand_target",
+                                    "interactions": [
+                                      "CLICKABLE",
+                                      "FOCUSABLE"
+                                    ],
+                                    "bounds": "[44,1601][187,1843]",
+                                    "center": "[115,1722]"
+                                  },
+                                  {
+                                    "class": "android.widget.ImageView",
+                                    "resource-id": "android:id/icon",
+                                    "bounds": "[88,1689][154,1755]",
+                                    "center": "[121,1722]"
+                                  },
+                                  {
+                                    "class": "android.widget.LinearLayout",
+                                    "resource-id": "android:id/notification_headerless_view_row",
+                                    "bounds": "[187,1601][1036,1843]",
+                                    "center": "[611,1722]",
+                                    "children": [
+                                      {
+                                        "class": "android.widget.LinearLayout",
+                                        "resource-id": "android:id/notification_headerless_view_column",
+                                        "bounds": "[187,1656][882,1788]",
+                                        "center": "[534,1722]",
+                                        "children": [
+                                          {
+                                            "class": "android.view.ViewGroup",
+                                            "resource-id": "android:id/notification_top_line",
+                                            "bounds": "[187,1656][882,1722]",
+                                            "center": "[534,1689]",
+                                            "children": [
+                                              {
+                                                "class": "android.widget.TextView",
+                                                "resource-id": "android:id/title",
+                                                "text": "RustClipSync 后台监听",
+                                                "bounds": "[187,1662][585,1715]",
+                                                "center": "[386,1688]"
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "class": "android.widget.LinearLayout",
+                                            "resource-id": "android:id/notification_main_column",
+                                            "bounds": "[187,1722][882,1788]",
+                                            "center": "[534,1755]",
+                                            "children": [
+                                              {
+                                                "class": "android.widget.FrameLayout",
+                                                "bounds": "[187,1722][882,1788]",
+                                                "center": "[534,1755]",
+                                                "children": [
+                                                  {
+                                                    "class": "android.widget.TextView",
+                                                    "resource-id": "android:id/text",
+                                                    "text": "后台接收加密收件箱；不读写系统剪贴板",
+                                                    "bounds": "[187,1727][882,1782]",
+                                                    "center": "[534,1754]"
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "class": "android.widget.FrameLayout",
+                                        "resource-id": "android:id/expand_button_touch_container",
+                                        "bounds": "[882,1601][1036,1843]",
+                                        "center": "[959,1722]",
+                                        "children": [
+                                          {
+                                            "class": "android.widget.Button",
+                                            "resource-id": "android:id/expand_button",
+                                            "content-desc": "Expand",
+                                            "interactions": [
+                                              "CLICKABLE",
+                                              "FOCUSABLE"
+                                            ],
+                                            "bounds": "[882,1601][1036,1843]",
+                                            "center": "[959,1722]",
+                                            "children": [
+                                              {
+                                                "class": "android.widget.LinearLayout",
+                                                "resource-id": "android:id/expand_button_pill",
+                                                "bounds": "[926,1689][992,1755]",
+                                                "center": "[959,1722]",
+                                                "children": [
+                                                  {
+                                                    "class": "android.widget.ImageView",
+                                                    "resource-id": "android:id/expand_button_icon",
+                                                    "bounds": "[926,1689][992,1755]",
+                                                    "center": "[959,1722]"
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "class": "android.widget.FrameLayout",
+                            "resource-id": "com.android.systemui:id/fake_shadow",
+                            "bounds": "[44,1601][1036,2035]",
+                            "center": "[540,1818]"
+                          }
+                        ]
+                      },
+                      {
+                        "class": "android.widget.FrameLayout",
+                        "resource-id": "com.android.systemui:id/expandableNotificationRow",
+                        "interactions": [
+                          "CLICKABLE",
+                          "FOCUSABLE"
+                        ],
+                        "bounds": "[44,1849][1036,2091]",
+                        "center": "[540,1970]",
+                        "children": [
+                          {
+                            "class": "android.widget.Button",
+                            "resource-id": "com.android.systemui:id/veto",
+                            "interactions": [
+                              "CLICKABLE",
+                              "FOCUSABLE"
+                            ],
+                            "off-screen": true,
+                            "hidden": true
+                          },
+                          {
+                            "class": "android.widget.FrameLayout",
+                            "resource-id": "com.android.systemui:id/expandedPublic",
+                            "off-screen": true,
+                            "hidden": true
+                          },
+                          {
+                            "class": "android.view.View",
+                            "resource-id": "com.android.systemui:id/backgroundNormal",
+                            "bounds": "[44,1849][1036,2120]",
+                            "center": "[540,1984]"
+                          },
+                          {
+                            "class": "android.view.View",
+                            "resource-id": "com.android.systemui:id/backgroundDimmed",
+                            "bounds": "[44,1849][1036,2120]",
+                            "center": "[540,1984]"
+                          },
+                          {
+                            "class": "android.widget.FrameLayout",
+                            "resource-id": "com.android.systemui:id/expanded",
+                            "bounds": "[44,1849][1036,2120]",
+                            "center": "[540,1984]",
+                            "children": [
+                              {
+                                "class": "android.widget.FrameLayout",
+                                "resource-id": "android:id/status_bar_latest_event_content",
+                                "bounds": "[44,1849][1036,2091]",
+                                "center": "[540,1970]",
+                                "children": [
+                                  {
+                                    "class": "android.widget.FrameLayout",
+                                    "resource-id": "android:id/alternate_expand_target",
+                                    "interactions": [
+                                      "CLICKABLE",
+                                      "FOCUSABLE"
+                                    ],
+                                    "bounds": "[44,1849][187,2091]",
+                                    "center": "[115,1970]"
+                                  },
+                                  {
+                                    "class": "android.widget.ImageView",
+                                    "resource-id": "android:id/icon",
+                                    "bounds": "[88,1937][154,2003]",
+                                    "center": "[121,1970]"
+                                  },
+                                  {
+                                    "class": "android.widget.LinearLayout",
+                                    "resource-id": "android:id/notification_headerless_view_row",
+                                    "bounds": "[187,1849][1036,2091]",
+                                    "center": "[611,1970]",
+                                    "children": [
+                                      {
+                                        "class": "android.widget.LinearLayout",
+                                        "resource-id": "android:id/notification_headerless_view_column",
+                                        "bounds": "[187,1904][882,2036]",
+                                        "center": "[534,1970]",
+                                        "children": [
+                                          {
+                                            "class": "android.view.ViewGroup",
+                                            "resource-id": "android:id/notification_top_line",
+                                            "bounds": "[187,1904][882,1970]",
+                                            "center": "[534,1937]",
+                                            "children": [
+                                              {
+                                                "class": "android.widget.TextView",
+                                                "resource-id": "android:id/title",
+                                                "text": "AndroidWifi has limited connectivity",
+                                                "bounds": "[187,1910][816,1963]",
+                                                "center": "[501,1936]"
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "class": "android.widget.LinearLayout",
+                                            "resource-id": "android:id/notification_main_column",
+                                            "bounds": "[187,1970][882,2036]",
+                                            "center": "[534,2003]",
+                                            "children": [
+                                              {
+                                                "class": "android.widget.FrameLayout",
+                                                "bounds": "[187,1970][882,2036]",
+                                                "center": "[534,2003]",
+                                                "children": [
+                                                  {
+                                                    "class": "android.widget.TextView",
+                                                    "resource-id": "android:id/text",
+                                                    "text": "Tap to connect anyway",
+                                                    "bounds": "[187,1975][882,2030]",
+                                                    "center": "[534,2002]"
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "class": "android.widget.FrameLayout",
+                                        "resource-id": "android:id/expand_button_touch_container",
+                                        "bounds": "[882,1849][1036,2091]",
+                                        "center": "[959,1970]",
+                                        "children": [
+                                          {
+                                            "class": "android.widget.Button",
+                                            "resource-id": "android:id/expand_button",
+                                            "content-desc": "Expand",
+                                            "interactions": [
+                                              "CLICKABLE",
+                                              "FOCUSABLE"
+                                            ],
+                                            "bounds": "[882,1849][1036,2091]",
+                                            "center": "[959,1970]",
+                                            "children": [
+                                              {
+                                                "class": "android.widget.LinearLayout",
+                                                "resource-id": "android:id/expand_button_pill",
+                                                "bounds": "[926,1937][992,2003]",
+                                                "center": "[959,1970]",
+                                                "children": [
+                                                  {
+                                                    "class": "android.widget.ImageView",
+                                                    "resource-id": "android:id/expand_button_icon",
+                                                    "bounds": "[926,1937][992,2003]",
+                                                    "center": "[959,1970]"
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "class": "android.widget.FrameLayout",
+                            "resource-id": "com.android.systemui:id/fake_shadow",
+                            "bounds": "[44,1849][1036,2120]",
+                            "center": "[540,1984]"
+                          }
+                        ]
+                      },
+                      {
+                        "class": "android.widget.FrameLayout",
+                        "bounds": "[44,1988][1036,2120]",
+                        "center": "[540,2054]",
+                        "children": [
+                          {
+                            "class": "android.view.View",
+                            "resource-id": "com.android.systemui:id/backgroundNormal",
+                            "bounds": "[44,1988][1036,2120]",
+                            "center": "[540,2054]"
+                          },
+                          {
+                            "class": "android.widget.FrameLayout",
+                            "resource-id": "com.android.systemui:id/fake_shadow",
+                            "bounds": "[44,1988][1036,2120]",
+                            "center": "[540,2054]"
+                          },
+                          {
+                            "class": "android.widget.FrameLayout",
+                            "resource-id": "com.android.systemui:id/content",
+                            "bounds": "[44,1988][1036,2120]",
+                            "center": "[540,2054]",
+                            "children": [
+                              {
+                                "class": "android.widget.ImageView",
+                                "content-desc": "Android System notification: AndroidWifi has limited connectivity",
+                                "bounds": "[79,1988][140,2120]",
+                                "center": "[109,2054]"
+                              },
+                              {
+                                "class": "android.widget.ImageView",
+                                "content-desc": "Android System notification: Serial console enabled",
+                                "bounds": "[119,1988][180,2120]",
+                                "center": "[149,2054]"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "class": "android.widget.FrameLayout",
+                "resource-id": "com.android.systemui:id/preview_container",
+                "bounds": "[0,0][1080,2340]",
+                "center": "[540,1170]"
+              }
+            ]
+          },
+          {
+            "class": "android.widget.FrameLayout",
+            "off-screen": true,
+            "hidden": true
+          }
+        ]
+      }
+    ]
+  }
+]

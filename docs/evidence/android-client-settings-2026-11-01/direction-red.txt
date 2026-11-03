@@ -1,0 +1,24 @@
+   Compiling rustclipsync-mobile-ffi v0.1.0 (/home/cassius/Projects/rustclipsync-mobile/crates/rustclipsync-mobile-ffi)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.55s
+     Running unittests src/lib.rs (/tmp/rcs-mobile-check/debug/deps/rustclipsync_mobile_ffi-ad371d843e6dd314)
+
+running 1 test
+test session::tests::directions_block_disallowed_transfers_and_never_retry_a_receive_only_upload ... FAILED
+
+failures:
+
+---- session::tests::directions_block_disallowed_transfers_and_never_retry_a_receive_only_upload stdout ----
+
+thread 'session::tests::directions_block_disallowed_transfers_and_never_retry_a_receive_only_upload' (1510959) panicked at crates/rustclipsync-mobile-ffi/src/session/tests.rs:600:9:
+assertion `left == right` failed
+  left: Paused
+ right: Downloaded
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    session::tests::directions_block_disallowed_transfers_and_never_retry_a_receive_only_upload
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p rustclipsync-mobile-ffi --lib`

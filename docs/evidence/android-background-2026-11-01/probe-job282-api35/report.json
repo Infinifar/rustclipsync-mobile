@@ -1,0 +1,23 @@
+{
+  "server": {
+    "source_url": "https://github.com/Infinifar/rustclipsync-server",
+    "revision": "c0e1774adef185ee7e2979cb6ad20c1c244acbed",
+    "version": "2.0.0",
+    "archive_url": "https://codeload.github.com/Infinifar/rustclipsync-server/tar.gz/c0e1774adef185ee7e2979cb6ad20c1c244acbed",
+    "archive_sha256": "1a6a2796ff1beb5997a631ded3e7243c8d7f31518662a8d85b566755c78ec6b9",
+    "license": "MIT",
+    "binary_sha256": "2d7f117c3ef16994171b077d01a257734bbd1c341e95c53cb7886ec6f2520b63"
+  },
+  "apks": {
+    "android/app/build/outputs/apk/debug/app-debug.apk": "5ab2949d648aa9257f4131c476f4c51b22c41099293c6c74afdb5fce7e96d758",
+    "android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk": "fafd847757f61f9bc074f085a1e0a8e300ff5dc8aad3a555555188eff6c75dc1",
+    "build/disposable/app-disposable.apk": "4f504e54763681b0d87f99eeff1e865ed3e0f97a16c28cb01cebb60e13ee46f1",
+    "build/disposable/app-disposable-androidTest.apk": "f4ee8477a8191464b22738e60a4e797533bba39ab0ea1bdcfb590807bb56fbb7"
+  },
+  "completed": [],
+  "faults": [],
+  "requests": [],
+  "android_api": "35",
+  "page_size": "4096",
+  "temporary_fixture_removed": true
+}

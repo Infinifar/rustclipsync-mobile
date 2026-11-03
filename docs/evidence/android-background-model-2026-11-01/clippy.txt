@@ -1,0 +1,2 @@
+    Checking rustclipsync-mobile-ffi v0.1.0 (/home/cassius/Projects/rustclipsync-mobile/crates/rustclipsync-mobile-ffi)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.63s

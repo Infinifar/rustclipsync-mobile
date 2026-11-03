@@ -1,0 +1,32 @@
+* daemon not running; starting now at tcp:5037
+* daemon started successfully
+Loading local repository...                                                     [=========                              ] 25% Loading local repository...       [=========                              ] 25% Fetch remote repository...        [=======================================] 100% Fetch remote repository...       
+Auto-selecting single ABI x86_64
+Downloading...
+Unpacking embedded installation...
+
+Terms of Service and License Agreement for the Android Software Development Kit
+
+https://developer.android.com/studio/terms
+
+Google collects usage data for the Android CLI, such as commands, sub-commands, and flags used. This data does not include custom parameters or identifiable information. This information helps improve the tool and is collected in accordance with Google's Privacy Policy.
+
+https://policies.google.com/privacy
+
+Disable Android CLI metrics collection by using the --no-metrics flag.
+
+Tip: For the best experience using Android CLI with agents, we strongly recommend running android init to install the necessary skills and resources.
+Warning: APK is unchanged, but performing a forced delta reinstall to ensure the app restarts on device.
+Delta Install: Sent 104.67 KB patch instead of 37.45 MB (1 APK, 99.73% savings)
+PASS: sendReceiveAndSensitiveInbox
+PASS: abrupt process death after offline-ready
+PASS: recoverAfterProcessAndDeviceRestart
+PASS: abrupt process death after uncertain-ready
+PASS: recoverCommittedUploadAfterServerRestart
+PASS: backgroundNotificationsAndOptionalWrites
+SHADE READY: saved inbox restored while app visible; actual SystemUI clicks required
+SystemUI clicked: 显示 at [226, 1512]
+SystemUI clicked: 隐藏 at [226, 1512]
+SystemUI clicked: 复制 at [381, 1512]
+PASS: restoredInboxActionsInNotificationShade
+PASS: real server send/receive, three sensitive policies, offline latest-only, process/device/server restart, unknown-commit deduplication, background inbox notification toggle/copy and optional writes

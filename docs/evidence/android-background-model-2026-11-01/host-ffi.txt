@@ -1,0 +1,9 @@
+test_callback_storage_error_is_typed_and_sanitized (__main__.BindingSmokeTests.test_callback_storage_error_is_typed_and_sanitized) ... ok
+test_callbacks_encryption_shutdown_and_release (__main__.BindingSmokeTests.test_callbacks_encryption_shutdown_and_release) ... ok
+test_invalid_key_never_starts_callbacks (__main__.BindingSmokeTests.test_invalid_key_never_starts_callbacks) ... ok
+test_unexpected_foreign_exception_becomes_safe_storage_error (__main__.BindingSmokeTests.test_unexpected_foreign_exception_becomes_safe_storage_error) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.024s
+
+OK

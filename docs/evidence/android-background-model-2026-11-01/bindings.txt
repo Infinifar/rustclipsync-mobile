@@ -1,0 +1,34 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.15s
+   Compiling libc v0.2.191
+   Compiling memchr v2.8.3
+   Compiling syn v3.0.9
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling nom v7.1.3
+   Compiling serde_json v1.0.154
+   Compiling getrandom v0.4.3
+   Compiling tempfile v3.27.0
+   Compiling uniffi_pipeline v0.32.2
+   Compiling uniffi_meta v0.32.2
+   Compiling weedle2 v5.0.0
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.21
+   Compiling clap_derive v4.6.7
+   Compiling thiserror v2.0.21
+   Compiling uniffi_udl v0.32.2
+   Compiling clap v4.6.7
+   Compiling serde v1.0.229
+   Compiling askama_parser v0.16.1
+   Compiling basic-toml v0.1.10
+   Compiling cargo_metadata v0.23.1
+   Compiling uniffi_macros v0.32.2
+   Compiling askama_derive v0.16.1
+   Compiling askama_macros v0.16.1
+   Compiling askama v0.16.1
+   Compiling uniffi_bindgen v0.32.2
+   Compiling uniffi v0.32.2
+   Compiling mobile-bindgen v0.1.0 (/home/cassius/Projects/rustclipsync-mobile/crates/mobile-bindgen)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 36.73s
+     Running `/tmp/rcs-background-model/debug/mobile-bindgen generate --library /tmp/rcs-background-model/debug/librustclipsync_mobile_ffi.so --language kotlin --language swift --language python --no-format --out-dir build/bindings`
+writing out build/bindings
+writing build/bindings/rustclipsync_mobile_ffi.py

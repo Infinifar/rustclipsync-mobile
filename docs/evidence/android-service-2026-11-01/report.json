@@ -1,0 +1,341 @@
+{
+  "server": {
+    "source_url": "https://github.com/Infinifar/rustclipsync-server",
+    "revision": "c0e1774adef185ee7e2979cb6ad20c1c244acbed",
+    "version": "2.0.0",
+    "archive_url": "https://codeload.github.com/Infinifar/rustclipsync-server/tar.gz/c0e1774adef185ee7e2979cb6ad20c1c244acbed",
+    "archive_sha256": "1a6a2796ff1beb5997a631ded3e7243c8d7f31518662a8d85b566755c78ec6b9",
+    "license": "MIT",
+    "binary_sha256": "b7b83d49388f882edc4529ff151d71a16eef10787fe65eb9578aa25ccde1f723"
+  },
+  "apks": {
+    "android/app/build/outputs/apk/debug/app-debug.apk": "5b624d37d35444af1c85503c3dbc07f2258002a79cd035bcc896529c3b7da676",
+    "android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk": "7f40a8e8010567d465f02beb1779ccee5f74b6a1b3252a9db6805d82caaa7767",
+    "build/disposable/app-disposable.apk": "bc94dc26618b0d48de29dfb34a592578c420b2b96633fec9260e901f8e40b5a9",
+    "build/disposable/app-disposable-androidTest.apk": "4f75c21bd821cde1fac1a3eb3476a036c54dc640f34da65f5ce4dda3f65986e4"
+  },
+  "completed": [
+    "sendReceiveAndSensitiveInbox",
+    "recoverAfterProcessAndDeviceRestart",
+    "recoverCommittedUploadAfterServerRestart"
+  ],
+  "faults": [
+    "force-stopped live process after offline-ready",
+    "Android device rebooted with saved inbox and offline transaction",
+    "committed PUT response dropped",
+    "force-stopped live process after uncertain-ready",
+    "real SQLCipher-backed server process restarted with same database"
+  ],
+  "requests": [
+    {
+      "method": "POST",
+      "path": "/api/devices",
+      "status": 503
+    },
+    {
+      "method": "POST",
+      "path": "/api/devices",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/devices",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/messages/3b253bf3-773d-4271-a25a-e16b4f717787",
+      "status": 200,
+      "revision": 1,
+      "duplicate": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/ack",
+      "status": 200,
+      "revision": 1,
+      "result": "self"
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/messages/3b253bf3-773d-4271-a25a-e16b4f717787/content",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/ack",
+      "status": 200,
+      "revision": 1,
+      "result": "applied"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/messages/115b701e-3ecb-4a15-b847-000257d91ab3",
+      "status": 200,
+      "revision": 2,
+      "duplicate": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/ack",
+      "status": 200,
+      "revision": 2,
+      "result": "self"
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/ack",
+      "status": 200,
+      "revision": 2,
+      "result": "skipped"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/messages/e807607a-af46-440a-b8d8-9c0d079e84af",
+      "status": 200,
+      "revision": 3,
+      "duplicate": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/ack",
+      "status": 200,
+      "revision": 3,
+      "result": "self"
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/messages/e807607a-af46-440a-b8d8-9c0d079e84af/content",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/ack",
+      "status": 200,
+      "revision": 3,
+      "result": "skipped"
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/messages/0d73a37d-ced9-4ad1-b690-b1842abe6919",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/messages/61a74fcc-03c1-4188-ab1c-e919c68de710",
+      "status": 200,
+      "revision": 4,
+      "duplicate": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/ack",
+      "status": 200,
+      "revision": 4,
+      "result": "self"
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/messages/61a74fcc-03c1-4188-ab1c-e919c68de710/content",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/ack",
+      "status": 200,
+      "revision": 4,
+      "result": "applied"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/messages/bbf70b2a-a126-49e8-b7cf-b3d31fed2e9c",
+      "status": 200,
+      "revision": 5,
+      "duplicate": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/ack",
+      "status": 200,
+      "revision": 5,
+      "result": "self"
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/messages/bbf70b2a-a126-49e8-b7cf-b3d31fed2e9c/content",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/ack",
+      "status": 200,
+      "revision": 5,
+      "result": "applied"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/messages/b819f300-308a-43fe-8e0f-5db23a5fc5b4",
+      "status": 200,
+      "revision": 6,
+      "duplicate": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/ack",
+      "status": 200,
+      "revision": 6,
+      "result": "self"
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/messages/b819f300-308a-43fe-8e0f-5db23a5fc5b4/content",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/ack",
+      "status": 200,
+      "revision": 6,
+      "result": "applied"
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/messages/eb574dbf-a04b-41c7-bb9e-08933399d904",
+      "status": 200,
+      "revision": 7,
+      "duplicate": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/messages/eb574dbf-a04b-41c7-bb9e-08933399d904",
+      "status": 200,
+      "revision": 7,
+      "duplicate": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/ack",
+      "status": 200,
+      "revision": 7,
+      "result": "self"
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/messages/eb574dbf-a04b-41c7-bb9e-08933399d904/content",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/ack",
+      "status": 200,
+      "revision": 7,
+      "result": "applied"
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "status": 200
+    }
+  ],
+  "android_api": "31",
+  "page_size": "4096",
+  "negative_control": "same Android scenario failed with injected registration 503",
+  "final_revision": 7,
+  "status": "passed",
+  "temporary_fixture_removed": true
+}

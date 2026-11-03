@@ -1,0 +1,121 @@
+Android synthetic emulator validation — 2026-11-01
+GitLab pipeline: 107; job: 249
+APK source revision: 489d3e0f8486f1af1f69735310b8c7f986de99bf
+App SHA-256: 96c8e3d9f741119c994cbee0b2b305b0abde15c53d564699fae75d50d215a4cc
+Test SHA-256: a80cb9e2775a0a24d1572b5452b81a3b2dbaf0d1814b1618d8478baaa2f45e22
+Environment: disposable Docker container, KVM, emulator 36.3.10.0
+Image: system-images;android-31;default;x86_64 revision 3
+Runtime: Android 12 / API 31, 4096-byte pages
+No real clipboard, KeyStore key, credentials, accounts or network service used.
+The empty Compose screen was started; no session was opened.
+16 KiB checks below are static ELF checks, not a 16 KiB runtime test.
+Validation script SHA-256: 6e2fe0f341c90ce4e218e34da2493d8104f63f9db57e66fd2d6b8f1ffdf37395
+
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.BindingSmokeTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+io.github.infinifar.rustclipsync.BindingSmokeTest:
+INSTRUMENTATION_STATUS: test=encryptedStateAndRepeatedShutdown
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.BindingSmokeTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=encryptedStateAndRepeatedShutdown
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.MainThreadGateTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+io.github.infinifar.rustclipsync.MainThreadGateTest:
+INSTRUMENTATION_STATUS: test=timedOutQueuedCallbackCannotExecuteLater
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.MainThreadGateTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=timedOutQueuedCallbackCannotExecuteLater
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.MainThreadGateTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=revokedGateRejectsCallbackWithoutExecutingIt
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.MainThreadGateTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=revokedGateRejectsCallbackWithoutExecutingIt
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.MainThreadGateTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=workerCallbackRunsOnMainAndReturnsResult
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.MainThreadGateTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=workerCallbackRunsOnMainAndReturnsResult
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.SecureStateTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+io.github.infinifar.rustclipsync.SecureStateTest:
+INSTRUMENTATION_STATUS: test=opaqueCiphertextReplacementUsesPublicAndroidDirectorySyncApi
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.SecureStateTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=opaqueCiphertextReplacementUsesPublicAndroidDirectorySyncApi
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.SecureStateTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=oversizedExistingStateIsAnErrorRatherThanAbsentState
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.SecureStateTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=oversizedExistingStateIsAnErrorRatherThanAbsentState
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 0.144
+
+OK (6 tests)
+
+
+INSTRUMENTATION_CODE: -1
+Starting: Intent { cmp=io.github.infinifar.rustclipsync/.MainActivity }
+Status: ok
+LaunchState: COLD
+Activity: io.github.infinifar.rustclipsync/.MainActivity
+TotalTime: 999
+WaitTime: 1001
+Complete
+16 KiB ELF alignment passed: lib/arm64-v8a/libandroidx.graphics.path.so
+16 KiB ELF alignment passed: lib/arm64-v8a/libjnidispatch.so
+16 KiB ELF alignment passed: lib/arm64-v8a/librustclipsync_mobile_ffi.so
+16 KiB ELF alignment passed: lib/x86_64/libandroidx.graphics.path.so
+16 KiB ELF alignment passed: lib/x86_64/libjnidispatch.so
+16 KiB ELF alignment passed: lib/x86_64/librustclipsync_mobile_ffi.so

@@ -1,0 +1,101 @@
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.ServiceIntegrationTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+io.github.infinifar.rustclipsync.ServiceIntegrationTest:
+INSTRUMENTATION_STATUS: test=sendReceiveAndSensitiveInbox
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.ServiceIntegrationTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=io.github.infinifar.rustclipsync.bindings.MobileException$Network: 
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterTypeMobileError.read(rustclipsync_mobile_ffi.kt:3112)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterTypeMobileError.read(rustclipsync_mobile_ffi.kt:3099)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverter.liftFromRustBuffer(rustclipsync_mobile_ffi.kt:207)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterTypeMobileError.liftFromRustBuffer(rustclipsync_mobile_ffi.kt:3099)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterTypeMobileError.liftFromRustBuffer(rustclipsync_mobile_ffi.kt:3099)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterRustBuffer.lift(rustclipsync_mobile_ffi.kt:224)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterTypeMobileError.lift(rustclipsync_mobile_ffi.kt:3099)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterTypeMobileError.lift(rustclipsync_mobile_ffi.kt:3099)
+	at io.github.infinifar.rustclipsync.bindings.MobileException$ErrorHandler.lift(rustclipsync_mobile_ffi.kt:3090)
+	at io.github.infinifar.rustclipsync.bindings.MobileException$ErrorHandler.lift(rustclipsync_mobile_ffi.kt:3089)
+	at io.github.infinifar.rustclipsync.bindings.Rustclipsync_mobile_ffiKt.uniffiCheckCallStatus(rustclipsync_mobile_ffi.kt:291)
+	at io.github.infinifar.rustclipsync.bindings.Rustclipsync_mobile_ffiKt.access$uniffiCheckCallStatus(rustclipsync_mobile_ffi.kt:1)
+	at io.github.infinifar.rustclipsync.bindings.Rustclipsync_mobile_ffiKt.uniffiRustCallAsync(rustclipsync_mobile_ffi.kt:3495)
+	at io.github.infinifar.rustclipsync.bindings.Rustclipsync_mobile_ffiKt$uniffiRustCallAsync$1.invokeSuspend(Unknown Source:19)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:263)
+	at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:94)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:70)
+	at kotlinx.coroutines.BuildersKt.runBlocking(Unknown Source:1)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:48)
+	at kotlinx.coroutines.BuildersKt.runBlocking$default(Unknown Source:1)
+	at io.github.infinifar.rustclipsync.ServiceIntegrationTest.sendReceiveAndSensitiveInbox(ServiceIntegrationTest.kt:77)
+
+INSTRUMENTATION_STATUS: stream=
+Error in sendReceiveAndSensitiveInbox(io.github.infinifar.rustclipsync.ServiceIntegrationTest):
+io.github.infinifar.rustclipsync.bindings.MobileException$Network: 
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterTypeMobileError.read(rustclipsync_mobile_ffi.kt:3112)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterTypeMobileError.read(rustclipsync_mobile_ffi.kt:3099)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverter.liftFromRustBuffer(rustclipsync_mobile_ffi.kt:207)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterTypeMobileError.liftFromRustBuffer(rustclipsync_mobile_ffi.kt:3099)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterTypeMobileError.liftFromRustBuffer(rustclipsync_mobile_ffi.kt:3099)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterRustBuffer.lift(rustclipsync_mobile_ffi.kt:224)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterTypeMobileError.lift(rustclipsync_mobile_ffi.kt:3099)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterTypeMobileError.lift(rustclipsync_mobile_ffi.kt:3099)
+	at io.github.infinifar.rustclipsync.bindings.MobileException$ErrorHandler.lift(rustclipsync_mobile_ffi.kt:3090)
+	at io.github.infinifar.rustclipsync.bindings.MobileException$ErrorHandler.lift(rustclipsync_mobile_ffi.kt:3089)
+	at io.github.infinifar.rustclipsync.bindings.Rustclipsync_mobile_ffiKt.uniffiCheckCallStatus(rustclipsync_mobile_ffi.kt:291)
+	at io.github.infinifar.rustclipsync.bindings.Rustclipsync_mobile_ffiKt.access$uniffiCheckCallStatus(rustclipsync_mobile_ffi.kt:1)
+	at io.github.infinifar.rustclipsync.bindings.Rustclipsync_mobile_ffiKt.uniffiRustCallAsync(rustclipsync_mobile_ffi.kt:3495)
+	at io.github.infinifar.rustclipsync.bindings.Rustclipsync_mobile_ffiKt$uniffiRustCallAsync$1.invokeSuspend(Unknown Source:19)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:263)
+	at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:94)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:70)
+	at kotlinx.coroutines.BuildersKt.runBlocking(Unknown Source:1)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:48)
+	at kotlinx.coroutines.BuildersKt.runBlocking$default(Unknown Source:1)
+	at io.github.infinifar.rustclipsync.ServiceIntegrationTest.sendReceiveAndSensitiveInbox(ServiceIntegrationTest.kt:77)
+
+INSTRUMENTATION_STATUS: test=sendReceiveAndSensitiveInbox
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 0.054
+There was 1 failure:
+1) sendReceiveAndSensitiveInbox(io.github.infinifar.rustclipsync.ServiceIntegrationTest)
+io.github.infinifar.rustclipsync.bindings.MobileException$Network: 
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterTypeMobileError.read(rustclipsync_mobile_ffi.kt:3112)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterTypeMobileError.read(rustclipsync_mobile_ffi.kt:3099)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverter.liftFromRustBuffer(rustclipsync_mobile_ffi.kt:207)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterTypeMobileError.liftFromRustBuffer(rustclipsync_mobile_ffi.kt:3099)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterTypeMobileError.liftFromRustBuffer(rustclipsync_mobile_ffi.kt:3099)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterRustBuffer.lift(rustclipsync_mobile_ffi.kt:224)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterTypeMobileError.lift(rustclipsync_mobile_ffi.kt:3099)
+	at io.github.infinifar.rustclipsync.bindings.FfiConverterTypeMobileError.lift(rustclipsync_mobile_ffi.kt:3099)
+	at io.github.infinifar.rustclipsync.bindings.MobileException$ErrorHandler.lift(rustclipsync_mobile_ffi.kt:3090)
+	at io.github.infinifar.rustclipsync.bindings.MobileException$ErrorHandler.lift(rustclipsync_mobile_ffi.kt:3089)
+	at io.github.infinifar.rustclipsync.bindings.Rustclipsync_mobile_ffiKt.uniffiCheckCallStatus(rustclipsync_mobile_ffi.kt:291)
+	at io.github.infinifar.rustclipsync.bindings.Rustclipsync_mobile_ffiKt.access$uniffiCheckCallStatus(rustclipsync_mobile_ffi.kt:1)
+	at io.github.infinifar.rustclipsync.bindings.Rustclipsync_mobile_ffiKt.uniffiRustCallAsync(rustclipsync_mobile_ffi.kt:3495)
+	at io.github.infinifar.rustclipsync.bindings.Rustclipsync_mobile_ffiKt$uniffiRustCallAsync$1.invokeSuspend(Unknown Source:19)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:263)
+	at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:94)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:70)
+	at kotlinx.coroutines.BuildersKt.runBlocking(Unknown Source:1)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:48)
+	at kotlinx.coroutines.BuildersKt.runBlocking$default(Unknown Source:1)
+	at io.github.infinifar.rustclipsync.ServiceIntegrationTest.sendReceiveAndSensitiveInbox(ServiceIntegrationTest.kt:77)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

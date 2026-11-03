@@ -1,0 +1,60 @@
+stages: [inspect, verify]
+
+# GitHub Actions is the default build host. Keep Rocky as an explicit fallback.
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "api"'
+    - when: never
+
+default:
+  tags: [android]
+  image: ghcr.io/cirruslabs/android-sdk:36-ndk@sha256:eba21147d4ca3860e020ef607e3072f188674227e3110eb1d5aeb659f9ce4140
+  interruptible: true
+  hooks:
+    pre_get_sources_script:
+      - |
+        # Rocky job containers can inherit an intermittently unreachable Tailscale resolver.
+        # Only this disposable Docker container may use the fallback, never the host/runner.
+        if [ -n "${CI_JOB_IMAGE:-}" ]; then
+          printf 'nameserver 223.5.5.5\nnameserver 1.1.1.1\n' > /etc/resolv.conf
+          echo 'Configured DNS for this disposable image job'
+        fi
+
+variables:
+  CARGO_TERM_COLOR: always
+  GET_SOURCES_ATTEMPTS: "3"
+  RCS_GRADLE_DISTRIBUTION_URL: https://repo.huaweicloud.com/gradle/gradle-8.13-bin.zip
+
+toolchain:
+  stage: inspect
+  script:
+    - scripts/ci/inspect-runner.sh
+
+android:
+  stage: verify
+  resource_group: mobile-android-build
+  before_script:
+    - source scripts/ci/prepare-android.sh
+  script:
+    - scripts/check.sh
+    - scripts/check-android.sh
+    - python3 scripts/build-disposable-server.py
+    - scripts/check-disposable-android.sh | tee build/disposable-artifacts.txt
+    - sha256sum android/app/build/outputs/apk/debug/app-debug.apk > build/APK-SHA256SUMS
+  after_script:
+    - rm -rf .ci-tools target build/python build/apk-inspect
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - android/app/build/outputs/apk/debug/app-debug.apk
+      - android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+      - android/app/build/reports/
+      - build/android-zipalign.txt
+      - build/android-elf-alignment.txt
+      - build/APK-SHA256SUMS
+      - build/core-api-routes.txt
+      - build/disposable/
+      - build/disposable-server/
+      - build/disposable-artifacts.txt
+      - build/bindings/

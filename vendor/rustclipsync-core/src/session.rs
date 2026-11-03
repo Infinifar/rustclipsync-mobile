@@ -1,0 +1,906 @@
+//! Durable clipboard session. Network activity starts only on `check`,
+//! `flush`, or `pull`, never while constructing a session.
+use std::{
+    io,
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc,
+    },
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
+};
+
+use crate::{
+    adapters::{Clipboard, ClipboardError, Direction, HistorySink, StateStore},
+    client::Client,
+    control::Policy,
+    direction::{DirectionErrorCode, SyncDirection},
+    state::{self, Ack, InboxItem, LocalCopy, Persisted, State},
+    transport::Transport,
+    Error, Filter, Outcome, MAX_TEXT_BYTES,
+};
+
+const MAX_RETRY_SECS: u64 = 7 * 24 * 60 * 60;
+const MAX_CLOCK_SKEW_SECS: u64 = 5 * 60;
+
+#[derive(Debug)]
+pub enum SyncError {
+    Remote(Error),
+    Clipboard(ClipboardError),
+    Storage(io::Error),
+    Credentials,
+    Conflict,
+    Expired,
+    Epoch,
+}
+
+impl std::fmt::Display for SyncError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Remote(error) => write!(f, "remote synchronization failed: {error}"),
+            Self::Clipboard(error) => write!(f, "clipboard synchronization failed: {error}"),
+            Self::Storage(_) => f.write_str("session state persistence failed"),
+            Self::Credentials => f.write_str("pairing credentials are required"),
+            Self::Conflict => f.write_str("synchronization conflict"),
+            Self::Expired => f.write_str("pending upload has expired"),
+            Self::Epoch => f.write_str("device registration or server epoch changed"),
+        }
+    }
+}
+
+impl std::error::Error for SyncError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Remote(error) => Some(error),
+            Self::Clipboard(error) => Some(error),
+            Self::Storage(error) => Some(error),
+            _ => None,
+        }
+    }
+}
+
+impl From<Error> for SyncError {
+    fn from(value: Error) -> Self {
+        match value {
+            Error::Status(401 | 403) => Self::Epoch,
+            Error::Protocol(error)
+                if matches!(
+                    error.code,
+                    DirectionErrorCode::Unauthenticated | DirectionErrorCode::DeviceMismatch
+                ) =>
+            {
+                Self::Epoch
+            }
+            other => Self::Remote(other),
+        }
+    }
+}
+impl From<io::Error> for SyncError {
+    fn from(value: io::Error) -> Self {
+        Self::Storage(value)
+    }
+}
+
+/// The host obtains the key from Secret Service, DPAPI, or its equivalent.
+/// This type deliberately does not implement Debug.
+pub struct SessionConfig {
+    pub server: String,
+    pub encryption_key: [u8; 32],
+    pub filter: Filter,
+    pub allow_sensitive: bool,
+}
+
+pub struct Session<C, S, H, R = Client> {
+    pub remote: Arc<R>,
+    pub persisted: Persisted,
+    pub history: H,
+    pub history_error: bool,
+    pub clipboard: C,
+    filter: Filter,
+    allow_sensitive: bool,
+    key: [u8; 32],
+    storage: S,
+    generation: Arc<AtomicU64>,
+    echo: Option<(String, Instant)>,
+    needs_pending_check: bool,
+    sensitive_inbox: bool,
+    sync_policy: Option<Policy>,
+    observed_revision: u64,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ReceiveTarget {
+    Foreground,
+    InboxOnly,
+    BackgroundClipboard,
+}
+
+impl<C: Clipboard, S: StateStore, H: HistorySink, R: Transport> Session<C, S, H, R> {
+    pub fn open(
+        config: SessionConfig,
+        remote: Arc<R>,
+        storage: S,
+        clipboard: C,
+        history: H,
+        generation: Arc<AtomicU64>,
+    ) -> Result<Self, SyncError> {
+        let SessionConfig {
+            server,
+            encryption_key: key,
+            filter,
+            allow_sensitive,
+        } = config;
+        let mut persisted = match storage.load()? {
+            Some(bytes) => state::open(&key, bytes)?,
+            None => {
+                let value = Persisted {
+                    server: server.clone(),
+                    token: state::random_token()?,
+                    paired: false,
+                    inbox: None,
+                    state: State::new(String::new(), state::random_uuid()?, 0),
+                };
+                storage.save(&state::seal(&key, &value)?)?;
+                value
+            }
+        };
+        if persisted.server != server {
+            return Err(SyncError::Epoch);
+        }
+        if persisted.state.applying.is_some() {
+            persisted.state.recover_ambiguous_apply();
+            storage.save(&state::seal(&key, &persisted)?)?;
+        }
+        let needs_pending_check =
+            persisted.state.pending.is_some() && !persisted.state.resolving_conflict;
+        let observed_revision = persisted.state.cursor;
+        Ok(Self {
+            remote,
+            persisted,
+            history,
+            history_error: false,
+            clipboard,
+            filter,
+            allow_sensitive,
+            key,
+            storage,
+            generation,
+            echo: None,
+            needs_pending_check,
+            sensitive_inbox: false,
+            sync_policy: None,
+            observed_revision,
+        })
+    }
+
+    /// Set direction and pause; unpaired identities only remember the local selection.
+    ///
+    /// The local filter takes effect even if reporting fails. Hosts must advance
+    /// their generation on policy changes before calling this blocking method.
+    ///
+    /// # Errors
+    /// Returns storage, transport or protocol errors. A failed report is unconfirmed.
+    pub fn set_sync_direction(
+        &mut self,
+        direction: SyncDirection,
+        paused: bool,
+    ) -> Result<(), SyncError> {
+        self.sync_policy = Some(Policy { direction, paused });
+        if paused || !direction.allows_push() {
+            self.persisted.state.local_clear();
+            self.needs_pending_check = false;
+            self.save()?;
+        }
+        self.remote
+            .set_sync_direction(&self.persisted, direction, paused)?;
+        Ok(())
+    }
+    /// Revoke direction on explicit logout; keep pairing and local settings separate.
+    ///
+    /// # Errors
+    /// Returns an unconfirmed transport/protocol error when revocation cannot complete.
+    pub fn revoke_sync_direction(&mut self) -> Result<(), SyncError> {
+        self.sync_policy = None;
+        self.persisted.state.local_clear();
+        self.needs_pending_check = false;
+        self.save()?;
+        self.remote.revoke_sync_direction(&self.persisted)?;
+        Ok(())
+    }
+    fn can_push(&self) -> bool {
+        self.sync_policy
+            .is_some_and(|p| !p.paused && p.direction.allows_push())
+    }
+    fn can_receive(&self) -> bool {
+        self.sync_policy
+            .is_some_and(|p| !p.paused && p.direction.allows_receive())
+    }
+
+    /// Opt in to retaining sensitive receives in encrypted session state, never
+    /// presenting a private inbox as a successful OS clipboard write.
+    pub fn use_sensitive_inbox(&mut self, enabled: bool) {
+        self.sensitive_inbox = enabled;
+    }
+    /// Update the policy, also enforced on queued content by the next flush.
+    pub fn update_policy(&mut self, filter: Filter, allow_sensitive: bool) {
+        self.filter = filter;
+        self.allow_sensitive = allow_sensitive;
+    }
+    pub fn clear_inbox(&mut self, id: &str) -> Result<bool, SyncError> {
+        if self
+            .persisted
+            .inbox
+            .as_ref()
+            .is_none_or(|item| item.id != id)
+        {
+            return Ok(false);
+        }
+        self.persisted.inbox = None;
+        self.save()?;
+        Ok(true)
+    }
+
+    fn save(&self) -> Result<(), SyncError> {
+        self.storage
+            .save(&state::seal(&self.key, &self.persisted)?)
+            .map_err(Into::into)
+    }
+
+    /// First registration records the then-current server version as baseline.
+    pub fn check(&mut self) -> Result<(), SyncError> {
+        let policy = self.sync_policy.ok_or(Error::DirectionRequired)?;
+        if self.needs_pending_check {
+            let expected = self
+                .persisted
+                .state
+                .queued
+                .as_ref()
+                .or_else(|| self.persisted.state.pending.as_ref().map(|p| &p.copy));
+            let actual = match self.clipboard.snapshot(self.allow_sensitive) {
+                Ok(value) => value,
+                Err(ClipboardError::Sensitive) => None,
+                Err(error) => return Err(SyncError::Clipboard(error)),
+            };
+            if expected.is_some_and(|copy| {
+                actual.as_ref().is_none_or(|(text, sensitive)| {
+                    text != &copy.text || *sensitive != copy.sensitive
+                })
+            }) {
+                self.persisted.state.local_clear();
+                self.save()?;
+            }
+            self.needs_pending_check = false;
+        }
+        if !self.persisted.paired {
+            let registered = self
+                .remote
+                .register(&self.persisted)
+                .map_err(SyncError::Remote)?;
+            if self
+                .persisted
+                .state
+                .pending
+                .as_ref()
+                .is_some_and(|p| p.attempted)
+            {
+                return Err(SyncError::Epoch);
+            }
+            self.persisted.state.epoch = registered.epoch;
+            self.persisted.state.cursor = registered.ack_revision;
+            if let Some(pending) = self.persisted.state.pending.as_mut() {
+                pending.base_revision = registered.ack_revision;
+            }
+            self.persisted.paired = true;
+            self.save()?;
+        }
+        self.remote.ensure_sync_direction(&self.persisted)?;
+        if policy.paused {
+            return Ok(());
+        }
+        let remote = self.remote.state(&self.persisted)?;
+        if remote.epoch != self.persisted.state.epoch
+            || remote.revision < self.persisted.state.cursor
+        {
+            return Err(SyncError::Epoch);
+        }
+        self.observed_revision = remote.revision;
+        if remote.ack_revision > self.persisted.state.cursor {
+            self.persisted.state.cursor = remote.ack_revision;
+            self.save()?;
+        }
+        if remote.message().is_none() && remote.revision > self.persisted.state.cursor {
+            // No authorized delivery exists at this revision. Advance observation,
+            // never rebase a copy already queued before this observation.
+            self.persisted.state.cursor = remote.revision;
+            self.save()?;
+        }
+        Ok(())
+    }
+
+    pub fn record_local(
+        &mut self,
+        text: &str,
+        marker: Option<&str>,
+        sensitive: bool,
+        now: Instant,
+    ) -> Result<Outcome, SyncError> {
+        if self.persisted.state.resolving_conflict {
+            // Copies made before recovery finishes have no safe conflict base.
+            // Keep the platform selection intact, without queuing a stale retry.
+            return self.record_clear();
+        }
+        if !self.can_push() {
+            self.record_clear()?;
+            return Ok(Outcome::Paused);
+        }
+        if self
+            .echo
+            .as_ref()
+            .is_some_and(|(expected, until)| marker == Some(expected.as_str()) && now <= *until)
+        {
+            return Ok(Outcome::Skipped);
+        }
+        self.echo = None;
+        if text.is_empty() {
+            return self.record_clear();
+        }
+        if text.len() > MAX_TEXT_BYTES {
+            // An unsupported new selection still supersedes the old local copy.
+            // Keep any uncertain upload until flush resolves its cancellation.
+            self.record_clear()?;
+            return Err(SyncError::Remote(Error::TooLarge));
+        }
+        if (sensitive && !self.allow_sensitive) || !self.filter.allows(text, false) {
+            return self.record_clear().map(|_| Outcome::Filtered);
+        }
+        self.persisted.state.local_copy(LocalCopy {
+            id: state::random_uuid()?,
+            text: text.to_owned(),
+            created_at: unix_time(),
+            sensitive,
+        });
+        self.save()?;
+        Ok(Outcome::Current)
+    }
+
+    pub fn record_clear(&mut self) -> Result<Outcome, SyncError> {
+        self.echo = None;
+        self.persisted.state.local_clear();
+        self.save()?;
+        Ok(Outcome::Skipped)
+    }
+
+    pub fn has_pending(&self) -> bool {
+        self.persisted.state.pending.is_some()
+            || self.persisted.state.ack.is_some()
+            || self.persisted.state.resolving_conflict
+    }
+
+    /// Whether an attempted outbox predates a server revision seen by `check`.
+    ///
+    /// Its commit may be uncertain. Hosts choosing safe skip recovery must use
+    /// cancellation, rather than resending or silently changing its base revision.
+    pub fn has_observed_upload_conflict(&self) -> bool {
+        self.persisted
+            .state
+            .pending
+            .as_ref()
+            .is_some_and(|pending| {
+                pending.attempted && pending.base_revision < self.observed_revision
+            })
+    }
+
+    /// Safely abandon a conflicting upload without replacing either clipboard.
+    ///
+    /// The host opts into skipping the conflict instead of asking for manual resolution.
+    /// Cancels the old outbox (including queued copies), skips the then-current
+    /// authorized remote delivery, and preserves the platform clipboard. Only
+    /// copies made after recovery completes can upload automatically. The durable
+    /// recovery marker makes [`Self::flush`] resume this decision after a restart.
+    ///
+    /// # Errors
+    /// Returns transport, epoch or persistence errors; uncertain work stays durable.
+    pub fn recover_upload_conflict(&mut self, observed: u64) -> Result<Outcome, SyncError> {
+        let policy = self.sync_policy.ok_or(Error::DirectionRequired)?;
+        if policy.paused {
+            return Ok(Outcome::Paused);
+        }
+        if !self.persisted.paired {
+            return Err(SyncError::Epoch);
+        }
+        if self.persisted.state.applying.is_some()
+            || (!self.persisted.state.resolving_conflict && self.persisted.state.pending.is_none())
+        {
+            return Err(SyncError::Conflict);
+        }
+        self.persisted.state.resolving_conflict = true;
+        self.persisted.state.local_clear();
+        self.echo = None;
+        self.needs_pending_check = false;
+        self.save()?;
+        self.remote.ensure_sync_direction(&self.persisted)?;
+        if let Some(pending) = self.persisted.state.pending.clone() {
+            match self.remote.cancel(&self.persisted, &pending) {
+                Ok(Some(revision)) => self
+                    .persisted
+                    .state
+                    .committed(&pending.copy.id, revision)
+                    .map_err(invalid_state)?,
+                Ok(None) => self
+                    .persisted
+                    .state
+                    .cancelled(&pending.copy.id)
+                    .map_err(invalid_state)?,
+                Err(Error::Status(409)) => return Err(SyncError::Epoch),
+                Err(error) => return Err(error.into()),
+            }
+            self.save()?;
+        }
+        let current = self.remote.state(&self.persisted)?;
+        if current.epoch != self.persisted.state.epoch
+            || current.revision < self.persisted.state.cursor
+        {
+            return Err(SyncError::Epoch);
+        }
+        if let Some(message) = current.message() {
+            self.persisted.state.ack = Some(Ack {
+                id: message.id,
+                revision: message.revision,
+                result: if message.source_device_id == self.persisted.state.device_id {
+                    "self"
+                } else {
+                    "skipped"
+                }
+                .into(),
+            });
+        }
+        self.persisted.state.cursor = current.revision;
+        self.persisted.state.resolving_conflict = false;
+        self.save()?;
+        self.flush(observed)?;
+        Ok(Outcome::Skipped)
+    }
+
+    /// Re-pair using the currently selected direction, after confirmed revocation.
+    ///
+    /// # Errors
+    /// Returns direction-required, unconfirmed revocation, persistence or pairing errors.
+    pub fn re_pair(&mut self) -> Result<(), SyncError> {
+        let policy = self.sync_policy.ok_or(Error::DirectionRequired)?;
+        self.re_pair_with_direction(policy.direction, policy.paused)
+    }
+    /// Explicitly discard pending state only after revoking the old device direction.
+    ///
+    /// # Errors
+    /// Failed revocation leaves the old identity intact. Later errors require reopening state.
+    pub fn re_pair_with_direction(
+        &mut self,
+        direction: SyncDirection,
+        paused: bool,
+    ) -> Result<(), SyncError> {
+        self.remote.revoke_sync_direction(&self.persisted)?;
+        self.persisted.token = state::random_token()?;
+        self.persisted.state = State::new(String::new(), state::random_uuid()?, 0);
+        self.persisted.paired = false;
+        self.persisted.inbox = None;
+        self.needs_pending_check = false;
+        self.echo = None;
+        self.save()?;
+        self.set_sync_direction(direction, paused)?;
+        self.check()
+    }
+
+    /// An explicit user action chooses the current local clipboard over the
+    /// latest server value. Never silently rebase an automatic upload.
+    pub fn push_now(&mut self, observed: u64) -> Result<Outcome, SyncError> {
+        if !self.can_push() {
+            return Ok(Outcome::Paused);
+        }
+        if !self.persisted.paired || self.needs_pending_check {
+            self.check()?;
+        }
+        let Some((text, sensitive)) = self
+            .clipboard
+            .snapshot(self.allow_sensitive)
+            .map_err(SyncError::Clipboard)?
+        else {
+            return Ok(Outcome::Skipped);
+        };
+        if text.is_empty() {
+            return Ok(Outcome::Skipped);
+        }
+        if text.len() > MAX_TEXT_BYTES {
+            return Err(SyncError::Remote(Error::TooLarge));
+        }
+        if !self.filter.allows(&text, false) {
+            return Ok(Outcome::Filtered);
+        }
+        if self.persisted.state.applying.is_some() {
+            return Err(SyncError::Conflict);
+        }
+        if let Some(pending) = self.persisted.state.pending.clone().filter(|p| p.attempted) {
+            match self.remote.cancel(&self.persisted, &pending) {
+                Ok(_) => {}
+                Err(Error::Status(409)) => return Err(SyncError::Epoch),
+                Err(err) => return Err(err.into()),
+            }
+        }
+        let remote = self.remote.state(&self.persisted)?;
+        if remote.epoch != self.persisted.state.epoch {
+            return Err(SyncError::Epoch);
+        }
+        if self.generation.load(Ordering::SeqCst) != observed
+            || self
+                .clipboard
+                .snapshot(self.allow_sensitive)
+                .map_err(SyncError::Clipboard)?
+                .as_ref()
+                .is_none_or(|(current, current_sensitive)| {
+                    current != &text || *current_sensitive != sensitive
+                })
+        {
+            return Ok(Outcome::Skipped);
+        }
+        let ack = remote.message().map(|message| Ack {
+            id: message.id,
+            revision: message.revision,
+            result: if message.source_device_id == self.persisted.state.device_id {
+                "self"
+            } else {
+                "skipped"
+            }
+            .into(),
+        });
+        let mut next = State::new(
+            self.persisted.state.epoch.clone(),
+            self.persisted.state.device_id.clone(),
+            remote.revision,
+        );
+        next.ack = ack;
+        next.local_copy(LocalCopy {
+            id: state::random_uuid()?,
+            text,
+            created_at: unix_time(),
+            sensitive,
+        });
+        self.persisted.state = next;
+        self.save()?;
+        self.flush(observed)
+    }
+
+    /// The caller supplies the watcher's change counter before entering this
+    /// function. A new local event aborts an upload before it is sent.
+    /// Restored pending content is checked against the clipboard before sending.
+    pub fn flush(&mut self, observed: u64) -> Result<Outcome, SyncError> {
+        if self.persisted.state.resolving_conflict {
+            return self.recover_upload_conflict(observed);
+        }
+        if !self.persisted.paired || self.needs_pending_check {
+            self.check()?;
+        }
+        let latest = self
+            .persisted
+            .state
+            .queued
+            .as_ref()
+            .or_else(|| self.persisted.state.pending.as_ref().map(|p| &p.copy));
+        if latest.is_some_and(|copy| {
+            (copy.sensitive && !self.allow_sensitive) || !self.filter.allows(&copy.text, false)
+        }) {
+            self.persisted.state.local_clear();
+            self.save()?;
+        }
+        if let Some(ack) = self
+            .persisted
+            .state
+            .ack
+            .clone()
+            .filter(|_| self.sync_policy.is_some())
+        {
+            match self.remote.acknowledge(&self.persisted, &ack) {
+                Ok(()) => {}
+                Err(Error::Status(410)) => {
+                    let current = self.remote.state(&self.persisted)?;
+                    if current.epoch != self.persisted.state.epoch
+                        || current.revision <= ack.revision
+                    {
+                        return Err(SyncError::Epoch);
+                    }
+                }
+                Err(error) => return Err(error.into()),
+            }
+            if self.persisted.state.ack.as_ref() == Some(&ack) {
+                self.persisted.state.ack = None;
+                self.save()?;
+            }
+        }
+        let Some(pending) = self.persisted.state.pending.clone() else {
+            return Ok(Outcome::Current);
+        };
+        let now = unix_time();
+        if now.saturating_sub(pending.copy.created_at) > MAX_RETRY_SECS
+            || now.saturating_add(MAX_CLOCK_SKEW_SECS) < pending.copy.created_at
+        {
+            return Err(SyncError::Expired);
+        }
+        if self.persisted.state.queued.is_some() || self.persisted.state.discard_pending {
+            match self.remote.cancel(&self.persisted, &pending) {
+                Ok(Some(revision)) => self
+                    .persisted
+                    .state
+                    .committed(&pending.copy.id, revision)
+                    .map_err(invalid_state)?,
+                Ok(None) => self
+                    .persisted
+                    .state
+                    .cancelled(&pending.copy.id)
+                    .map_err(invalid_state)?,
+                Err(Error::Status(409)) => return Err(SyncError::Conflict),
+                Err(err) => return Err(err.into()),
+            }
+            self.save()?;
+            return Ok(Outcome::Current);
+        }
+        if !self.can_push() {
+            return Ok(Outcome::Paused);
+        }
+        let request = self.persisted.state.attempt().map_err(invalid_state)?;
+        self.save()?;
+        if self.generation.load(Ordering::SeqCst) != observed {
+            return Ok(Outcome::Skipped);
+        }
+        let revision = match self.remote.send(&self.persisted, &request) {
+            Ok(revision) => revision,
+            Err(Error::Status(409)) => return Err(SyncError::Conflict),
+            Err(err) => return Err(err.into()),
+        };
+        self.persisted
+            .state
+            .committed(&request.copy.id, revision)
+            .map_err(invalid_state)?;
+        self.save()?;
+        self.record_history(
+            &request.copy.text,
+            Direction::Upload,
+            request.copy.sensitive,
+        );
+        Ok(Outcome::Uploaded)
+    }
+
+    /// Receive the latest message, recovering ambiguous writes as skipped.
+    /// The time argument is retained for compatibility; echo suppression starts
+    /// at the actual clipboard write, after any blocking network operations.
+    pub fn pull(&mut self, observed: u64, _now: Instant) -> Result<Outcome, SyncError> {
+        if !self.can_receive() {
+            return Ok(Outcome::Paused);
+        }
+        if !self.persisted.paired || self.needs_pending_check {
+            self.check()?;
+        }
+        if self.persisted.state.pending.is_some()
+            || self.persisted.state.applying.is_some()
+            || self.persisted.state.resolving_conflict
+        {
+            return Ok(Outcome::Skipped);
+        }
+        self.pull_target(observed, ReceiveTarget::Foreground)
+    }
+
+    /// Receive only marked sensitive content into the enabled encrypted inbox.
+    ///
+    /// This never reads or writes the platform clipboard. An ordinary message is
+    /// left unconsumed for a foreground receive (the server still retains only
+    /// its latest message). Registration and restored outbox validation must
+    /// first complete in the foreground via [`Self::check`]. Disabled inboxes,
+    /// unchecked restored state and pending uploads return [`Outcome::Skipped`].
+    ///
+    /// # Errors
+    /// Returns transport, epoch, validation or durable storage errors, exactly
+    /// as [`Self::pull`]. Stored messages retain the existing skipped ack rules.
+    pub fn pull_inbox(&mut self, observed: u64) -> Result<Outcome, SyncError> {
+        self.pull_background(observed, false)
+    }
+
+    /// Receive without reading the clipboard, with an explicit background-write opt-in.
+    ///
+    /// With `write_clipboard = false`, this is [`Self::pull_inbox`]. With `true`,
+    /// ordinary messages may be written; marked messages still obey the existing
+    /// skip/inbox/auto-write policy. The host must enforce its own write permission.
+    /// Since no clipboard snapshot can be compared, external clipboard changes
+    /// are protected only by the host's observed generation counter. Callers must
+    /// explain that this opt-in may replace another app's recent clipboard value.
+    /// Registration, restored-state validation and pending uploads remain foreground work.
+    ///
+    /// # Errors
+    /// Returns the same transport, storage, clipboard, epoch and validation errors as [`Self::pull`].
+    pub fn pull_background(
+        &mut self,
+        observed: u64,
+        write_clipboard: bool,
+    ) -> Result<Outcome, SyncError> {
+        if !self.can_receive() {
+            return Ok(Outcome::Paused);
+        }
+        if (!write_clipboard && !self.sensitive_inbox)
+            || !self.persisted.paired
+            || self.needs_pending_check
+        {
+            return Ok(Outcome::Skipped);
+        }
+        if self.persisted.state.pending.is_some()
+            || self.persisted.state.applying.is_some()
+            || self.persisted.state.resolving_conflict
+        {
+            return Ok(Outcome::Skipped);
+        }
+        // There is no outbox here: flush only the durable acknowledgement,
+        // including one whose previous response was lost. Never retry an upload
+        // while the platform clipboard is unavailable in the background.
+        self.flush(observed)?;
+        let target = if write_clipboard {
+            ReceiveTarget::BackgroundClipboard
+        } else {
+            ReceiveTarget::InboxOnly
+        };
+        let result = self.pull_target(observed, target)?;
+        self.flush(observed)?;
+        Ok(result)
+    }
+
+    fn receive_snapshot(&self) -> Result<Option<(String, bool)>, ClipboardError> {
+        match self.clipboard.snapshot(self.allow_sensitive) {
+            // Adapters may represent a disallowed selection as Sensitive or
+            // None. Neither exposes its body or prevents receiving ordinary text.
+            Err(ClipboardError::Sensitive) if !self.allow_sensitive => Ok(None),
+            result => result,
+        }
+    }
+
+    fn pull_target(&mut self, observed: u64, target: ReceiveTarget) -> Result<Outcome, SyncError> {
+        let before = if target != ReceiveTarget::Foreground {
+            None
+        } else {
+            self.receive_snapshot().map_err(SyncError::Clipboard)?
+        };
+        let remote = self.remote.state(&self.persisted)?;
+        if remote.epoch != self.persisted.state.epoch
+            || remote.revision < self.persisted.state.cursor
+        {
+            return Err(SyncError::Epoch);
+        }
+        if remote.ack_revision > self.persisted.state.cursor {
+            self.persisted.state.cursor = remote.ack_revision;
+            self.save()?;
+        }
+        let Some(message) = remote.message() else {
+            if remote.revision > self.persisted.state.cursor {
+                self.persisted.state.cursor = remote.revision;
+                self.save()?;
+            }
+            return Ok(Outcome::Current);
+        };
+        if message.revision <= self.persisted.state.cursor {
+            return Ok(Outcome::Current);
+        }
+        if message.source_device_id == self.persisted.state.device_id {
+            self.persisted
+                .state
+                .acknowledge_self(message)
+                .map_err(invalid_state)?;
+            self.save()?;
+            return Ok(Outcome::Skipped);
+        }
+        if target == ReceiveTarget::InboxOnly && !message.sensitive {
+            return Ok(Outcome::Skipped);
+        }
+        if message.sensitive && !self.allow_sensitive {
+            self.persisted.state.cursor = message.revision;
+            self.persisted.state.ack = Some(Ack {
+                id: message.id,
+                revision: message.revision,
+                result: "skipped".into(),
+            });
+            self.save()?;
+            return Ok(Outcome::Filtered);
+        }
+        let text = match self.remote.content(&self.persisted, &message) {
+            Ok(text) => text,
+            Err(Error::Status(410)) => return Ok(Outcome::Skipped),
+            Err(err) => return Err(err.into()),
+        };
+        if Some(text.len() as u64) != remote.size {
+            return Err(SyncError::Remote(Error::InvalidProfile));
+        }
+        if !self.filter.allows(&text, true) {
+            self.persisted.state.cursor = message.revision;
+            self.persisted.state.ack = Some(Ack {
+                id: message.id,
+                revision: message.revision,
+                result: "skipped".into(),
+            });
+            self.save()?;
+            return Ok(Outcome::Filtered);
+        }
+        let confirm = self.remote.state(&self.persisted)?;
+        if confirm.epoch != remote.epoch || confirm.message() != Some(message.clone()) {
+            return Ok(Outcome::Skipped);
+        }
+        if self.generation.load(Ordering::SeqCst) != observed
+            || (target == ReceiveTarget::Foreground
+                && self.receive_snapshot().map_err(SyncError::Clipboard)? != before)
+        {
+            return Ok(Outcome::Skipped);
+        }
+        if message.sensitive && self.sensitive_inbox {
+            self.persisted.inbox = Some(InboxItem {
+                id: message.id.clone(),
+                text,
+                received_at: unix_time(),
+            });
+            self.persisted.state.cursor = message.revision;
+            self.persisted.state.ack = Some(Ack {
+                id: message.id,
+                revision: message.revision,
+                result: "skipped".into(),
+            });
+            self.save()?;
+            return Ok(Outcome::Stored);
+        }
+        self.persisted
+            .state
+            .prepare_apply(message.clone())
+            .map_err(invalid_state)?;
+        self.save()?;
+        let unchanged = if self.generation.load(Ordering::SeqCst) != observed {
+            Ok(false)
+        } else if target == ReceiveTarget::Foreground {
+            self.receive_snapshot().map(|snapshot| snapshot == before)
+        } else {
+            Ok(true)
+        };
+        if !matches!(unchanged, Ok(true)) {
+            // No write was attempted: release the journal even if the final
+            // clipboard read failed, so the same message can be retried.
+            self.persisted
+                .state
+                .finish_apply(&message.id, false)
+                .map_err(invalid_state)?;
+            self.save()?;
+            return unchanged
+                .map(|_| Outcome::Skipped)
+                .map_err(SyncError::Clipboard);
+        }
+        let written = self.clipboard.write(&text, &message.id, message.sensitive);
+        self.echo = Some((message.id.clone(), Instant::now() + Duration::from_secs(5)));
+        if let Err(error) = written {
+            // The adapter may have written before failing. Match crash recovery:
+            // persist a skipped cursor, never replay this ambiguous side effect.
+            self.persisted.state.recover_ambiguous_apply();
+            self.save()?;
+            return Err(SyncError::Clipboard(error));
+        }
+        self.persisted
+            .state
+            .finish_apply(&message.id, true)
+            .map_err(invalid_state)?;
+        self.save()?;
+        self.record_history(&text, Direction::Download, message.sensitive);
+        Ok(Outcome::Downloaded)
+    }
+
+    fn record_history(&mut self, text: &str, direction: Direction, sensitive: bool) {
+        self.history_error = self
+            .history
+            .record_marked(text, direction, unix_time(), sensitive)
+            .is_err();
+    }
+}
+
+fn invalid_state(_: &'static str) -> SyncError {
+    SyncError::Storage(io::Error::other("invalid sync state"))
+}
+fn unix_time() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs()
+}

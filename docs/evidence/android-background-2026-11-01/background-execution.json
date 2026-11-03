@@ -1,0 +1,30 @@
+{
+  "tested_at_utc": "2026-11-01T16:28:04.812544+00:00",
+  "pipeline": 125,
+  "job": 284,
+  "source_commit": "fb4bcaf8a5726047c7c74186f9e65163a7f3e106",
+  "core_commit": "1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e",
+  "ci_archive_sha256": "32fd6b30a2a319b36f3142cbb58864e96f13ef416e42032c2bc0cb9261499da2",
+  "driver_sha256": "4e133489cdb4dbcb1a78eca6656536fed16d366cf10759260ea38bff40755cc3",
+  "android_cli": "1.1.16717390",
+  "sdk_image": "ghcr.io/cirruslabs/android-sdk:36-ndk@sha256:eba21147d4ca3860e020ef607e3072f188674227e3110eb1d5aeb659f9ce4140",
+  "smoke_tests_per_api": 9,
+  "completed_service_methods": {
+    "31": 4,
+    "35": 5
+  },
+  "sensitive_revisions_8_9_11": "self + skipped; never applied",
+  "ordinary_revision_10": "self + applied",
+  "android35_timeout_override_ms": 2500,
+  "platform_notifications_and_service": "real emulator framework; clipboard mocked; state isolated synthetic key/files",
+  "physical_devices": false,
+  "real_clipboard_or_keystore": false,
+  "ios_compilation": false,
+  "cleanup": {
+    "runtime_avds_certificates_databases_and_processes_removed": true,
+    "task_container_removed": true,
+    "gitlab_and_host_export_files_removed": true,
+    "local_mobile_target_and_new_tools_removed": true,
+    "shared_gitlab_runner_proxy_and_sdk_image_preserved": true
+  }
+}

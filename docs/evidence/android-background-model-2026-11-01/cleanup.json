@@ -1,0 +1,24 @@
+{
+  "removed": [
+    "/tmp/rcs-background-model",
+    "/home/cassius/Projects/rustclipsync-mobile/build/bindings",
+    "/home/cassius/Projects/rustclipsync-mobile/build/python",
+    "/tmp/rcs-background-core-tests.txt",
+    "/tmp/rcs-background-host-ffi.txt",
+    "/tmp/rcs-background-bindings.txt",
+    "/tmp/rcs-background-routes.txt",
+    "/tmp/rcs-background-rustdoc.txt",
+    "/tmp/rcs-background-tests.txt",
+    "/tmp/rcs-background-clippy.txt",
+    "/tmp/rcs-background-capture-green.txt",
+    "/tmp/rcs-background-capture-red.txt",
+    "/tmp/rcs-background-green.txt",
+    "/tmp/rcs-background-red.txt",
+    "/tmp/rcs-shizuku-readme",
+    "/tmp/rcs-Shizuku.java",
+    "/tmp/rcs-ShizukuUserService.java",
+    "/tmp/rcs-IClipboard.aidl",
+    "/home/cassius/Projects/rustclipsync-mobile/build/core-api-routes.txt"
+  ],
+  "scope": "Only task-created temporary Rust outputs, generated host bindings, local route record and downloaded reference sources. No SDK, device, service, production data, shared caches or host settings modified."
+}

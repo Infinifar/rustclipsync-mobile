@@ -1,0 +1,16 @@
+Core revision: 5816bb5d18bc38bd26cca1ed6e7c5c093bfacd92
+PASS: 14 real HTTPS requests; root and nested deployment paths
+POST /api/devices
+GET /api/state
+GET /api/changes?epoch=10000000-0000-4000-8000-000000000001&after=0
+GET /api/messages/30000000-0000-4000-8000-000000000001/content
+PUT /api/messages/30000000-0000-4000-8000-000000000001
+DELETE /api/messages/30000000-0000-4000-8000-000000000001
+POST /api/ack
+POST /synthetic-mount/api/devices
+GET /synthetic-mount/api/state
+GET /synthetic-mount/api/changes?epoch=10000000-0000-4000-8000-000000000001&after=0
+GET /synthetic-mount/api/messages/30000000-0000-4000-8000-000000000001/content
+PUT /synthetic-mount/api/messages/30000000-0000-4000-8000-000000000001
+DELETE /synthetic-mount/api/messages/30000000-0000-4000-8000-000000000001
+POST /synthetic-mount/api/ack

@@ -1,0 +1,75 @@
+name: Signed Android release
+on:
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: Publish verified APK to GitHub Releases
+        type: boolean
+        default: true
+permissions:
+  contents: write
+concurrency:
+  group: signed-mobile-release
+  cancel-in-progress: false
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_BUILD_JOBS: '2'
+jobs:
+  apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Require release from main
+        run: test "$GITHUB_REF" = refs/heads/main
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+          cache-dependency-path: |
+            android/**/*.gradle.kts
+            android/gradle.properties
+            android/gradle/wrapper/gradle-wrapper.properties
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: android-ubuntu24-1.99.1-ndk28.2-v1-${{ hashFiles('Cargo.lock') }}
+      - name: Prepare pinned toolchain
+        shell: bash
+        run: |
+          echo "CI_COMMIT_SHORT_SHA=${GITHUB_SHA:0:8}" >> "$GITHUB_ENV"
+          rustup toolchain install 1.99.1 --profile minimal
+          rustup target add --toolchain 1.99.1 aarch64-linux-android x86_64-linux-android
+          # Hosted SDK images already carry accepted licenses. Do not auto-accept new terms.
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;36.0.0' 'ndk;28.2.13676358' </dev/null
+          python3 scripts/verify-vendor.py
+      - name: Validate Rust, bindings and protocol fixtures
+        run: scripts/check.sh
+      - name: Build both ABIs, lint and check APK alignment
+        run: scripts/check-android.sh
+      - name: Build release APK
+        run: cd android && ./gradlew --no-daemon lintRelease assembleRelease
+      - name: Sign and verify release APK
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: scripts/sign-release.sh
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: signed-mobile-0.1.5-${{ github.sha }}
+          path: release-output/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Publish verified release
+        if: inputs.publish_release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/publish-release.sh

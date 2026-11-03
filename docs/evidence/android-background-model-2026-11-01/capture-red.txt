@@ -1,0 +1,24 @@
+   Compiling rustclipsync-mobile-ffi v0.1.0 (/home/cassius/Projects/rustclipsync-mobile/crates/rustclipsync-mobile-ffi)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.40s
+     Running unittests src/lib.rs (/tmp/rcs-background-model/debug/deps/rustclipsync_mobile_ffi-ad371d843e6dd314)
+
+running 1 test
+test session::tests::privileged_background_capture_does_not_reupload_unchanged_content_or_replace_retry_uuid ... FAILED
+
+failures:
+
+---- session::tests::privileged_background_capture_does_not_reupload_unchanged_content_or_replace_retry_uuid stdout ----
+
+thread 'session::tests::privileged_background_capture_does_not_reupload_unchanged_content_or_replace_retry_uuid' (1931508) panicked at crates/rustclipsync-mobile-ffi/src/session/tests.rs:703:13:
+assertion `left == right` failed
+  left: ["synthetic Shizuku copy", "synthetic Shizuku copy", "synthetic Shizuku copy"]
+ right: ["synthetic Shizuku copy"]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    session::tests::privileged_background_capture_does_not_reupload_unchanged_content_or_replace_retry_uuid
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 16 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p rustclipsync-mobile-ffi --lib`

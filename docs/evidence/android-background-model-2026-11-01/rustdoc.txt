@@ -1,0 +1,4 @@
+ Documenting mobile-bindgen v0.1.0 (/home/cassius/Projects/rustclipsync-mobile/crates/mobile-bindgen)
+ Documenting rustclipsync-mobile-ffi v0.1.0 (/home/cassius/Projects/rustclipsync-mobile/crates/rustclipsync-mobile-ffi)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.02s
+   Generated /tmp/rcs-background-model/doc/mobile_bindgen/index.html and 1 other file

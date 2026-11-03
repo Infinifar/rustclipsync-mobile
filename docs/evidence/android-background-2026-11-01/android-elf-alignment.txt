@@ -1,0 +1,6 @@
+16 KiB ELF alignment passed: lib/arm64-v8a/libandroidx.graphics.path.so
+16 KiB ELF alignment passed: lib/arm64-v8a/libjnidispatch.so
+16 KiB ELF alignment passed: lib/arm64-v8a/librustclipsync_mobile_ffi.so
+16 KiB ELF alignment passed: lib/x86_64/libandroidx.graphics.path.so
+16 KiB ELF alignment passed: lib/x86_64/libjnidispatch.so
+16 KiB ELF alignment passed: lib/x86_64/librustclipsync_mobile_ffi.so

@@ -1,0 +1,112 @@
+name: Android APK
+on:
+  push:
+    paths-ignore: ['docs/**', '**.md']
+  pull_request:
+    paths-ignore: ['docs/**', '**.md']
+  workflow_dispatch:
+    inputs:
+      fixtures:
+        description: Also build isolated server and synthetic instrumentation fixtures
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_BUILD_JOBS: '2'
+jobs:
+  apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+          cache-dependency-path: |
+            android/**/*.gradle.kts
+            android/gradle.properties
+            android/gradle/wrapper/gradle-wrapper.properties
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: android-ubuntu24-1.99.1-ndk28.2-v1-${{ hashFiles('Cargo.lock') }}
+      - name: Prepare pinned toolchain
+        shell: bash
+        run: |
+          echo "CI_COMMIT_SHORT_SHA=${GITHUB_SHA:0:8}" >> "$GITHUB_ENV"
+          rustup toolchain install 1.99.1 --profile minimal
+          rustup target add --toolchain 1.99.1 aarch64-linux-android x86_64-linux-android
+          # Hosted SDK images already carry accepted licenses. Do not auto-accept new terms.
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;36.0.0' 'ndk;28.2.13676358' </dev/null
+          python3 scripts/verify-vendor.py
+      - name: Build both ABIs, lint and check APK alignment
+        run: scripts/check-android.sh
+      - name: Record APK and source
+        shell: bash
+        run: |
+          sha256sum android/app/build/outputs/apk/debug/app-debug.apk > build/APK-SHA256SUMS
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          Path('build/ci-provenance.json').write_text(json.dumps({
+              'source': os.environ['GITHUB_SHA'],
+              'run': os.environ['GITHUB_SERVER_URL'] + '/' + os.environ['GITHUB_REPOSITORY'] + '/actions/runs/' + os.environ['GITHUB_RUN_ID'],
+              'scope': 'Android compilation, lint and static APK/ELF checks; no device runtime claimed',
+          }, indent=2) + '\n')
+          PY
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        id: apk
+        with:
+          name: android-apk-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+            build/APK-SHA256SUMS
+            build/android-elf-alignment.txt
+            build/android-zipalign.txt
+            build/ci-provenance.json
+      - name: Compile synthetic service instrumentation without running a device
+        run: |
+          RCS_DISPOSABLE_INTEGRATION=1 scripts/generate-bindings.sh
+          (cd android && ./gradlew --no-daemon -PdisposableIntegration=true compileDebugAndroidTestKotlin)
+      - name: Build optional isolated fixtures
+        if: github.event_name == 'workflow_dispatch' && inputs.fixtures
+        run: |
+          python3 scripts/build-disposable-server.py
+          scripts/check-disposable-android.sh | tee build/disposable-artifacts.txt
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: github.event_name == 'workflow_dispatch' && inputs.fixtures && success()
+        with:
+          name: android-synthetic-fixtures-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            build/disposable/
+            build/disposable-server/
+            build/disposable-artifacts.txt
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always() && !cancelled()
+        with:
+          name: android-reports-${{ github.sha }}
+          retention-days: 7
+          path: android/app/build/reports/
+      - name: Summarize build
+        if: success()
+        env:
+          APK_URL: ${{ steps.apk.outputs.artifact-url }}
+        run: |
+          printf 'Android 0.1.5 · %s\n\n[Download APK and checksums](%s)\n\nNo simulator or physical-device result is implied by this build.\n' "$CI_COMMIT_SHORT_SHA" "$APK_URL" >> "$GITHUB_STEP_SUMMARY"

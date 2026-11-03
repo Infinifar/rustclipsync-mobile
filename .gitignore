@@ -29,3 +29,12 @@ xcuserdata/
 .env.*
 !.env.example
 *.log
+# Local build tools and generated bindings
+/.tools/
+/build/
+**/jniLibs/
+/ios/Generated/
+/ios/RustClipSync.xcodeproj/
+/.ci-tools/
+
+/release-output/

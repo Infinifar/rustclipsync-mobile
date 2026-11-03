@@ -1,0 +1,22 @@
+{
+  "excluded_from_final_pass_counts": true,
+  "probes": [
+    {
+      "job": 278,
+      "source": "7847879f776f6e80187aa53bb397628e7966e062",
+      "api": 31,
+      "result": "background method timed out after revision 9; obsolete Activity copy path replaced by direct service copy"
+    },
+    {
+      "job": 282,
+      "source": "a61fe8e541d849cd02a9c825e9cdd54c2e8ea959",
+      "api": 35,
+      "result": "two smoke assertions assumed synchronous NotificationManager cancellation; fixed by bounded await"
+    },
+    {
+      "job": 282,
+      "api": 35,
+      "result": "diagnostic suite with six legacy smoke tests passed all five service methods including timeout; not a complete nine-test smoke pass"
+    }
+  ]
+}

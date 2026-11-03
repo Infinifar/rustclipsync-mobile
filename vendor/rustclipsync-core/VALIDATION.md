@@ -1,0 +1,107 @@
+# 本地验证记录
+
+## 2026-11-02：敏感策略热切换回归
+
+- 旧代码的会话测试稳定返回 `Clipboard(Sensitive)`；真实 Wayland 会话中的临时客户端／临时 SQLCipher 服务端也复现了关闭敏感同步后接收不断失败的行为。诊断确认不是监听序号失配。
+- 新增会话测试覆盖双向／仅接收、原会话更新策略／重新打开会话；关闭后保留原标记文本且能继续接收普通文本，后续敏感消息仍被过滤，不产生上传。
+- 在接收的三次快照检查分别注入真实读取失败，验证不写入剪贴板、释放 apply journal，并可恢复重试。
+- `cargo test --locked` 共 63 项通过；严格 Clippy 和格式检查通过。
+- 实际 Wayland 验证完成 10 轮开关切换（20 次状态变更），同时验证拒收敏感消息与接收普通消息。使用临时服务端、临时身份与专用测试密钥存储；原插件短暂停用，结束后恢复原文本剪贴板和插件。没有修改正式服务或桌面密钥环。
+- 更长的快速切换批次曾触及测试服务端限流；保留限流保护后，以低于限额的批次验证，不把 429 重试记作本次敏感策略回归。
+
+日期：2026-10-31。环境：Linux x86_64，系统 Rust/Cargo 1.99.1。
+
+| 检查 | 结果 |
+| --- | --- |
+| 共享库 `cargo test --locked` | 20 项通过：4 项模块测试、15 项会话行为测试、1 项旧状态迁移测试 |
+| 共享库 `cargo clippy --locked --all-targets -- -D warnings` | 通过，包含协议探针示例 |
+| Rust 格式检查 | 通过 |
+| 共享库 `cargo package --locked --allow-dirty --offline` | 打包与解包编译验证通过；未发布至 registry |
+| Omaclipsync 测试 | 53 项通过：库 40、daemon 8、CLI 3、daemon 协议 2 |
+| Omaclipsync Clippy | `--locked --all-targets -- -D warnings` 通过 |
+| Omaclipsync release 构建及插件打包 | 通过；仅生成本地构建产物，没有替换已安装插件 |
+| 插件源码包独立性 | 在临时目录解包，离线 `cargo check --locked --all-targets` 通过，无需相邻共享项目 |
+| 导出源码一致性 | `export_source.py --check` 比较全部文件及 SHA-256 |
+| 真实 HTTPS 协议集成 | 对临时 rustclipsync-server 1.0.0 二进制运行，注册、最新值、幂等重试、清空/重启、回环、敏感策略和冲突均通过 |
+
+迁移样本由原 Omaclipsync 0.2.0 的未修改加密代码生成，验证已尝试上传和后续离线最后一条、UTF-8、敏感标记、token 与 cursor 的保留。样本只包含合成数据，未读取已安装插件的密钥或状态。
+
+真实 HTTPS 测试使用临时 SQLCipher 数据库、固定测试账户、临时自签名证书和 loopback TLS 代理；自签名验证例外只用于这个隔离测试。测试中的两个客户端使用内存剪贴板和内存密文存储，不访问真实桌面或线上服务。
+
+## GitHub 原生验证
+
+共享核心在 [GitHub CI 41190778425](https://github.com/Infinifar/rustclipsync-core/actions/runs/41190778425) 的 Ubuntu 与 Windows x64 MSVC 作业均通过，验证提交 `d1a7cb341baa6d0fe9065805d5802261aa0258fd`，工具链 Rust 1.99.1。每个平台执行 20 项测试、格式检查和 Clippy。Windows 测试包含旧加密状态迁移与完整会话行为测试。
+
+## 尚未验证的部分
+
+- 共享核心的 Windows 原生编译与测试已经通过；OS 剪贴板、DPAPI、UI 等适配行为由 Windows 客户端独立验证，不能用共享库测试代替。
+- 本轮真实 Wayland 剪贴板端到端测试：尝试启动隔离 Hyprland，但当前环境无法独立启动 headless backend；未改用用户的真实剪贴板。协议集成测试不能代替这项平台验证。
+- Windows UI、DPAPI、Named Pipe、安装签名、内存/延迟/24 小时测试：属于桌面项目后续阶段，本轮没有实现或测量。
+
+这次抽取保持现有协议和敏感行为，不包含新私有收件箱、账户密码短期注入、历史加密策略或端到端加密。这些能力的安排见相邻 `rustclipsync-destop` 的设计与实施计划。
+
+## 0.2.0 本地验证
+
+新增敏感收件项的持久化、重启不重放、skipped 确认、通知无正文、条件删除与保存失败不确认测试。`cargo test --locked` 共 22 项通过，旧 Omaclipsync 状态迁移测试继续通过。Windows 原生矩阵由本次提交的 CI 另行验证。
+
+## 2026-11-01 同步边界修复验证
+
+- 修复前，新增的 6 项核心回归测试均复现失败；修复后，共享库 `cargo test --locked --all-features` 共 39 项通过，包含原有 22 项测试及旧状态迁移样本。
+- 新增覆盖策略变更后过滤待发内容、未决上传取消、慢请求回环抑制、写入结果不明时的持久化恢复、恢复保存失败、最终剪贴板读取失败、超大新复制淘汰旧内容、重启后直接同步、连接事件队列满时重试及停止。
+- `cargo fmt --check`、`cargo clippy --locked --all-targets --all-features -- -D warnings`、`cargo doc --locked --no-deps` 和 `git diff --check` 通过。
+- 用 `export_source.py` 将本次核心导出到客户端的临时副本：桌面 agent 的 `cargo test --locked` 为 24 项通过、5 项按原设置忽略；Omaclipsync 为 56 项通过。两者无需修改客户端 Rust 代码或依赖版本。
+- 桌面 agent 的 `cargo check --locked --all-targets --features check-windows` 通过。这是在 Linux 上检查 Windows 适配代码，不代替 Windows 原生运行验证。
+- 对现有服务器测试二进制运行 `tests/server_e2e.py` 通过：真实 HTTPS 注册、latest-only 同步、幂等重试、清空与重启、回环、敏感策略及冲突行为均通过。
+
+公开方法签名、错误枚举、HTTP 协议及 RCS1 持久化格式保持兼容。客户端验证使用临时源码副本，未替换实际客户端的 vendor 快照；本轮未运行真实桌面剪贴板、密钥环或 Windows 原生集成测试。
+
+## 2026-11-01 错误链与 Worker 生命周期 API
+
+`Error`、`SyncError`、`ClipboardError` 新增 `Display`、`std::error::Error` 与包装原因的 `source()`；不新增或删除错误枚举分支，也不调整持久化格式。Worker 保存线程句柄，新增 `shutdown()` 与消费自身的 `join()`；Drop 保留不等待的行为。Transport 文档明确网络操作及完整长轮询均须有有限超时。
+
+本地 `cargo test --locked --all-features` 共 45 项通过，包含标准动态错误转换、错误链向下转型、显示脱敏、关闭时等待在途调用、满队列退出、panic 传递及 Worker 自动 trait 兼容性测试。格式检查、严格 Clippy 与文档构建通过。新增接口测试在实现前因缺少相应 trait／方法失败；自动 trait 测试也在修复前确认失败。
+
+## 2026-11-01：统一当前 `/api` 接口
+
+- 共享核心升级为 crate 0.3.0；HTTPS 请求统一使用 `/api/...`。Rust API 类型和持久化格式未改，HTTP 地址需要与服务端及客户端配套升级。
+- 当前 45 项 Rust 测试、严格 Clippy 和 rustdoc 通过。
+- 使用临时数据库、回环 HTTPS 代理和内存剪贴板运行 `tests/server_e2e.py`，与更新后的服务端 2.0.0 互通通过：注册、最新值同步、幂等、清空/重启、回环、敏感策略和冲突。未连接用户服务器或读取实际剪贴板。
+- 桌面端和插件由同一份共享核心自动导出快照；安卓本轮仅同步接口地址，保留 Kotlin 实现。
+
+## 2026-11-01: background inbox API
+
+Added clipboard-free `pull_inbox` using the same receive validation and RCS1 commit
+path as foreground `pull`. Local `cargo test --locked` passed 49 tests, including
+four background regressions (no clipboard access, ordinary receive deferred,
+foreground restore/opt-in guards, lifecycle invalidation, and explicit background writes under all three sensitive policies). `cargo fmt --all
+-- --check` and Clippy all-targets with warnings denied passed. No platform or
+physical-device validation is implied by these synthetic Rust tests.
+
+
+## Protocol 3 direction routing (development branch)
+
+The coordinated 0.4.0 core adds selected direction plus pause, report-before-data,
+explicit logout revocation, old-session fencing, HTTP fallback of the exact WSS
+operation, protocol response validation, and separate global/delivery revisions.
+The preceding mobile-background-inbox commits are preserved.
+
+Local validation runs on disposable in-memory state and loopback-only fixtures.
+`cargo test --locked --all-features` contains 61 tests. All 12 new regressions
+were observed failing under deliberate behavior-assertion inversion in a
+temporary source copy, with the working source unchanged. Format, strict Clippy
+and rustdoc are checked separately. No physical clipboard, installed client,
+keyring, production database, or deployed container is touched by these tests.
+
+`tests/server_e2e.py` runs the same protocol probe twice on separate encrypted
+server databases: first with actual WSS upgrades and **zero** HTTP direction PUTs,
+then with every WS upgrade explicitly rejected and HTTP direction fallback
+required. It checks registration, latest-only receive, stable retry IDs, restart
+without replay, sensitive filtering and conflict preservation under both modes.
+Windows native CI and physical Android/desktop integration remain platform
+checks; success of these protocol fixtures does not claim those validations.
+
+## 2026-11-02：显式安全冲突恢复
+
+新增回归测试在仅返回 Conflict 的实现下实测失败，再实现可选恢复并通过。
+覆盖旧上传／排队文本不重传、保留系统剪贴板、跳过当时远端、恢复后的新复制可发送；也覆盖取消时发现已经提交的上传、取消前后网络失败与重新打开、恢复期间禁止接收覆盖、持久化失败前无网络副作用、epoch 变化不被当作普通冲突恢复。
+旧默认冲突测试仍通过，调用方必须显式选择恢复。68 项 Rust 测试与严格 Clippy 通过。旧冲突迁移测试也实测先失败再通过：重开后即使当前剪贴板已改变，仍先识别旧基准的尝试上传并恢复，避免普通取消后立刻接收覆盖剪贴板。

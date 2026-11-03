@@ -1,0 +1,184 @@
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.BindingSmokeTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=9
+INSTRUMENTATION_STATUS: stream=
+io.github.infinifar.rustclipsync.BindingSmokeTest:
+INSTRUMENTATION_STATUS: test=encryptedStateAndRepeatedShutdown
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.BindingSmokeTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=9
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=encryptedStateAndRepeatedShutdown
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.MainThreadGateTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=9
+INSTRUMENTATION_STATUS: stream=
+io.github.infinifar.rustclipsync.MainThreadGateTest:
+INSTRUMENTATION_STATUS: test=timedOutQueuedCallbackCannotExecuteLater
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.MainThreadGateTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=9
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=timedOutQueuedCallbackCannotExecuteLater
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.MainThreadGateTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=9
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=revokedGateRejectsCallbackWithoutExecutingIt
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.MainThreadGateTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=9
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=revokedGateRejectsCallbackWithoutExecutingIt
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.MainThreadGateTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=9
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=workerCallbackRunsOnMainAndReturnsResult
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.MainThreadGateTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=9
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=workerCallbackRunsOnMainAndReturnsResult
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.SecureStateTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=9
+INSTRUMENTATION_STATUS: stream=
+io.github.infinifar.rustclipsync.SecureStateTest:
+INSTRUMENTATION_STATUS: test=opaqueCiphertextReplacementUsesPublicAndroidDirectorySyncApi
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.SecureStateTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=9
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=opaqueCiphertextReplacementUsesPublicAndroidDirectorySyncApi
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.SecureStateTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=9
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=oversizedExistingStateIsAnErrorRatherThanAbsentState
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.SecureStateTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=9
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=oversizedExistingStateIsAnErrorRatherThanAbsentState
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.NotificationSafetyTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=9
+INSTRUMENTATION_STATUS: stream=
+io.github.infinifar.rustclipsync.NotificationSafetyTest:
+INSTRUMENTATION_STATUS: test=lostAuthorizationRemovesTheExistingNotification
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.NotificationSafetyTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=9
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: expected null, but was:<Notification(channel=encrypted-inbox shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=ONLY_ALERT_ONCE|LOCAL_ONLY color=0x00000000 actions=2 vis=PRIVATE publicVersion=Notification(channel=encrypted-inbox shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=0 color=0x00000000 vis=PRIVATE))>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotNull(Assert.java:756)
+	at org.junit.Assert.assertNull(Assert.java:738)
+	at org.junit.Assert.assertNull(Assert.java:748)
+	at io.github.infinifar.rustclipsync.NotificationSafetyTest.lostAuthorizationRemovesTheExistingNotification(NotificationSafetyTest.kt:31)
+
+INSTRUMENTATION_STATUS: stream=
+Error in lostAuthorizationRemovesTheExistingNotification(io.github.infinifar.rustclipsync.NotificationSafetyTest):
+java.lang.AssertionError: expected null, but was:<Notification(channel=encrypted-inbox shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=ONLY_ALERT_ONCE|LOCAL_ONLY color=0x00000000 actions=2 vis=PRIVATE publicVersion=Notification(channel=encrypted-inbox shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=0 color=0x00000000 vis=PRIVATE))>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotNull(Assert.java:756)
+	at org.junit.Assert.assertNull(Assert.java:738)
+	at org.junit.Assert.assertNull(Assert.java:748)
+	at io.github.infinifar.rustclipsync.NotificationSafetyTest.lostAuthorizationRemovesTheExistingNotification(NotificationSafetyTest.kt:31)
+
+INSTRUMENTATION_STATUS: test=lostAuthorizationRemovesTheExistingNotification
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.NotificationSafetyTest
+INSTRUMENTATION_STATUS: current=8
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=9
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=deniedAuthorizationNeverPublishesInbox
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.NotificationSafetyTest
+INSTRUMENTATION_STATUS: current=8
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=9
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=deniedAuthorizationNeverPublishesInbox
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.NotificationSafetyTest
+INSTRUMENTATION_STATUS: current=9
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=9
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=defaultNotificationIsMaskedPrivateAndUsesImmutableActions
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=io.github.infinifar.rustclipsync.NotificationSafetyTest
+INSTRUMENTATION_STATUS: current=9
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=9
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: expected null, but was:<Notification(channel=encrypted-inbox shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=ONLY_ALERT_ONCE|LOCAL_ONLY color=0x00000000 actions=2 vis=PRIVATE publicVersion=Notification(channel=encrypted-inbox shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=0 color=0x00000000 vis=PRIVATE))>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotNull(Assert.java:756)
+	at org.junit.Assert.assertNull(Assert.java:738)
+	at org.junit.Assert.assertNull(Assert.java:748)
+	at io.github.infinifar.rustclipsync.NotificationSafetyTest.defaultNotificationIsMaskedPrivateAndUsesImmutableActions(NotificationSafetyTest.kt:48)
+
+INSTRUMENTATION_STATUS: stream=
+Error in defaultNotificationIsMaskedPrivateAndUsesImmutableActions(io.github.infinifar.rustclipsync.NotificationSafetyTest):
+java.lang.AssertionError: expected null, but was:<Notification(channel=encrypted-inbox shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=ONLY_ALERT_ONCE|LOCAL_ONLY color=0x00000000 actions=2 vis=PRIVATE publicVersion=Notification(channel=encrypted-inbox shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=0 color=0x00000000 vis=PRIVATE))>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotNull(Assert.java:756)
+	at org.junit.Assert.assertNull(Assert.java:738)
+	at org.junit.Assert.assertNull(Assert.java:748)
+	at io.github.infinifar.rustclipsync.NotificationSafetyTest.defaultNotificationIsMaskedPrivateAndUsesImmutableActions(NotificationSafetyTest.kt:48)
+
+INSTRUMENTATION_STATUS: test=defaultNotificationIsMaskedPrivateAndUsesImmutableActions
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 0.124
+There were 2 failures:
+1) lostAuthorizationRemovesTheExistingNotification(io.github.infinifar.rustclipsync.NotificationSafetyTest)
+java.lang.AssertionError: expected null, but was:<Notification(channel=encrypted-inbox shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=ONLY_ALERT_ONCE|LOCAL_ONLY color=0x00000000 actions=2 vis=PRIVATE publicVersion=Notification(channel=encrypted-inbox shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=0 color=0x00000000 vis=PRIVATE))>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotNull(Assert.java:756)
+	at org.junit.Assert.assertNull(Assert.java:738)
+	at org.junit.Assert.assertNull(Assert.java:748)
+	at io.github.infinifar.rustclipsync.NotificationSafetyTest.lostAuthorizationRemovesTheExistingNotification(NotificationSafetyTest.kt:31)
+2) defaultNotificationIsMaskedPrivateAndUsesImmutableActions(io.github.infinifar.rustclipsync.NotificationSafetyTest)
+java.lang.AssertionError: expected null, but was:<Notification(channel=encrypted-inbox shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=ONLY_ALERT_ONCE|LOCAL_ONLY color=0x00000000 actions=2 vis=PRIVATE publicVersion=Notification(channel=encrypted-inbox shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=0 color=0x00000000 vis=PRIVATE))>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotNull(Assert.java:756)
+	at org.junit.Assert.assertNull(Assert.java:738)
+	at org.junit.Assert.assertNull(Assert.java:748)
+	at io.github.infinifar.rustclipsync.NotificationSafetyTest.defaultNotificationIsMaskedPrivateAndUsesImmutableActions(NotificationSafetyTest.kt:48)
+
+FAILURES!!!
+Tests run: 9,  Failures: 2
+
+
+INSTRUMENTATION_CODE: -1

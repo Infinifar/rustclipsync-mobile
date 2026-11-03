@@ -1,0 +1,1508 @@
+2026-11-01T17:48:32.664534Z 00O Running with gitlab-runner 19.3.1 (a16f5092)
+2026-11-01T17:48:32.664549Z 00O   on Android API 37 Docker Runner UnMDiD8Zv, system ID: r_eVz0Nr1rbFHS
+2026-11-01T17:48:32.664573Z 00O section_start:1793555312:prepare_executor
+2026-11-01T17:48:32.664577Z 00O+Preparing the "docker" executor
+2026-11-01T17:48:32.698378Z 00O Using Docker executor with image ghcr.io/cirruslabs/android-sdk:36-ndk@sha256:eba21147d4ca3860e020ef607e3072f188674227e3110eb1d5aeb659f9ce4140 ...
+2026-11-01T17:48:33.447377Z 00O Using effective pull policy of [if-not-present] for container ghcr.io/cirruslabs/android-sdk:36-ndk@sha256:eba21147d4ca3860e020ef607e3072f188674227e3110eb1d5aeb659f9ce4140
+2026-11-01T17:48:33.454659Z 00O Using locally found image version due to "if-not-present" pull policy
+2026-11-01T17:48:33.454678Z 00O Using docker image sha256:eba21147d4ca3860e020ef607e3072f188674227e3110eb1d5aeb659f9ce4140 for ghcr.io/cirruslabs/android-sdk:36-ndk@sha256:eba21147d4ca3860e020ef607e3072f188674227e3110eb1d5aeb659f9ce4140 with digest ghcr.io/cirruslabs/android-sdk@sha256:eba21147d4ca3860e020ef607e3072f188674227e3110eb1d5aeb659f9ce4140 ...
+2026-11-01T17:48:33.454689Z 00O section_end:1793555313:prepare_executor
+2026-11-01T17:48:33.454793Z 00O+section_start:1793555313:prepare_script
+2026-11-01T17:48:33.454798Z 00O+Preparing environment
+2026-11-01T17:48:33.461758Z 00O Using effective pull policy of [if-not-present] for container sha256:ce41f9ba0465950d1c7e290e38e33ea9064385b4015ba4fa4b12b318a6242682
+2026-11-01T17:48:33.632980Z 01O Running on runner-unmdid8zv-project-9-concurrent-0 via 94d4b53a8f9b...
+2026-11-01T17:48:33.766629Z 00O section_end:1793555313:prepare_script
+2026-11-01T17:48:33.767063Z 00O+section_start:1793555313:get_sources
+2026-11-01T17:48:33.767076Z 00O+Getting source from Git repository
+2026-11-01T17:48:33.920290Z 01O $ # Rocky job containers can inherit an intermittently unreachable Tailscale resolver. # collapsed multi-line command
+2026-11-01T17:48:33.920446Z 01O Configured DNS for this disposable image job
+2026-11-01T17:48:33.944696Z 01O Gitaly correlation ID: 01M6C3MBKQB0JJ9TCWZVWS0VTH
+2026-11-01T17:48:33.949524Z 01O Fetching changes with git depth set to 20...
+2026-11-01T17:48:33.950919Z 01O Reinitialized existing Git repository in /builds/Cassius/rustclipsync-mobile/.git/
+2026-11-01T17:48:33.952333Z 01O Created fresh repository.
+2026-11-01T17:48:35.019735Z 01O Checking out 71179403 as detached HEAD (ref is codex/mobile-native-foundation)...
+2026-11-01T17:48:35.055367Z 01O 
+2026-11-01T17:48:35.055368Z 01O Skipping Git submodules setup
+2026-11-01T17:48:35.239991Z 00O section_end:1793555315:get_sources
+2026-11-01T17:48:35.240498Z 00O+section_start:1793555315:step_script
+2026-11-01T17:48:35.240507Z 00O+Executing "step_script" stage of the job script
+2026-11-01T17:48:35.240519Z 00O Using effective pull policy of [if-not-present] for container ghcr.io/cirruslabs/android-sdk:36-ndk@sha256:eba21147d4ca3860e020ef607e3072f188674227e3110eb1d5aeb659f9ce4140
+2026-11-01T17:48:35.247386Z 00O Using docker image sha256:eba21147d4ca3860e020ef607e3072f188674227e3110eb1d5aeb659f9ce4140 for ghcr.io/cirruslabs/android-sdk:36-ndk@sha256:eba21147d4ca3860e020ef607e3072f188674227e3110eb1d5aeb659f9ce4140 with digest ghcr.io/cirruslabs/android-sdk@sha256:eba21147d4ca3860e020ef607e3072f188674227e3110eb1d5aeb659f9ce4140 ...
+2026-11-01T17:48:35.417243Z 01O $ source scripts/ci/prepare-android.sh
+2026-11-01T17:48:35.417309Z 01O Configured DNS for this disposable image job
+2026-11-01T17:48:36.441586Z 01O Get:1 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
+2026-11-01T17:48:36.709865Z 01O Get:2 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+2026-11-01T17:48:38.024223Z 01O Get:3 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+2026-11-01T17:48:38.346336Z 01O Get:4 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1,412 kB]
+2026-11-01T17:48:38.406790Z 01O Get:5 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+2026-11-01T17:48:38.789926Z 01O Get:6 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+2026-11-01T17:48:40.084232Z 01O Get:7 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [2,122 kB]
+2026-11-01T17:48:40.539100Z 01O Get:8 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1,550 kB]
+2026-11-01T17:48:40.777682Z 01O Get:9 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [55.6 kB]
+2026-11-01T17:48:41.530726Z 01O Get:10 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
+2026-11-01T17:48:41.539524Z 01O Get:11 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1,808 kB]
+2026-11-01T17:48:41.726455Z 01O Get:12 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
+2026-11-01T17:48:41.758636Z 01O Get:13 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [2,172 kB]
+2026-11-01T17:48:41.980195Z 01O Get:14 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [61.7 kB]
+2026-11-01T17:48:41.985086Z 01O Get:15 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1,741 kB]
+2026-11-01T17:48:42.150871Z 01O Get:16 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [2,240 kB]
+2026-11-01T17:48:42.379130Z 01O Get:17 http://archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [49.0 kB]
+2026-11-01T17:48:42.383612Z 01O Get:18 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [36.0 kB]
+2026-11-01T17:48:42.387584Z 01O Get:19 http://archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [669 B]
+2026-11-01T17:48:42.459416Z 01O Fetched 33.6 MB in 7s (4,794 kB/s)
+2026-11-01T17:48:42.459418Z 01O Reading package lists...
+2026-11-01T17:48:42.983301Z 01O Reading package lists...
+2026-11-01T17:48:43.510093Z 01O Building dependency tree...
+2026-11-01T17:48:43.625375Z 01O Reading state information...
+2026-11-01T17:48:43.738185Z 01O python3 is already the newest version (3.12.3-0ubuntu2.1).
+2026-11-01T17:48:43.738187Z 01O python3 set to manually installed.
+2026-11-01T17:48:43.738188Z 01O Suggested packages:
+2026-11-01T17:48:43.738189Z 01O   openjdk-17-demo openjdk-17-source libnss-mdns fonts-ipafont-gothic
+2026-11-01T17:48:43.738190Z 01O   fonts-ipafont-mincho fonts-wqy-microhei | fonts-wqy-zenhei fonts-indic
+2026-11-01T17:48:43.760466Z 01O The following NEW packages will be installed:
+2026-11-01T17:48:43.760673Z 01O   openjdk-17-jdk-headless openjdk-17-jre-headless
+2026-11-01T17:48:44.330980Z 01O 0 upgraded, 2 newly installed, 0 to remove and 194 not upgraded.
+2026-11-01T17:48:44.330989Z 01O Need to get 120 MB of archives.
+2026-11-01T17:48:44.330990Z 01O After this operation, 272 MB of additional disk space will be used.
+2026-11-01T17:48:44.330991Z 01O Get:1 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 openjdk-17-jre-headless amd64 17.0.20.1+1-1~24.04 [48.1 MB]
+2026-11-01T17:48:51.200050Z 01O Get:2 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 openjdk-17-jdk-headless amd64 17.0.20.1+1-1~24.04 [71.6 MB]
+2026-11-01T17:48:57.397341Z 01E debconf: delaying package configuration, since apt-utils is not installed
+2026-11-01T17:48:57.413537Z 01O Fetched 120 MB in 14s (8,838 kB/s)
+2026-11-01T17:48:57.427041Z 01O Selecting previously unselected package openjdk-17-jre-headless:amd64.
+2026-11-01T17:48:57.427043Z 01O (Reading database ... 
+2026-11-01T17:48:57.429223Z 01O+(Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%
+2026-11-01T17:48:57.431259Z 01O+(Reading database ... 65%
+2026-11-01T17:48:57.431985Z 01O+(Reading database ... 70%
+2026-11-01T17:48:57.432339Z 01O+(Reading database ... 75%
+2026-11-01T17:48:57.434958Z 01O+(Reading database ... 80%
+2026-11-01T17:48:57.435448Z 01O+(Reading database ... 85%
+2026-11-01T17:48:57.436216Z 01O+(Reading database ... 90%
+2026-11-01T17:48:57.437657Z 01O+(Reading database ... 95%
+2026-11-01T17:48:57.438211Z 01O+(Reading database ... 100%(Reading database ... 55266 files and directories currently installed.)
+2026-11-01T17:48:57.439082Z 01O Preparing to unpack .../openjdk-17-jre-headless_17.0.20.1+1-1~24.04_amd64.deb ...
+2026-11-01T17:48:57.439895Z 01O Unpacking openjdk-17-jre-headless:amd64 (17.0.20.1+1-1~24.04) ...
+2026-11-01T17:48:57.885566Z 01O Selecting previously unselected package openjdk-17-jdk-headless:amd64.
+2026-11-01T17:48:57.888427Z 01O Preparing to unpack .../openjdk-17-jdk-headless_17.0.20.1+1-1~24.04_amd64.deb ...
+2026-11-01T17:48:57.890293Z 01O Unpacking openjdk-17-jdk-headless:amd64 (17.0.20.1+1-1~24.04) ...
+2026-11-01T17:48:58.065129Z 01O Setting up openjdk-17-jre-headless:amd64 (17.0.20.1+1-1~24.04) ...
+2026-11-01T17:48:58.102510Z 01O Processing triggers for ca-certificates-java (20240118) ...
+2026-11-01T17:48:58.129358Z 01O done.
+2026-11-01T17:48:58.131618Z 01O Setting up openjdk-17-jdk-headless:amd64 (17.0.20.1+1-1~24.04) ...
+2026-11-01T17:48:58.268912Z 01O Downloading https://repo.huaweicloud.com/gradle/gradle-8.13-bin.zip
+2026-11-01T17:48:58.621890Z 01O .............10%.............20%.............30%.............40%.............50%.............60%.............70%.............80%.............90%.............100%
+2026-11-01T17:49:00.802438Z 01O 
+2026-11-01T17:49:00.802489Z 01O Welcome to Gradle 8.13!
+2026-11-01T17:49:00.802490Z 01O 
+2026-11-01T17:49:00.802648Z 01O Here are the highlights of this release:
+2026-11-01T17:49:00.802674Z 01O  - Daemon JVM auto-provisioning
+2026-11-01T17:49:00.802773Z 01O  - Enhancements for Scala plugin and JUnit testing
+2026-11-01T17:49:00.802848Z 01O  - Improvements for build authors and plugin developers
+2026-11-01T17:49:00.802849Z 01O 
+2026-11-01T17:49:00.803269Z 01O For more details see https://docs.gradle.org/8.13/release-notes.html
+2026-11-01T17:49:00.803273Z 01O 
+2026-11-01T17:49:00.803431Z 01O To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.13/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+2026-11-01T17:49:01.401920Z 01O Daemon will be stopped at the end of the build 
+2026-11-01T17:49:43.257014Z 01O 
+2026-11-01T17:49:43.257022Z 01O > Task :help
+2026-11-01T17:49:43.257026Z 01O 
+2026-11-01T17:49:43.257026Z 01O Welcome to Gradle 8.13.
+2026-11-01T17:49:43.257027Z 01O 
+2026-11-01T17:49:43.257028Z 01O To run a build, run gradlew <task> ...
+2026-11-01T17:49:43.257057Z 01O 
+2026-11-01T17:49:43.257057Z 01O To see a list of available tasks, run gradlew tasks
+2026-11-01T17:49:43.257075Z 01O 
+2026-11-01T17:49:43.257075Z 01O To see more detail about a task, run gradlew help --task <task>
+2026-11-01T17:49:43.257109Z 01O 
+2026-11-01T17:49:43.257134Z 01O To see a list of command-line options, run gradlew --help
+2026-11-01T17:49:43.257156Z 01O 
+2026-11-01T17:49:43.257168Z 01O For more detail on using Gradle, see https://docs.gradle.org/8.13/userguide/command_line_interface.html
+2026-11-01T17:49:43.257191Z 01O 
+2026-11-01T17:49:43.257192Z 01O For troubleshooting, visit https://help.gradle.org
+2026-11-01T17:49:43.257256Z 01O 
+2026-11-01T17:49:43.257269Z 01O BUILD SUCCESSFUL in 44s
+2026-11-01T17:49:43.257294Z 01O 1 actionable task: 1 executed
+2026-11-01T17:49:47.378414Z 01O /builds/Cassius/rustclipsync-mobile/.ci-tools/rustup-init: OK
+2026-11-01T17:49:47.395991Z 01E info: profile set to minimal
+2026-11-01T17:49:47.395993Z 01E info: default host tuple is x86_64-unknown-linux-gnu
+2026-11-01T17:49:47.396569Z 01E info: syncing channel updates for 1.99.1-x86_64-unknown-linux-gnu
+2026-11-01T17:49:49.683061Z 01E info: latest update on 2026-10-15 for version 1.99.1 (58cf8f9c3 2026-10-13)
+2026-11-01T17:49:49.683068Z 01E info: downloading 5 components
+2026-11-01T17:50:10.888105Z 01O 
+2026-11-01T17:50:10.888117Z 01E info: default toolchain set to 1.99.1-x86_64-unknown-linux-gnu
+2026-11-01T17:50:10.895893Z 01O   1.99.1-x86_64-unknown-linux-gnu installed - rustc 1.99.1 (58cf8f9c3 2026-10-13)
+2026-11-01T17:50:10.895895Z 01O 
+2026-11-01T17:50:10.895990Z 01O 
+2026-11-01T17:50:10.895991Z 01O Rust is installed now. Great!
+2026-11-01T17:50:10.895992Z 01O 
+2026-11-01T17:50:10.895992Z 01O To get started you need Cargo's bin directory 
+2026-11-01T17:50:10.895993Z 01O (/builds/Cassius/rustclipsync-mobile/.ci-tools/cargo/bin) in your PATH
+2026-11-01T17:50:10.895993Z 01O environment variable. This has not been done automatically.
+2026-11-01T17:50:10.895994Z 01O 
+2026-11-01T17:50:10.895994Z 01O To configure your current shell, you need to source
+2026-11-01T17:50:10.895995Z 01O the corresponding env file under 
+2026-11-01T17:50:10.895995Z 01O /builds/Cassius/rustclipsync-mobile/.ci-tools/cargo.
+2026-11-01T17:50:10.895995Z 01O 
+2026-11-01T17:50:10.895996Z 01O Consider running the right command for your shell (note the leading DOT):
+2026-11-01T17:50:10.895996Z 01O . "/builds/Cassius/rustclipsync-mobile/.ci-tools/cargo/env" # For 
+2026-11-01T17:50:10.895996Z 01O sh/ash/dash/pdksh/bash
+2026-11-01T17:50:10.895999Z 01O cargo:rerun-if-env-changed=CC_x86_64-unknown-linux-gnu
+2026-11-01T17:50:10.896000Z 01O CC_x86_64-unknown-linux-gnu = None
+2026-11-01T17:50:10.896000Z 01O cargo:rerun-if-env-changed=CC_x86_64_unknown_linux_gnu
+2026-11-01T17:50:10.896000Z 01O CC_x86_64_unknown_linux_gnu = None
+2026-11-01T17:50:10.896001Z 01O cargo:rerun-if-env-changed=HOST_CC
+2026-11-01T17:50:10.896001Z 01O HOST_CC = None
+2026-11-01T17:50:10.896001Z 01O cargo:rerun-if-env-changed=CC
+2026-11-01T17:50:10.896002Z 01O CC = None
+2026-11-01T17:50:10.896498Z 01O cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+2026-11-01T17:50:10.903135Z 01O cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+2026-11-01T17:50:10.903136Z 01O CRATE_CC_NO_DEFAULTS = None
+2026-11-01T17:50:10.903136Z 01O cargo:rerun-if-env-changed=CFLAGS
+2026-11-01T17:50:10.903137Z 01O CFLAGS = None
+2026-11-01T17:50:10.903137Z 01O cargo:rerun-if-env-changed=HOST_CFLAGS
+2026-11-01T17:50:10.903137Z 01O HOST_CFLAGS = None
+2026-11-01T17:50:10.903138Z 01O cargo:rerun-if-env-changed=CFLAGS_x86_64_unknown_linux_gnu
+2026-11-01T17:50:10.903138Z 01O CFLAGS_x86_64_unknown_linux_gnu = None
+2026-11-01T17:50:10.903138Z 01O cargo:rerun-if-env-changed=CFLAGS_x86_64-unknown-linux-gnu
+2026-11-01T17:50:10.903139Z 01O CFLAGS_x86_64-unknown-linux-gnu = None
+2026-11-01T17:50:10.950041Z 01E info: downloading 2 components
+2026-11-01T17:50:20.887788Z 01O Loading package information...                                                  
+2026-11-01T17:50:20.889249Z 01O+Loading local repository...                                                     
+2026-11-01T17:50:20.906231Z 01O+[                                       ] 3% Loading local repository...        
+2026-11-01T17:50:20.906463Z 01O+[                                       ] 3% Fetch remote repository...         
+2026-11-01T17:50:21.264413Z 01O+[=                                      ] 3% Fetch remote repository...         
+2026-11-01T17:50:21.709131Z 01O+[=                                      ] 4% Fetch remote repository...         
+2026-11-01T17:50:21.762233Z 01O+[=                                      ] 5% Fetch remote repository...         
+2026-11-01T17:50:21.793675Z 01O+[==                                     ] 5% Fetch remote repository...         
+2026-11-01T17:50:21.839358Z 01O+[==                                     ] 6% Fetch remote repository...         
+2026-11-01T17:50:21.892388Z 01O+[==                                     ] 7% Fetch remote repository...         
+2026-11-01T17:50:21.971022Z 01O+[==                                     ] 7% Computing updates...               [===                                    ] 8% Computing updates...               
+2026-11-01T17:50:21.976842Z 01O+[===                                    ] 10% Computing updates...              
+2026-11-01T17:50:21.982636Z 01O+[===                                    ] 10% Installing NDK (Side by side) 28.2
+2026-11-01T17:50:22.111910Z 01O+[===                                    ] 10% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:22.323732Z 01O+[====                                   ] 10% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:22.458607Z 01O+[====                                   ] 11% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:22.773165Z 01O+[====                                   ] 12% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:23.171215Z 01O+[=====                                  ] 13% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:23.491597Z 01O+[=====                                  ] 14% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:23.815952Z 01O+[=====                                  ] 15% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:24.049000Z 01O+[======                                 ] 15% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:24.208056Z 01O+[======                                 ] 16% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:24.531819Z 01O+[======                                 ] 17% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:24.929495Z 01O+[=======                                ] 18% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:25.249395Z 01O+[=======                                ] 19% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:25.650514Z 01O+[=======                                ] 20% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:25.810084Z 01O+[========                               ] 20% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:25.969703Z 01O+[========                               ] 21% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:26.364021Z 01O+[========                               ] 22% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:26.700421Z 01O+[=========                              ] 23% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:27.118024Z 01O+[=========                              ] 24% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:27.516963Z 01O+[=========                              ] 25% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:27.674389Z 01O+[==========                             ] 25% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:27.835016Z 01O+[==========                             ] 26% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:28.231976Z 01O+[==========                             ] 27% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:28.547725Z 01O+[===========                            ] 28% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:28.946663Z 01O+[===========                            ] 29% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:29.260130Z 01O+[===========                            ] 30% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:29.427320Z 01O+[============                           ] 30% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:29.660977Z 01O+[============                           ] 31% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:29.975818Z 01O+[============                           ] 32% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:30.297576Z 01O+[============                           ] 33% Downloading android-ndk-r28c-linux
+2026-11-01T17:50:30.297908Z 01O+[============                           ] 33% Unzipping...                      
+2026-11-01T17:50:30.431483Z 01O+[============                           ] 33% Unzipping... android-ndk-r28c/    
+2026-11-01T17:50:30.431626Z 01O+[============                           ] 33% Unzipping... android-ndk-r28c/READ
+2026-11-01T17:50:30.432740Z 01O+[=============                          ] 33% Unzipping... android-ndk-r28c/READ
+2026-11-01T17:50:30.432996Z 01O+[=============                          ] 33% Unzipping... android-ndk-r28c/meta
+2026-11-01T17:50:30.433659Z 01O+[=============                          ] 33% Unzipping... android-ndk-r28c/shad
+2026-11-01T17:50:30.515154Z 01O+[=============                          ] 33% Unzipping... android-ndk-r28c/ndk-
+2026-11-01T17:50:30.515266Z 01O+[=============                          ] 33% Unzipping... android-ndk-r28c/wrap
+2026-11-01T17:50:30.515603Z 01O+[=============                          ] 33% Unzipping... android-ndk-r28c/ndk-
+2026-11-01T17:50:30.515686Z 01O+[=============                          ] 33% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:30.824030Z 01O+[=============                          ] 34% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:31.279748Z 01O+[=============                          ] 35% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:31.587071Z 01O+[==============                         ] 35% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:31.803043Z 01O+[==============                         ] 36% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:32.131419Z 01O+[==============                         ] 37% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:32.756520Z 01O+[===============                        ] 38% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:33.221985Z 01O+[===============                        ] 39% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:33.593134Z 01O+[===============                        ] 40% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:33.769034Z 01O+[================                       ] 40% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:33.958070Z 01O+[================                       ] 41% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:34.464120Z 01O+[================                       ] 42% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:34.852780Z 01O+[=================                      ] 43% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:35.304498Z 01O+[=================                      ] 44% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:35.672372Z 01O+[=================                      ] 45% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:35.860692Z 01O+[==================                     ] 45% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:36.166189Z 01O+[==================                     ] 46% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:36.596614Z 01O+[==================                     ] 47% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:37.051036Z 01O+[===================                    ] 48% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:37.465352Z 01O+[===================                    ] 49% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:37.916281Z 01O+[===================                    ] 50% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:38.126541Z 01O+[====================                   ] 50% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:38.338966Z 01O+[====================                   ] 51% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:38.779989Z 01O+[====================                   ] 52% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:39.100273Z 01O+[=====================                  ] 53% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:39.590778Z 01O+[=====================                  ] 54% Unzipping... android-ndk-r28c/tool
+2026-11-01T17:50:39.831117Z 01O+[=====================                  ] 54% Unzipping... android-ndk-r28c/buil
+2026-11-01T17:50:39.912268Z 01O+[=====================                  ] 54% Unzipping... android-ndk-r28c/sour
+2026-11-01T17:50:40.382143Z 01O+[=====================                  ] 54% Unzipping... android-ndk-r28c/NOTI
+2026-11-01T17:50:40.383595Z 01O+[=====================                  ] 54% Unzipping... android-ndk-r28c/ndk-
+2026-11-01T17:50:40.383629Z 01O+[=====================                  ] 54% Unzipping... android-ndk-r28c/NOTI
+2026-11-01T17:50:40.384501Z 01O+[=====================                  ] 54% Unzipping... android-ndk-r28c/pyth
+2026-11-01T17:50:40.386085Z 01O+[=====================                  ] 54% Unzipping... android-ndk-r28c/preb
+2026-11-01T17:50:40.416753Z 01O+[=====================                  ] 54% Unzipping... android-ndk-r28c/ndk-
+2026-11-01T17:50:40.416797Z 01O+[=====================                  ] 54% Unzipping... android-ndk-r28c/sour
+2026-11-01T17:50:40.416837Z 01O+[=====================                  ] 54% Unzipping... android-ndk-r28c/simp
+2026-11-01T17:50:40.458681Z 01O+[=====================                  ] 55% Unzipping... android-ndk-r28c/simp
+2026-11-01T17:50:40.588381Z 01O+[=====================                  ] 55% Unzipping... android-ndk-r28c/CHAN
+2026-11-01T17:50:40.675505Z 01O+[=======================================] 100% Unzipping... android-ndk-r28c/CHA
+2026-11-01T17:50:40.741589Z 01O 
+2026-11-01T17:50:40.801177Z 01E openjdk version "17.0.20.1" 2026-08-18
+2026-11-01T17:50:40.801178Z 01E OpenJDK Runtime Environment (build 17.0.20.1+1-1-24.04-Ubuntu)
+2026-11-01T17:50:40.801182Z 01E OpenJDK 64-Bit Server VM (build 17.0.20.1+1-1-24.04-Ubuntu, mixed mode, sharing)
+2026-11-01T17:50:40.826378Z 01O rustc 1.99.1 (58cf8f9c3 2026-10-13)
+2026-11-01T17:50:40.828159Z 01O $ scripts/check.sh
+2026-11-01T17:50:40.848895Z 01O Unchanged core vendor files verified: 27 1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e
+2026-11-01T17:50:40.966215Z 01E     Updating crates.io index
+2026-11-01T17:50:46.902035Z 01E  Downloading crates ...
+2026-11-01T17:50:47.789271Z 01E   Downloaded anstyle v1.0.14
+2026-11-01T17:50:48.195584Z 01E   Downloaded rustc-hash v2.1.3
+2026-11-01T17:50:48.226324Z 01E   Downloaded askama_macros v0.16.1
+2026-11-01T17:50:48.252334Z 01E   Downloaded block-buffer v0.10.4
+2026-11-01T17:50:48.290179Z 01E   Downloaded cfg-if v1.0.5
+2026-11-01T17:50:48.372623Z 01E   Downloaded idna_adapter v1.2.2
+2026-11-01T17:50:48.382234Z 01E   Downloaded cpufeatures v0.3.1
+2026-11-01T17:50:48.382840Z 01E   Downloaded http-body v1.1.0
+2026-11-01T17:50:48.389591Z 01E   Downloaded scroll_derive v0.12.1
+2026-11-01T17:50:48.392201Z 01E   Downloaded crypto-common v0.1.7
+2026-11-01T17:50:48.392530Z 01E   Downloaded form_urlencoded v1.2.2
+2026-11-01T17:50:48.401686Z 01E   Downloaded clap_lex v1.1.1
+2026-11-01T17:50:48.434236Z 01E   Downloaded atomic-waker v1.1.2
+2026-11-01T17:50:48.474653Z 01E   Downloaded cfg_aliases v0.2.2
+2026-11-01T17:50:48.486651Z 01E   Downloaded cpufeatures v0.2.17
+2026-11-01T17:50:48.584636Z 01E   Downloaded cargo-platform v0.3.3
+2026-11-01T17:50:48.603490Z 01E   Downloaded itoa v1.0.18
+2026-11-01T17:50:48.617118Z 01E   Downloaded percent-encoding v2.3.2
+2026-11-01T17:50:48.625702Z 01E   Downloaded futures-macro v0.3.34
+2026-11-01T17:50:48.633277Z 01E   Downloaded plain v0.2.3
+2026-11-01T17:50:48.648300Z 01E   Downloaded tower-service v0.3.3
+2026-11-01T17:50:48.648582Z 01E   Downloaded try-lock v0.2.5
+2026-11-01T17:50:48.666020Z 01E   Downloaded potential_utf v0.1.6
+2026-11-01T17:50:48.669398Z 01E   Downloaded lru-slab v0.1.3
+2026-11-01T17:50:48.676095Z 01E   Downloaded generic-array v0.14.7
+2026-11-01T17:50:48.679393Z 01E   Downloaded equivalent v1.0.3
+2026-11-01T17:50:48.688530Z 01E   Downloaded futures-sink v0.3.34
+2026-11-01T17:50:48.779823Z 01E   Downloaded errno v0.3.14
+2026-11-01T17:50:48.784486Z 01E   Downloaded tower-layer v0.3.3
+2026-11-01T17:50:48.808808Z 01E   Downloaded futures-core v0.3.34
+2026-11-01T17:50:48.811651Z 01E   Downloaded heck v0.5.0
+2026-11-01T17:50:48.815476Z 01E   Downloaded futures-io v0.3.34
+2026-11-01T17:50:48.832237Z 01E   Downloaded cargo_metadata v0.23.1
+2026-11-01T17:50:48.836314Z 01E   Downloaded autocfg v1.5.1
+2026-11-01T17:50:48.841756Z 01E   Downloaded stable_deref_trait v1.2.1
+2026-11-01T17:50:48.848152Z 01E   Downloaded fastrand v2.5.0
+2026-11-01T17:50:48.849846Z 01E   Downloaded sync_wrapper v1.0.2
+2026-11-01T17:50:48.850159Z 01E   Downloaded displaydoc v0.2.7
+2026-11-01T17:50:48.862061Z 01E   Downloaded fs-err v3.3.2
+2026-11-01T17:50:48.863706Z 01E   Downloaded zerofrom-derive v0.1.8
+2026-11-01T17:50:48.867437Z 01E   Downloaded futures-task v0.3.34
+2026-11-01T17:50:48.874222Z 01E   Downloaded digest v0.10.7
+2026-11-01T17:50:48.875907Z 01E   Downloaded futures-executor v0.3.34
+2026-11-01T17:50:48.880513Z 01E   Downloaded glob v0.3.4
+2026-11-01T17:50:48.881124Z 01E   Downloaded rand_pcg v0.10.2
+2026-11-01T17:50:48.884273Z 01E   Downloaded rand_core v0.10.1
+2026-11-01T17:50:48.888371Z 01E   Downloaded ipnet v2.12.2
+2026-11-01T17:50:48.891356Z 01E   Downloaded version_check v0.9.5
+2026-11-01T17:50:48.899052Z 01E   Downloaded hyper-rustls v0.27.10
+2026-11-01T17:50:48.900530Z 01E   Downloaded http-body-util v0.1.5
+2026-11-01T17:50:48.972161Z 01E   Downloaded strsim v0.11.1
+2026-11-01T17:50:48.975599Z 01E   Downloaded quote v1.0.47
+2026-11-01T17:50:48.977304Z 01E   Downloaded want v0.3.2
+2026-11-01T17:50:48.993145Z 01E   Downloaded clap_derive v4.6.7
+2026-11-01T17:50:48.996591Z 01E   Downloaded find-msvc-tools v0.1.15
+2026-11-01T17:50:48.998111Z 01E   Downloaded camino v1.2.6
+2026-11-01T17:50:48.999005Z 01E   Downloaded chacha20 v0.10.2
+2026-11-01T17:50:49.000568Z 01E   Downloaded serde_urlencoded v0.7.1
+2026-11-01T17:50:49.003844Z 01E   Downloaded getrandom v0.2.17
+2026-11-01T17:50:49.005960Z 01E   Downloaded subtle v2.6.1
+2026-11-01T17:50:49.015705Z 01E   Downloaded litemap v0.8.3
+2026-11-01T17:50:49.019215Z 01E   Downloaded once_cell v1.21.4
+2026-11-01T17:50:49.020534Z 01E   Downloaded serde_spanned v1.1.2
+2026-11-01T17:50:49.022448Z 01E   Downloaded futures-channel v0.3.34
+2026-11-01T17:50:49.023239Z 01E   Downloaded pin-project-lite v0.2.17
+2026-11-01T17:50:49.031724Z 01E   Downloaded quinn-udp v0.5.16
+2026-11-01T17:50:49.039168Z 01E   Downloaded anyhow v1.0.104
+2026-11-01T17:50:49.040699Z 01E   Downloaded askama v0.16.1
+2026-11-01T17:50:49.042524Z 01E   Downloaded bitflags v2.13.2
+2026-11-01T17:50:49.044191Z 01E   Downloaded uniffi_pipeline v0.32.2
+2026-11-01T17:50:49.045181Z 01E   Downloaded basic-toml v0.1.10
+2026-11-01T17:50:49.048672Z 01E   Downloaded untrusted v0.9.0
+2026-11-01T17:50:49.055791Z 01E   Downloaded siphasher v1.0.4
+2026-11-01T17:50:49.060728Z 01E   Downloaded httparse v1.10.1
+2026-11-01T17:50:49.063158Z 01E   Downloaded icu_provider v2.4.0
+2026-11-01T17:50:49.069225Z 01E   Downloaded proc-macro2 v1.0.107
+2026-11-01T17:50:49.071443Z 01E   Downloaded log v0.4.35
+2026-11-01T17:50:49.072603Z 01E   Downloaded getrandom v0.4.3
+2026-11-01T17:50:49.077312Z 01E   Downloaded askama_parser v0.16.1
+2026-11-01T17:50:49.080625Z 01E   Downloaded clap v4.6.7
+2026-11-01T17:50:49.084150Z 01E   Downloaded bytes v1.12.1
+2026-11-01T17:50:49.085704Z 01E   Downloaded icu_normalizer_data v2.4.0
+2026-11-01T17:50:49.090805Z 01E   Downloaded icu_locale_core v2.4.0
+2026-11-01T17:50:49.093943Z 01E   Downloaded futures v0.3.34
+2026-11-01T17:50:49.095896Z 01E   Downloaded utf8_iter v1.1.0
+2026-11-01T17:50:49.103537Z 01E   Downloaded base64 v0.23.1
+2026-11-01T17:50:49.110292Z 01E   Downloaded quinn v0.11.12
+2026-11-01T17:50:49.170681Z 01E   Downloaded scroll v0.12.0
+2026-11-01T17:50:49.171881Z 01E   Downloaded minimal-lexical v0.2.1
+2026-11-01T17:50:49.176879Z 01E   Downloaded zerofrom v0.1.8
+2026-11-01T17:50:49.185868Z 01E   Downloaded uniffi_internal_macros v0.32.2
+2026-11-01T17:50:49.187190Z 01E   Downloaded base64 v0.22.1
+2026-11-01T17:50:49.190865Z 01E   Downloaded icu_collections v2.4.0
+2026-11-01T17:50:49.196265Z 01E   Downloaded memchr v2.8.3
+2026-11-01T17:50:49.204566Z 01E   Downloaded writeable v0.6.4
+2026-11-01T17:50:49.213111Z 01E   Downloaded askama_derive v0.16.1
+2026-11-01T17:50:49.214983Z 01E   Downloaded toml_writer v1.1.3+spec-1.1.0
+2026-11-01T17:50:49.215598Z 01E   Downloaded uniffi_meta v0.32.2
+2026-11-01T17:50:49.216001Z 01E   Downloaded utf_types v1.0.0
+2026-11-01T17:50:49.217306Z 01E   Downloaded indexmap v2.14.2
+2026-11-01T17:50:49.219235Z 01E   Downloaded zmij v1.0.23
+2026-11-01T17:50:49.219964Z 01E   Downloaded nom v7.1.3
+2026-11-01T17:50:49.222231Z 01E   Downloaded tinystr v0.8.5
+2026-11-01T17:50:49.223082Z 01E   Downloaded mio v1.2.4
+2026-11-01T17:50:49.225672Z 01E   Downloaded toml_datetime v1.1.2+spec-1.1.0
+2026-11-01T17:50:49.226215Z 01E   Downloaded hyper-util v0.1.21
+2026-11-01T17:50:49.229101Z 01E   Downloaded zeroize v1.9.1
+2026-11-01T17:50:49.229735Z 01E   Downloaded zerovec-derive v0.11.7
+2026-11-01T17:50:49.230652Z 01E   Downloaded rand v0.10.3
+2026-11-01T17:50:49.232367Z 01E   Downloaded http v1.5.0
+2026-11-01T17:50:49.234095Z 01E   Downloaded aho-corasick v1.1.5
+2026-11-01T17:50:49.240585Z 01E   Downloaded sha2 v0.10.9
+2026-11-01T17:50:49.243973Z 01E   Downloaded icu_properties v2.4.0
+2026-11-01T17:50:49.245944Z 01E   Downloaded idna v1.1.0
+2026-11-01T17:50:49.247771Z 01E   Downloaded cc v1.10.0
+2026-11-01T17:50:49.249773Z 01E   Downloaded reqwest v0.12.28
+2026-11-01T17:50:49.252428Z 01E   Downloaded regex v1.13.1
+2026-11-01T17:50:49.254889Z 01E   Downloaded hashbrown v0.17.1
+2026-11-01T17:50:49.257347Z 01E   Downloaded hyper v1.12.0
+2026-11-01T17:50:49.260522Z 01E   Downloaded futures-util v0.3.34
+2026-11-01T17:50:49.266300Z 01E   Downloaded slab v0.4.12
+2026-11-01T17:50:49.266818Z 01E   Downloaded goblin v0.8.2
+2026-11-01T17:50:49.269510Z 01E   Downloaded icu_properties_data v2.4.0
+2026-11-01T17:50:49.273933Z 01E   Downloaded smawk v0.3.3
+2026-11-01T17:50:49.274623Z 01E   Downloaded clap_builder v4.6.7
+2026-11-01T17:50:49.277539Z 01E   Downloaded tokio-rustls v0.26.6
+2026-11-01T17:50:49.278225Z 01E   Downloaded static_assertions v1.1.0
+2026-11-01T17:50:49.278722Z 01E   Downloaded shlex v2.0.1
+2026-11-01T17:50:49.279239Z 01E   Downloaded weedle2 v5.0.0
+2026-11-01T17:50:49.279827Z 01E   Downloaded synstructure v0.14.0
+2026-11-01T17:50:49.280234Z 01E   Downloaded thiserror v2.0.21
+2026-11-01T17:50:49.282861Z 01E   Downloaded uniffi v0.32.2
+2026-11-01T17:50:49.288223Z 01E   Downloaded semver v1.0.28
+2026-11-01T17:50:49.291677Z 01E   Downloaded yoke v0.8.4
+2026-11-01T17:50:49.295074Z 01E   Downloaded smallvec v1.16.4
+2026-11-01T17:50:49.296243Z 01E   Downloaded quinn-proto v0.11.19
+2026-11-01T17:50:49.316954Z 01E   Downloaded regex-syntax v0.8.11
+2026-11-01T17:50:49.361210Z 01E   Downloaded yoke-derive v0.8.4
+2026-11-01T17:50:49.362682Z 01E   Downloaded thiserror-impl v2.0.21
+2026-11-01T17:50:49.363251Z 01E   Downloaded toml_parser v1.1.5+spec-1.1.0
+2026-11-01T17:50:49.375002Z 01E   Downloaded rustls-pki-types v1.15.1
+2026-11-01T17:50:49.382647Z 01E   Downloaded tempfile v3.27.0
+2026-11-01T17:50:49.383738Z 01E   Downloaded rustls v0.23.46
+2026-11-01T17:50:49.390373Z 01E   Downloaded unicode-ident v1.0.27
+2026-11-01T17:50:49.398006Z 01E   Downloaded tracing-core v0.1.36
+2026-11-01T17:50:49.399821Z 01E   Downloaded uniffi_udl v0.32.2
+2026-11-01T17:50:49.400724Z 01E   Downloaded serde_derive v1.0.229
+2026-11-01T17:50:49.403410Z 01E   Downloaded textwrap v0.16.4
+2026-11-01T17:50:49.406056Z 01E   Downloaded ryu v1.0.23
+2026-11-01T17:50:49.407354Z 01E   Downloaded socket2 v0.6.5
+2026-11-01T17:50:49.408245Z 01E   Downloaded toml v1.1.8+spec-1.1.0
+2026-11-01T17:50:49.411379Z 01E   Downloaded serde_core v1.0.229
+2026-11-01T17:50:49.413202Z 01E   Downloaded uniffi_core v0.32.2
+2026-11-01T17:50:49.418942Z 01E   Downloaded serde v1.0.229
+2026-11-01T17:50:49.420466Z 01E   Downloaded uniffi_macros v0.32.2
+2026-11-01T17:50:49.424285Z 01E   Downloaded tinyvec v1.13.3
+2026-11-01T17:50:49.429291Z 01E   Downloaded icu_normalizer v2.4.0
+2026-11-01T17:50:49.440719Z 01E   Downloaded regex-automata v0.4.18
+2026-11-01T17:50:49.448139Z 01E   Downloaded rustls-webpki v0.103.16
+2026-11-01T17:50:49.450448Z 01E   Downloaded zerotrie v0.2.5
+2026-11-01T17:50:49.457135Z 01E   Downloaded typenum v1.20.1
+2026-11-01T17:50:49.459704Z 01E   Downloaded tower v0.5.3
+2026-11-01T17:50:49.463561Z 01E   Downloaded libc v0.2.191
+2026-11-01T17:50:49.487312Z 01E   Downloaded zerovec v0.11.9
+2026-11-01T17:50:49.489934Z 01E   Downloaded url v2.5.8
+2026-11-01T17:50:49.579426Z 01E   Downloaded ring v0.17.14
+2026-11-01T17:50:49.600515Z 01E   Downloaded serde_json v1.0.154
+2026-11-01T17:50:49.603623Z 01E   Downloaded tower-http v0.6.11
+2026-11-01T17:50:49.614233Z 01E   Downloaded webpki-roots v1.0.11
+2026-11-01T17:50:49.616087Z 01E   Downloaded winnow v1.0.4
+2026-11-01T17:50:49.620193Z 01E   Downloaded unicode-width v0.2.3
+2026-11-01T17:50:49.634053Z 01E   Downloaded uniffi_bindgen v0.32.2
+2026-11-01T17:50:49.650335Z 01E   Downloaded linux-raw-sys v0.12.1
+2026-11-01T17:50:49.684531Z 01E   Downloaded syn v3.0.9
+2026-11-01T17:50:49.689548Z 01E   Downloaded syn v2.0.119
+2026-11-01T17:50:49.695221Z 01E   Downloaded rustix v1.1.6
+2026-11-01T17:50:49.705661Z 01E   Downloaded tracing v0.1.44
+2026-11-01T17:50:49.793813Z 01E   Downloaded tokio v1.54.1
+2026-11-01T17:50:49.853114Z 01E    Compiling proc-macro2 v1.0.107
+2026-11-01T17:50:49.853117Z 01E    Compiling unicode-ident v1.0.27
+2026-11-01T17:50:49.853228Z 01E    Compiling quote v1.0.47
+2026-11-01T17:50:49.853229Z 01E    Compiling libc v0.2.191
+2026-11-01T17:50:49.901876Z 01E    Compiling serde_core v1.0.229
+2026-11-01T17:50:49.964505Z 01E     Checking memchr v2.8.3
+2026-11-01T17:50:50.124883Z 01E     Checking cfg-if v1.0.5
+2026-11-01T17:50:50.141194Z 01E    Compiling serde v1.0.229
+2026-11-01T17:50:50.285229Z 01E     Checking once_cell v1.21.4
+2026-11-01T17:50:50.329340Z 01E    Compiling syn v3.0.9
+2026-11-01T17:50:50.342243Z 01E     Checking itoa v1.0.18
+2026-11-01T17:50:50.408569Z 01E     Checking bytes v1.12.1
+2026-11-01T17:50:50.506204Z 01E     Checking stable_deref_trait v1.2.1
+2026-11-01T17:50:50.535545Z 01E    Compiling rustix v1.1.6
+2026-11-01T17:50:50.586067Z 01E    Compiling getrandom v0.4.3
+2026-11-01T17:50:50.644605Z 01E    Compiling anyhow v1.0.104
+2026-11-01T17:50:50.736431Z 01E    Compiling syn v2.0.119
+2026-11-01T17:50:50.773440Z 01E     Checking pin-project-lite v0.2.17
+2026-11-01T17:50:50.801592Z 01E     Checking futures-core v0.3.34
+2026-11-01T17:50:51.097848Z 01E    Compiling equivalent v1.0.3
+2026-11-01T17:50:51.123863Z 01E    Compiling hashbrown v0.17.1
+2026-11-01T17:50:51.370045Z 01E     Checking bitflags v2.13.2
+2026-11-01T17:50:51.430452Z 01E    Compiling indexmap v2.14.2
+2026-11-01T17:50:51.656510Z 01E    Compiling winnow v1.0.4
+2026-11-01T17:50:51.845593Z 01E    Compiling synstructure v0.14.0
+2026-11-01T17:50:52.076200Z 01E    Compiling find-msvc-tools v0.1.15
+2026-11-01T17:50:52.165032Z 01E    Compiling shlex v2.0.1
+2026-11-01T17:50:52.169015Z 01E    Compiling zmij v1.0.23
+2026-11-01T17:50:52.232446Z 01E    Compiling cc v1.10.0
+2026-11-01T17:50:52.250007Z 01E     Checking utf_types v1.0.0
+2026-11-01T17:50:52.330849Z 01E     Checking writeable v0.6.4
+2026-11-01T17:50:52.401952Z 01E     Checking futures-sink v0.3.34
+2026-11-01T17:50:52.431664Z 01E    Compiling zerofrom-derive v0.1.8
+2026-11-01T17:50:52.433247Z 01E    Compiling serde_derive v1.0.229
+2026-11-01T17:50:52.651510Z 01E    Compiling yoke-derive v0.8.4
+2026-11-01T17:50:52.895163Z 01E     Checking zerofrom v0.1.8
+2026-11-01T17:50:52.930828Z 01E    Compiling zerovec-derive v0.11.7
+2026-11-01T17:50:52.937329Z 01E    Compiling displaydoc v0.2.7
+2026-11-01T17:50:53.056056Z 01E     Checking yoke v0.8.4
+2026-11-01T17:50:53.122359Z 01E    Compiling uniffi_internal_macros v0.32.2
+2026-11-01T17:50:53.196031Z 01E     Checking litemap v0.8.3
+2026-11-01T17:50:53.349039Z 01E     Checking zerovec v0.11.9
+2026-11-01T17:50:53.412418Z 01E     Checking smallvec v1.16.4
+2026-11-01T17:50:53.500046Z 01E     Checking zerotrie v0.2.5
+2026-11-01T17:50:53.510425Z 01E    Compiling ring v0.17.14
+2026-11-01T17:50:53.550839Z 01E     Checking tinystr v0.8.5
+2026-11-01T17:50:53.592454Z 01E     Checking potential_utf v0.1.6
+2026-11-01T17:50:53.616121Z 01E     Checking icu_locale_core v2.4.0
+2026-11-01T17:50:53.633936Z 01E     Checking futures-channel v0.3.34
+2026-11-01T17:50:53.686937Z 01E    Compiling futures-macro v0.3.34
+2026-11-01T17:50:53.706767Z 01E     Checking utf8_iter v1.1.0
+2026-11-01T17:50:53.768339Z 01E     Checking mio v1.2.4
+2026-11-01T17:50:53.879659Z 01E     Checking socket2 v0.6.5
+2026-11-01T17:50:53.884837Z 01E    Compiling serde_json v1.0.154
+2026-11-01T17:50:53.896880Z 01E    Compiling icu_properties_data v2.4.0
+2026-11-01T17:50:53.944210Z 01E     Checking futures-io v0.3.34
+2026-11-01T17:50:53.955272Z 01E     Checking linux-raw-sys v0.12.1
+2026-11-01T17:50:53.956316Z 01E    Compiling autocfg v1.5.1
+2026-11-01T17:50:53.980190Z 01E     Checking futures-task v0.3.34
+2026-11-01T17:50:53.990455Z 01E     Checking slab v0.4.12
+2026-11-01T17:50:54.029617Z 01E    Compiling icu_normalizer_data v2.4.0
+2026-11-01T17:50:54.042685Z 01E     Checking futures-util v0.3.34
+2026-11-01T17:50:54.095632Z 01E     Checking tokio v1.54.1
+2026-11-01T17:50:54.109861Z 01E    Compiling fs-err v3.3.2
+2026-11-01T17:50:54.184216Z 01E     Checking icu_provider v2.4.0
+2026-11-01T17:50:54.389302Z 01E     Checking icu_collections v2.4.0
+2026-11-01T17:50:55.124600Z 01E     Checking http v1.5.0
+2026-11-01T17:50:55.393767Z 01E    Compiling heck v0.5.0
+2026-11-01T17:50:55.417439Z 01E     Checking fastrand v2.5.0
+2026-11-01T17:50:55.469994Z 01E     Checking zeroize v1.9.1
+2026-11-01T17:50:55.478361Z 01E    Compiling version_check v0.9.5
+2026-11-01T17:50:55.523028Z 01E     Checking percent-encoding v2.3.2
+2026-11-01T17:50:55.525948Z 01E    Compiling rustc-hash v2.1.3
+2026-11-01T17:50:55.564817Z 01E    Compiling askama_parser v0.16.1
+2026-11-01T17:50:55.568284Z 01E     Checking rustls-pki-types v1.15.1
+2026-11-01T17:50:55.591411Z 01E    Compiling generic-array v0.14.7
+2026-11-01T17:50:55.678973Z 01E     Checking tempfile v3.27.0
+2026-11-01T17:50:55.816824Z 01E     Checking http-body v1.1.0
+2026-11-01T17:50:56.039492Z 01E    Compiling basic-toml v0.1.10
+2026-11-01T17:50:56.131646Z 01E     Checking getrandom v0.2.17
+2026-11-01T17:50:56.180543Z 01E    Compiling camino v1.2.6
+2026-11-01T17:50:56.332223Z 01E    Compiling httparse v1.10.1
+2026-11-01T17:50:56.361931Z 01E    Compiling glob v0.3.4
+2026-11-01T17:50:56.436417Z 01E     Checking log v0.4.35
+2026-11-01T17:50:56.476539Z 01E     Checking minimal-lexical v0.2.1
+2026-11-01T17:50:56.490425Z 01E    Compiling thiserror v2.0.21
+2026-11-01T17:50:56.554823Z 01E     Checking untrusted v0.9.0
+2026-11-01T17:50:56.636729Z 01E     Checking nom v7.1.3
+2026-11-01T17:50:56.762690Z 01E    Compiling askama_derive v0.16.1
+2026-11-01T17:50:57.055946Z 01E     Checking uniffi_pipeline v0.32.2
+2026-11-01T17:50:57.151887Z 01E     Checking icu_normalizer v2.4.0
+2026-11-01T17:50:57.152338Z 01E     Checking icu_properties v2.4.0
+2026-11-01T17:50:57.223383Z 01E    Compiling scroll_derive v0.12.1
+2026-11-01T17:50:57.278809Z 01E    Compiling thiserror-impl v2.0.21
+2026-11-01T17:50:57.448177Z 01E     Checking try-lock v0.2.5
+2026-11-01T17:50:57.477464Z 01E     Checking smawk v0.3.3
+2026-11-01T17:50:57.518992Z 01E     Checking typenum v1.20.1
+2026-11-01T17:50:57.572806Z 01E     Checking siphasher v1.0.4
+2026-11-01T17:50:57.743341Z 01E     Checking tower-service v0.3.3
+2026-11-01T17:50:57.770090Z 01E    Compiling rustls v0.23.46
+2026-11-01T17:50:57.834121Z 01E     Checking toml_parser v1.1.5+spec-1.1.0
+2026-11-01T17:50:57.886056Z 01E     Checking uniffi_meta v0.32.2
+2026-11-01T17:50:57.965688Z 01E     Checking idna_adapter v1.2.2
+2026-11-01T17:50:57.997733Z 01E     Checking textwrap v0.16.4
+2026-11-01T17:50:58.000111Z 01E     Checking want v0.3.2
+2026-11-01T17:50:58.024686Z 01E     Checking scroll v0.12.0
+2026-11-01T17:50:58.037969Z 01E     Checking weedle2 v5.0.0
+2026-11-01T17:50:58.171311Z 01E     Checking rustls-webpki v0.103.16
+2026-11-01T17:50:58.280054Z 01E     Checking form_urlencoded v1.2.2
+2026-11-01T17:50:58.297960Z 01E    Compiling askama_macros v0.16.1
+2026-11-01T17:50:58.345376Z 01E    Compiling toml_datetime v1.1.2+spec-1.1.0
+2026-11-01T17:50:58.432010Z 01E    Compiling serde_spanned v1.1.2
+2026-11-01T17:50:58.475505Z 01E     Checking cargo-platform v0.3.3
+2026-11-01T17:50:58.485199Z 01E     Checking semver v1.0.28
+2026-11-01T17:50:58.561113Z 01E     Checking tracing-core v0.1.36
+2026-11-01T17:50:58.577181Z 01E     Checking plain v0.2.3
+2026-11-01T17:50:58.605098Z 01E     Checking clap_lex v1.1.1
+2026-11-01T17:50:58.608590Z 01E    Compiling toml_writer v1.1.3+spec-1.1.0
+2026-11-01T17:50:58.621403Z 01E     Checking subtle v2.6.1
+2026-11-01T17:50:58.679145Z 01E     Checking strsim v0.11.1
+2026-11-01T17:50:58.689945Z 01E     Checking anstyle v1.0.14
+2026-11-01T17:50:58.723783Z 01E     Checking atomic-waker v1.1.2
+2026-11-01T17:50:58.732272Z 01E     Checking toml v1.1.8+spec-1.1.0
+2026-11-01T17:50:58.747262Z 01E     Checking clap_builder v4.6.7
+2026-11-01T17:50:58.757036Z 01E     Checking hyper v1.12.0
+2026-11-01T17:50:58.991541Z 01E     Checking tracing v0.1.44
+2026-11-01T17:50:59.057913Z 01E     Checking uniffi_udl v0.32.2
+2026-11-01T17:50:59.180684Z 01E     Checking goblin v0.8.2
+2026-11-01T17:50:59.331412Z 01E     Checking cargo_metadata v0.23.1
+2026-11-01T17:50:59.598107Z 01E     Checking askama v0.16.1
+2026-11-01T17:50:59.673041Z 01E     Checking idna v1.1.0
+2026-11-01T17:50:59.866791Z 01E    Compiling clap_derive v4.6.7
+2026-11-01T17:50:59.921610Z 01E     Checking sync_wrapper v1.0.2
+2026-11-01T17:51:00.011288Z 01E     Checking ipnet v2.12.2
+2026-11-01T17:51:00.091865Z 01E     Checking static_assertions v1.1.0
+2026-11-01T17:51:00.112536Z 01E     Checking base64 v0.23.1
+2026-11-01T17:51:00.132097Z 01E     Checking tower-layer v0.3.3
+2026-11-01T17:51:00.190280Z 01E     Checking tower v0.5.3
+2026-11-01T17:51:00.198545Z 01E     Checking uniffi_bindgen v0.32.2
+2026-11-01T17:51:00.224692Z 01E     Checking hyper-util v0.1.21
+2026-11-01T17:51:00.351239Z 01E     Checking tokio-rustls v0.26.6
+2026-11-01T17:51:00.436838Z 01E     Checking uniffi_core v0.32.2
+2026-11-01T17:51:00.557365Z 01E    Compiling uniffi_macros v0.32.2
+2026-11-01T17:51:00.568658Z 01E     Checking clap v4.6.7
+2026-11-01T17:51:00.592966Z 01E     Checking url v2.5.8
+2026-11-01T17:51:00.611154Z 01E     Checking block-buffer v0.10.4
+2026-11-01T17:51:00.658050Z 01E     Checking crypto-common v0.1.7
+2026-11-01T17:51:00.694647Z 01E     Checking webpki-roots v1.0.11
+2026-11-01T17:51:00.735032Z 01E     Checking aho-corasick v1.1.5
+2026-11-01T17:51:00.764407Z 01E     Checking regex-syntax v0.8.11
+2026-11-01T17:51:01.050848Z 01E     Checking ryu v1.0.23
+2026-11-01T17:51:01.101254Z 01E     Checking serde_urlencoded v0.7.1
+2026-11-01T17:51:01.181636Z 01E     Checking tower-http v0.6.11
+2026-11-01T17:51:01.290541Z 01E     Checking hyper-rustls v0.27.10
+2026-11-01T17:51:01.355937Z 01E     Checking digest v0.10.7
+2026-11-01T17:51:01.367661Z 01E     Checking regex-automata v0.4.18
+2026-11-01T17:51:01.418740Z 01E     Checking http-body-util v0.1.5
+2026-11-01T17:51:01.512381Z 01E     Checking base64 v0.22.1
+2026-11-01T17:51:01.606534Z 01E     Checking cpufeatures v0.2.17
+2026-11-01T17:51:01.630133Z 01E     Checking sha2 v0.10.9
+2026-11-01T17:51:01.724224Z 01E     Checking reqwest v0.12.28
+2026-11-01T17:51:01.977841Z 01E     Checking futures-executor v0.3.34
+2026-11-01T17:51:02.025759Z 01E     Checking futures v0.3.34
+2026-11-01T17:51:02.094941Z 01E     Checking regex v1.13.1
+2026-11-01T17:51:02.204647Z 01E     Checking rustclipsync-core v0.3.0 (https://github.com/Infinifar/rustclipsync-core.git?rev=1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e#1a8ec6b9)
+2026-11-01T17:51:09.541337Z 01E     Checking uniffi v0.32.2
+2026-11-01T17:51:09.637381Z 01E     Checking rustclipsync-mobile-ffi v0.1.0 (/builds/Cassius/rustclipsync-mobile/crates/rustclipsync-mobile-ffi)
+2026-11-01T17:51:09.637480Z 01E     Checking mobile-bindgen v0.1.0 (/builds/Cassius/rustclipsync-mobile/crates/mobile-bindgen)
+2026-11-01T17:51:10.016998Z 01E     Finished `dev` profile [unoptimized + debuginfo] target(s) in 29.07s
+2026-11-01T17:51:10.208907Z 01E    Compiling memchr v2.8.3
+2026-11-01T17:51:10.208909Z 01E    Compiling cfg-if v1.0.5
+2026-11-01T17:51:10.208987Z 01E    Compiling libc v0.2.191
+2026-11-01T17:51:10.209156Z 01E    Compiling once_cell v1.21.4
+2026-11-01T17:51:10.229766Z 01E    Compiling serde_core v1.0.229
+2026-11-01T17:51:10.291137Z 01E    Compiling zerofrom v0.1.8
+2026-11-01T17:51:10.330125Z 01E    Compiling itoa v1.0.18
+2026-11-01T17:51:10.394392Z 01E    Compiling stable_deref_trait v1.2.1
+2026-11-01T17:51:10.414670Z 01E    Compiling yoke v0.8.4
+2026-11-01T17:51:10.474666Z 01E    Compiling bytes v1.12.1
+2026-11-01T17:51:10.518391Z 01E    Compiling bitflags v2.13.2
+2026-11-01T17:51:10.610158Z 01E    Compiling pin-project-lite v0.2.17
+2026-11-01T17:51:10.631573Z 01E    Compiling zerovec v0.11.9
+2026-11-01T17:51:10.637348Z 01E    Compiling futures-core v0.3.34
+2026-11-01T17:51:10.686350Z 01E    Compiling linux-raw-sys v0.12.1
+2026-11-01T17:51:10.757706Z 01E    Compiling equivalent v1.0.3
+2026-11-01T17:51:10.778001Z 01E    Compiling hashbrown v0.17.1
+2026-11-01T17:51:10.821315Z 01E    Compiling rustix v1.1.6
+2026-11-01T17:51:10.871604Z 01E    Compiling anyhow v1.0.104
+2026-11-01T17:51:11.031585Z 01E    Compiling fastrand v2.5.0
+2026-11-01T17:51:11.038503Z 01E    Compiling heck v0.5.0
+2026-11-01T17:51:11.124518Z 01E    Compiling indexmap v2.14.2
+2026-11-01T17:51:11.126812Z 01E    Compiling tinystr v0.8.5
+2026-11-01T17:51:11.155260Z 01E    Compiling winnow v1.0.4
+2026-11-01T17:51:11.195252Z 01E    Compiling smallvec v1.16.4
+2026-11-01T17:51:11.280449Z 01E    Compiling futures-sink v0.3.34
+2026-11-01T17:51:11.309288Z 01E    Compiling utf_types v1.0.0
+2026-11-01T17:51:11.396093Z 01E    Compiling writeable v0.6.4
+2026-11-01T17:51:11.397173Z 01E    Compiling litemap v0.8.3
+2026-11-01T17:51:11.469549Z 01E    Compiling icu_locale_core v2.4.0
+2026-11-01T17:51:11.491809Z 01E    Compiling uniffi_internal_macros v0.32.2
+2026-11-01T17:51:11.673134Z 01E    Compiling utf8_iter v1.1.0
+2026-11-01T17:51:11.673623Z 01E    Compiling futures-channel v0.3.34
+2026-11-01T17:51:11.733702Z 01E    Compiling potential_utf v0.1.6
+2026-11-01T17:51:11.759347Z 01E    Compiling zerotrie v0.2.5
+2026-11-01T17:51:11.779592Z 01E    Compiling serde v1.0.229
+2026-11-01T17:51:11.866213Z 01E    Compiling socket2 v0.6.5
+2026-11-01T17:51:11.872575Z 01E    Compiling mio v1.2.4
+2026-11-01T17:51:11.996371Z 01E    Compiling futures-task v0.3.34
+2026-11-01T17:51:12.022260Z 01E    Compiling slab v0.4.12
+2026-11-01T17:51:12.053369Z 01E    Compiling futures-io v0.3.34
+2026-11-01T17:51:12.082969Z 01E    Compiling tokio v1.54.1
+2026-11-01T17:51:12.086927Z 01E    Compiling icu_provider v2.4.0
+2026-11-01T17:51:12.091942Z 01E    Compiling futures-util v0.3.34
+2026-11-01T17:51:12.105563Z 01E    Compiling icu_collections v2.4.0
+2026-11-01T17:51:12.219015Z 01E    Compiling http v1.5.0
+2026-11-01T17:51:12.350179Z 01E    Compiling percent-encoding v2.3.2
+2026-11-01T17:51:12.418928Z 01E    Compiling zeroize v1.9.1
+2026-11-01T17:51:12.480742Z 01E    Compiling rustls-pki-types v1.15.1
+2026-11-01T17:51:12.691935Z 01E    Compiling http-body v1.1.0
+2026-11-01T17:51:12.704698Z 01E    Compiling icu_normalizer_data v2.4.0
+2026-11-01T17:51:12.727185Z 01E    Compiling zmij v1.0.23
+2026-11-01T17:51:12.740309Z 01E    Compiling icu_properties_data v2.4.0
+2026-11-01T17:51:12.867458Z 01E    Compiling getrandom v0.4.3
+2026-11-01T17:51:12.929174Z 01E    Compiling getrandom v0.2.17
+2026-11-01T17:51:12.993519Z 01E    Compiling untrusted v0.9.0
+2026-11-01T17:51:13.023781Z 01E    Compiling siphasher v1.0.4
+2026-11-01T17:51:13.028449Z 01E    Compiling askama_parser v0.16.1
+2026-11-01T17:51:13.092870Z 01E    Compiling ring v0.17.14
+2026-11-01T17:51:13.315776Z 01E    Compiling tempfile v3.27.0
+2026-11-01T17:51:13.500102Z 01E    Compiling serde_json v1.0.154
+2026-11-01T17:51:14.059888Z 01E    Compiling icu_properties v2.4.0
+2026-11-01T17:51:14.176532Z 01E    Compiling icu_normalizer v2.4.0
+2026-11-01T17:51:14.447284Z 01E    Compiling basic-toml v0.1.10
+2026-11-01T17:51:14.662522Z 01E    Compiling typenum v1.20.1
+2026-11-01T17:51:14.723948Z 01E    Compiling try-lock v0.2.5
+2026-11-01T17:51:14.739242Z 01E    Compiling toml_writer v1.1.3+spec-1.1.0
+2026-11-01T17:51:14.760721Z 01E    Compiling log v0.4.35
+2026-11-01T17:51:14.776716Z 01E    Compiling tower-service v0.3.3
+2026-11-01T17:51:14.804759Z 01E    Compiling minimal-lexical v0.2.1
+2026-11-01T17:51:14.813039Z 01E    Compiling glob v0.3.4
+2026-11-01T17:51:14.829429Z 01E    Compiling uniffi_pipeline v0.32.2
+2026-11-01T17:51:14.905575Z 01E    Compiling askama_derive v0.16.1
+2026-11-01T17:51:14.929647Z 01E    Compiling generic-array v0.14.7
+2026-11-01T17:51:14.934901Z 01E    Compiling nom v7.1.3
+2026-11-01T17:51:15.001650Z 01E    Compiling want v0.3.2
+2026-11-01T17:51:15.056526Z 01E    Compiling idna_adapter v1.2.2
+2026-11-01T17:51:15.143191Z 01E    Compiling rustls-webpki v0.103.16
+2026-11-01T17:51:15.273942Z 01E    Compiling httparse v1.10.1
+2026-11-01T17:51:15.396696Z 01E    Compiling form_urlencoded v1.2.2
+2026-11-01T17:51:15.453730Z 01E    Compiling tracing-core v0.1.36
+2026-11-01T17:51:15.606851Z 01E    Compiling smawk v0.3.3
+2026-11-01T17:51:15.646663Z 01E    Compiling atomic-waker v1.1.2
+2026-11-01T17:51:15.683011Z 01E    Compiling subtle v2.6.1
+2026-11-01T17:51:15.711519Z 01E    Compiling hyper v1.12.0
+2026-11-01T17:51:15.730172Z 01E    Compiling rustls v0.23.46
+2026-11-01T17:51:15.791982Z 01E    Compiling toml_parser v1.1.5+spec-1.1.0
+2026-11-01T17:51:16.108615Z 01E    Compiling textwrap v0.16.4
+2026-11-01T17:51:16.266673Z 01E    Compiling thiserror v2.0.21
+2026-11-01T17:51:16.295026Z 01E    Compiling tracing v0.1.44
+2026-11-01T17:51:16.320999Z 01E    Compiling weedle2 v5.0.0
+2026-11-01T17:51:16.378004Z 01E    Compiling scroll v0.12.0
+2026-11-01T17:51:16.421944Z 01E    Compiling askama_macros v0.16.1
+2026-11-01T17:51:16.476416Z 01E    Compiling fs-err v3.3.2
+2026-11-01T17:51:16.586585Z 01E    Compiling idna v1.1.0
+2026-11-01T17:51:16.683821Z 01E    Compiling camino v1.2.6
+2026-11-01T17:51:16.853180Z 01E    Compiling uniffi_meta v0.32.2
+2026-11-01T17:51:17.275581Z 01E    Compiling semver v1.0.28
+2026-11-01T17:51:17.300711Z 01E    Compiling serde_spanned v1.1.2
+2026-11-01T17:51:17.345060Z 01E    Compiling toml_datetime v1.1.2+spec-1.1.0
+2026-11-01T17:51:17.416091Z 01E    Compiling cargo-platform v0.3.3
+2026-11-01T17:51:17.432591Z 01E    Compiling sync_wrapper v1.0.2
+2026-11-01T17:51:17.509809Z 01E    Compiling plain v0.2.3
+2026-11-01T17:51:17.525939Z 01E    Compiling anstyle v1.0.14
+2026-11-01T17:51:17.541749Z 01E    Compiling ipnet v2.12.2
+2026-11-01T17:51:17.580524Z 01E    Compiling strsim v0.11.1
+2026-11-01T17:51:17.601325Z 01E    Compiling base64 v0.23.1
+2026-11-01T17:51:17.745993Z 01E    Compiling tower-layer v0.3.3
+2026-11-01T17:51:17.776088Z 01E    Compiling clap_lex v1.1.1
+2026-11-01T17:51:17.784116Z 01E    Compiling hyper-util v0.1.21
+2026-11-01T17:51:17.802859Z 01E    Compiling tower v0.5.3
+2026-11-01T17:51:17.863114Z 01E    Compiling clap_builder v4.6.7
+2026-11-01T17:51:18.011805Z 01E    Compiling toml v1.1.8+spec-1.1.0
+2026-11-01T17:51:18.430046Z 01E    Compiling goblin v0.8.2
+2026-11-01T17:51:18.782465Z 01E    Compiling cargo_metadata v0.23.1
+2026-11-01T17:51:19.534211Z 01E    Compiling tokio-rustls v0.26.6
+2026-11-01T17:51:19.585449Z 01E    Compiling uniffi_udl v0.32.2
+2026-11-01T17:51:19.637550Z 01E    Compiling url v2.5.8
+2026-11-01T17:51:20.033098Z 01E    Compiling askama v0.16.1
+2026-11-01T17:51:20.078738Z 01E    Compiling block-buffer v0.10.4
+2026-11-01T17:51:20.122363Z 01E    Compiling crypto-common v0.1.7
+2026-11-01T17:51:20.154782Z 01E    Compiling webpki-roots v1.0.11
+2026-11-01T17:51:20.191763Z 01E    Compiling clap_derive v4.6.7
+2026-11-01T17:51:20.198390Z 01E    Compiling aho-corasick v1.1.5
+2026-11-01T17:51:20.233553Z 01E    Compiling static_assertions v1.1.0
+2026-11-01T17:51:20.251446Z 01E    Compiling regex-syntax v0.8.11
+2026-11-01T17:51:20.583287Z 01E    Compiling ryu v1.0.23
+2026-11-01T17:51:20.648483Z 01E    Compiling serde_urlencoded v0.7.1
+2026-11-01T17:51:20.739277Z 01E    Compiling uniffi_core v0.32.2
+2026-11-01T17:51:20.904806Z 01E    Compiling uniffi_macros v0.32.2
+2026-11-01T17:51:20.906881Z 01E    Compiling clap v4.6.7
+2026-11-01T17:51:20.926734Z 01E    Compiling uniffi_bindgen v0.32.2
+2026-11-01T17:51:21.207167Z 01E    Compiling regex-automata v0.4.18
+2026-11-01T17:51:21.574423Z 01E    Compiling hyper-rustls v0.27.10
+2026-11-01T17:51:21.690020Z 01E    Compiling digest v0.10.7
+2026-11-01T17:51:21.757189Z 01E    Compiling tower-http v0.6.11
+2026-11-01T17:51:21.914981Z 01E    Compiling http-body-util v0.1.5
+2026-11-01T17:51:22.014666Z 01E    Compiling base64 v0.22.1
+2026-11-01T17:51:22.152833Z 01E    Compiling cpufeatures v0.2.17
+2026-11-01T17:51:22.172704Z 01E    Compiling sha2 v0.10.9
+2026-11-01T17:51:22.284283Z 01E    Compiling reqwest v0.12.28
+2026-11-01T17:51:22.333171Z 01E    Compiling regex v1.13.1
+2026-11-01T17:51:22.529338Z 01E    Compiling futures-executor v0.3.34
+2026-11-01T17:51:22.630706Z 01E    Compiling futures v0.3.34
+2026-11-01T17:51:22.911711Z 01E    Compiling rustclipsync-core v0.3.0 (https://github.com/Infinifar/rustclipsync-core.git?rev=1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e#1a8ec6b9)
+2026-11-01T17:51:31.643504Z 01E    Compiling uniffi v0.32.2
+2026-11-01T17:51:34.306134Z 01E    Compiling rustclipsync-mobile-ffi v0.1.0 (/builds/Cassius/rustclipsync-mobile/crates/rustclipsync-mobile-ffi)
+2026-11-01T17:51:34.306212Z 01E    Compiling mobile-bindgen v0.1.0 (/builds/Cassius/rustclipsync-mobile/crates/mobile-bindgen)
+2026-11-01T17:51:35.699301Z 01E     Finished `test` profile [unoptimized + debuginfo] target(s) in 25.58s
+2026-11-01T17:51:35.708930Z 01E      Running unittests src/main.rs (target/debug/deps/mobile_bindgen-4c60bab9ba4eb7f8)
+2026-11-01T17:51:35.710092Z 01O 
+2026-11-01T17:51:35.710093Z 01O running 0 tests
+2026-11-01T17:51:35.710095Z 01O 
+2026-11-01T17:51:35.710096Z 01O test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-11-01T17:51:35.710097Z 01O 
+2026-11-01T17:51:35.710191Z 01E      Running unittests src/lib.rs (target/debug/deps/rustclipsync_mobile_ffi-8a23453da9577716)
+2026-11-01T17:51:35.711796Z 01O 
+2026-11-01T17:51:35.711797Z 01O running 12 tests
+2026-11-01T17:51:35.713181Z 01O test session::tests::disposable_constructor_rejects_every_non_loopback_root_destination ... ok
+2026-11-01T17:51:35.713455Z 01O test session::tests::clipboard_change_during_network_prevents_stale_receive ... ok
+2026-11-01T17:51:35.713533Z 01O test session::tests::close_is_nonblocking_rejects_queue_and_suppresses_late_clipboard_callbacks ... ok
+2026-11-01T17:51:35.713534Z 01O test session::tests::background_write_binding_requires_opt_in_and_reads_no_platform_snapshot ... ok
+2026-11-01T17:51:35.713710Z 01O test session::tests::executor_panic_terminates_session_and_reports_failed_shutdown ... ok
+2026-11-01T17:51:35.713711Z 01O test session::tests::background_binding_stores_only_marked_inbox_without_platform_clipboard_calls ... ok
+2026-11-01T17:51:35.713962Z 01O test session::tests::failed_os_write_is_never_acknowledged_as_applied ... ok
+2026-11-01T17:51:35.714017Z 01O test session::tests::retry_pending_preserves_the_existing_request_instead_of_recording_another_copy ... ok
+2026-11-01T17:51:35.714111Z 01O test session::tests::unmarked_text_is_not_heuristically_treated_as_sensitive ... ok
+2026-11-01T17:51:35.714403Z 01O test session::tests::storage_failure_terminates_and_corruption_never_resets_identity ... ok
+2026-11-01T17:51:35.714590Z 01O test session::tests::core_round_trip_uses_encrypted_durable_state_on_one_non_ui_thread ... ok
+2026-11-01T17:51:35.715754Z 01O test session::tests::sensitive_policy_distinguishes_skip_inbox_and_actual_clipboard_write ... ok
+2026-11-01T17:51:35.715755Z 01O 
+2026-11-01T17:51:35.715755Z 01O test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-11-01T17:51:35.715755Z 01O 
+2026-11-01T17:51:35.717075Z 01E    Doc-tests rustclipsync_mobile_ffi
+2026-11-01T17:51:35.770674Z 01O 
+2026-11-01T17:51:35.770674Z 01O running 0 tests
+2026-11-01T17:51:35.770675Z 01O 
+2026-11-01T17:51:35.770675Z 01O test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-11-01T17:51:35.770676Z 01O 
+2026-11-01T17:51:35.892427Z 01E    Compiling serde_core v1.0.229
+2026-11-01T17:51:35.892796Z 01E    Compiling indexmap v2.14.2
+2026-11-01T17:51:35.893015Z 01E    Compiling winnow v1.0.4
+2026-11-01T17:51:35.893122Z 01E    Compiling fs-err v3.3.2
+2026-11-01T17:51:36.016076Z 01E    Compiling toml_parser v1.1.5+spec-1.1.0
+2026-11-01T17:51:36.172699Z 01E    Compiling uniffi_internal_macros v0.32.2
+2026-11-01T17:51:36.178760Z 01E    Compiling toml v1.1.8+spec-1.1.0
+2026-11-01T17:51:36.483784Z 01E    Compiling uniffi_pipeline v0.32.2
+2026-11-01T17:51:36.596443Z 01E    Compiling uniffi_meta v0.32.2
+2026-11-01T17:51:36.846539Z 01E    Compiling uniffi_macros v0.32.2
+2026-11-01T17:51:36.889600Z 01E    Compiling serde v1.0.229
+2026-11-01T17:51:36.889610Z 01E    Compiling serde_json v1.0.154
+2026-11-01T17:51:36.948352Z 01E    Compiling cargo-platform v0.3.3
+2026-11-01T17:51:37.062918Z 01E    Compiling camino v1.2.6
+2026-11-01T17:51:37.126241Z 01E    Compiling serde_urlencoded v0.7.1
+2026-11-01T17:51:37.219000Z 01E    Compiling semver v1.0.28
+2026-11-01T17:51:37.236725Z 01E    Compiling reqwest v0.12.28
+2026-11-01T17:51:37.353591Z 01E    Compiling cargo_metadata v0.23.1
+2026-11-01T17:51:37.927582Z 01E    Compiling rustclipsync-core v0.3.0 (https://github.com/Infinifar/rustclipsync-core.git?rev=1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e#1a8ec6b9)
+2026-11-01T17:51:37.951803Z 01E    Compiling uniffi v0.32.2
+2026-11-01T17:51:38.612858Z 01E    Compiling rustclipsync-mobile-ffi v0.1.0 (/builds/Cassius/rustclipsync-mobile/crates/rustclipsync-mobile-ffi)
+2026-11-01T17:51:39.991083Z 01E     Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.15s
+2026-11-01T17:51:40.181166Z 01O All seven core HTTP operations completed against the synthetic fixture
+2026-11-01T17:51:40.195478Z 01O All seven core HTTP operations completed against the synthetic fixture
+2026-11-01T17:51:40.696144Z 01O Core revision: 1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e
+2026-11-01T17:51:40.696146Z 01O PASS: 14 real HTTPS requests; root and nested deployment paths
+2026-11-01T17:51:40.696147Z 01O POST /api/devices
+2026-11-01T17:51:40.696148Z 01O GET /api/state
+2026-11-01T17:51:40.696148Z 01O GET /api/changes?epoch=10000000-0000-4000-8000-000000000001&after=0
+2026-11-01T17:51:40.696149Z 01O GET /api/messages/30000000-0000-4000-8000-000000000001/content
+2026-11-01T17:51:40.696149Z 01O PUT /api/messages/30000000-0000-4000-8000-000000000001
+2026-11-01T17:51:40.696150Z 01O DELETE /api/messages/30000000-0000-4000-8000-000000000001
+2026-11-01T17:51:40.696150Z 01O POST /api/ack
+2026-11-01T17:51:40.696151Z 01O POST /synthetic-mount/api/devices
+2026-11-01T17:51:40.696151Z 01O GET /synthetic-mount/api/state
+2026-11-01T17:51:40.696151Z 01O GET /synthetic-mount/api/changes?epoch=10000000-0000-4000-8000-000000000001&after=0
+2026-11-01T17:51:40.696152Z 01O GET /synthetic-mount/api/messages/30000000-0000-4000-8000-000000000001/content
+2026-11-01T17:51:40.696152Z 01O PUT /synthetic-mount/api/messages/30000000-0000-4000-8000-000000000001
+2026-11-01T17:51:40.696153Z 01O DELETE /synthetic-mount/api/messages/30000000-0000-4000-8000-000000000001
+2026-11-01T17:51:40.696153Z 01O POST /synthetic-mount/api/ack
+2026-11-01T17:51:40.787929Z 01E  Documenting mobile-bindgen v0.1.0 (/builds/Cassius/rustclipsync-mobile/crates/mobile-bindgen)
+2026-11-01T17:51:40.787932Z 01E  Documenting rustclipsync-mobile-ffi v0.1.0 (/builds/Cassius/rustclipsync-mobile/crates/rustclipsync-mobile-ffi)
+2026-11-01T17:51:41.080861Z 01E     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.35s
+2026-11-01T17:51:41.089963Z 01E    Generated /builds/Cassius/rustclipsync-mobile/target/doc/mobile_bindgen/index.html and 1 other file
+2026-11-01T17:51:41.178101Z 01E     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.06s
+2026-11-01T17:51:41.254162Z 01E    Compiling syn v3.0.9
+2026-11-01T17:51:41.254229Z 01E    Compiling libc v0.2.191
+2026-11-01T17:51:41.254396Z 01E    Compiling memchr v2.8.3
+2026-11-01T17:51:41.257357Z 01E    Compiling toml_parser v1.1.5+spec-1.1.0
+2026-11-01T17:51:41.556559Z 01E    Compiling nom v7.1.3
+2026-11-01T17:51:41.588926Z 01E    Compiling serde_json v1.0.154
+2026-11-01T17:51:41.686239Z 01E    Compiling getrandom v0.4.3
+2026-11-01T17:51:41.749309Z 01E    Compiling tempfile v3.27.0
+2026-11-01T17:51:41.940446Z 01E    Compiling uniffi_pipeline v0.32.2
+2026-11-01T17:51:42.039828Z 01E    Compiling uniffi_meta v0.32.2
+2026-11-01T17:51:42.244322Z 01E    Compiling weedle2 v5.0.0
+2026-11-01T17:51:42.255393Z 01E    Compiling toml v1.1.8+spec-1.1.0
+2026-11-01T17:51:42.843227Z 01E    Compiling serde_derive v1.0.229
+2026-11-01T17:51:42.950451Z 01E    Compiling thiserror-impl v2.0.21
+2026-11-01T17:51:43.021274Z 01E    Compiling uniffi_udl v0.32.2
+2026-11-01T17:51:43.350640Z 01E    Compiling clap_derive v4.6.7
+2026-11-01T17:51:43.434773Z 01E    Compiling thiserror v2.0.21
+2026-11-01T17:51:43.797951Z 01E    Compiling serde v1.0.229
+2026-11-01T17:51:43.919161Z 01E    Compiling clap v4.6.7
+2026-11-01T17:51:44.005084Z 01E    Compiling basic-toml v0.1.10
+2026-11-01T17:51:44.005100Z 01E    Compiling askama_parser v0.16.1
+2026-11-01T17:51:44.035776Z 01E    Compiling cargo_metadata v0.23.1
+2026-11-01T17:51:44.045960Z 01E    Compiling uniffi_macros v0.32.2
+2026-11-01T17:51:45.153721Z 01E    Compiling askama_derive v0.16.1
+2026-11-01T17:51:46.261469Z 01E    Compiling askama_macros v0.16.1
+2026-11-01T17:51:46.390085Z 01E    Compiling askama v0.16.1
+2026-11-01T17:51:46.543672Z 01E    Compiling uniffi_bindgen v0.32.2
+2026-11-01T17:51:57.638967Z 01E    Compiling uniffi v0.32.2
+2026-11-01T17:52:00.358812Z 01E    Compiling mobile-bindgen v0.1.0 (/builds/Cassius/rustclipsync-mobile/crates/mobile-bindgen)
+2026-11-01T17:52:00.613068Z 01E     Finished `dev` profile [unoptimized + debuginfo] target(s) in 19.40s
+2026-11-01T17:52:00.617651Z 01E      Running `target/debug/mobile-bindgen generate --library target/debug/librustclipsync_mobile_ffi.so --language kotlin --language swift --no-format --out-dir build/bindings`
+2026-11-01T17:52:04.102759Z 01E     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.05s
+2026-11-01T17:52:04.178029Z 01E     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s
+2026-11-01T17:52:04.181692Z 01E      Running `target/debug/mobile-bindgen generate --library target/debug/librustclipsync_mobile_ffi.so --language python --no-format --out-dir build/python`
+2026-11-01T17:52:04.393601Z 01O writing out build/python
+2026-11-01T17:52:04.394261Z 01O writing build/python/rustclipsync_mobile_ffi.py
+2026-11-01T17:52:04.491167Z 01E test_callback_storage_error_is_typed_and_sanitized (__main__.BindingSmokeTests.test_callback_storage_error_is_typed_and_sanitized) ... ok
+2026-11-01T17:52:04.495257Z 01E test_callbacks_encryption_shutdown_and_release (__main__.BindingSmokeTests.test_callbacks_encryption_shutdown_and_release) ... ok
+2026-11-01T17:52:04.500507Z 01E test_invalid_key_never_starts_callbacks (__main__.BindingSmokeTests.test_invalid_key_never_starts_callbacks) ... ok
+2026-11-01T17:52:04.501095Z 01E test_unexpected_foreign_exception_becomes_safe_storage_error (__main__.BindingSmokeTests.test_unexpected_foreign_exception_becomes_safe_storage_error) ... ok
+2026-11-01T17:52:04.503026Z 01E 
+2026-11-01T17:52:04.503027Z 01E ----------------------------------------------------------------------
+2026-11-01T17:52:04.503028Z 01E Ran 4 tests in 0.012s
+2026-11-01T17:52:04.503029Z 01E 
+2026-11-01T17:52:04.503029Z 01E OK
+2026-11-01T17:52:04.512956Z 01O $ scripts/check-android.sh
+2026-11-01T17:52:04.591786Z 01E     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.05s
+2026-11-01T17:52:04.657897Z 01E     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+2026-11-01T17:52:04.659643Z 01E      Running `target/debug/mobile-bindgen generate --library target/debug/librustclipsync_mobile_ffi.so --language kotlin --language swift --no-format --out-dir build/bindings`
+2026-11-01T17:52:05.069424Z 01E    Compiling proc-macro2 v1.0.107
+2026-11-01T17:52:05.069459Z 01E    Compiling unicode-ident v1.0.27
+2026-11-01T17:52:05.069460Z 01E    Compiling quote v1.0.47
+2026-11-01T17:52:05.069538Z 01E    Compiling libc v0.2.191
+2026-11-01T17:52:05.109627Z 01E    Compiling stable_deref_trait v1.2.1
+2026-11-01T17:52:05.130883Z 01E    Compiling memchr v2.8.3
+2026-11-01T17:52:05.158306Z 01E    Compiling bytes v1.12.1
+2026-11-01T17:52:05.481273Z 01E    Compiling pin-project-lite v0.2.17
+2026-11-01T17:52:05.509993Z 01E    Compiling cfg-if v1.0.5
+2026-11-01T17:52:05.521748Z 01E    Compiling syn v3.0.9
+2026-11-01T17:52:05.531624Z 01E    Compiling itoa v1.0.18
+2026-11-01T17:52:05.541843Z 01E    Compiling futures-core v0.3.34
+2026-11-01T17:52:05.593497Z 01E    Compiling serde_core v1.0.229
+2026-11-01T17:52:05.599137Z 01E    Compiling once_cell v1.21.4
+2026-11-01T17:52:05.635616Z 01E    Compiling find-msvc-tools v0.1.15
+2026-11-01T17:52:05.688871Z 01E    Compiling shlex v2.0.1
+2026-11-01T17:52:05.694671Z 01E    Compiling rustix v1.1.6
+2026-11-01T17:52:05.712489Z 01E    Compiling anyhow v1.0.104
+2026-11-01T17:52:05.752451Z 01E    Compiling getrandom v0.4.3
+2026-11-01T17:52:05.795889Z 01E    Compiling cc v1.10.0
+2026-11-01T17:52:05.816292Z 01E    Compiling futures-sink v0.3.34
+2026-11-01T17:52:05.846401Z 01E    Compiling writeable v0.6.4
+2026-11-01T17:52:05.974608Z 01E    Compiling litemap v0.8.3
+2026-11-01T17:52:06.057265Z 01E    Compiling smallvec v1.16.4
+2026-11-01T17:52:06.158052Z 01E    Compiling utf_types v1.0.0
+2026-11-01T17:52:06.253034Z 01E    Compiling serde v1.0.229
+2026-11-01T17:52:06.332069Z 01E    Compiling utf8_iter v1.1.0
+2026-11-01T17:52:06.393409Z 01E    Compiling futures-channel v0.3.34
+2026-11-01T17:52:06.488817Z 01E    Compiling ring v0.17.14
+2026-11-01T17:52:06.495724Z 01E    Compiling socket2 v0.6.5
+2026-11-01T17:52:06.647024Z 01E    Compiling mio v1.2.4
+2026-11-01T17:52:06.839160Z 01E    Compiling icu_normalizer_data v2.4.0
+2026-11-01T17:52:06.891524Z 01E    Compiling slab v0.4.12
+2026-11-01T17:52:06.966305Z 01E    Compiling synstructure v0.14.0
+2026-11-01T17:52:06.971569Z 01E    Compiling icu_properties_data v2.4.0
+2026-11-01T17:52:06.991987Z 01E    Compiling futures-task v0.3.34
+2026-11-01T17:52:07.021834Z 01E    Compiling futures-io v0.3.34
+2026-11-01T17:52:07.054105Z 01E    Compiling tokio v1.54.1
+2026-11-01T17:52:07.188560Z 01E    Compiling http v1.5.0
+2026-11-01T17:52:07.564350Z 01E    Compiling zerofrom-derive v0.1.8
+2026-11-01T17:52:07.991258Z 01E    Compiling zerofrom v0.1.8
+2026-11-01T17:52:08.031978Z 01E    Compiling yoke-derive v0.8.4
+2026-11-01T17:52:08.292738Z 01E    Compiling zerovec-derive v0.11.7
+2026-11-01T17:52:08.396756Z 01E    Compiling yoke v0.8.4
+2026-11-01T17:52:08.470066Z 01E    Compiling displaydoc v0.2.7
+2026-11-01T17:52:08.686458Z 01E    Compiling zerovec v0.11.9
+2026-11-01T17:52:08.702735Z 01E    Compiling zerotrie v0.2.5
+2026-11-01T17:52:08.762585Z 01E    Compiling futures-macro v0.3.34
+2026-11-01T17:52:08.908087Z 01E    Compiling serde_derive v1.0.229
+2026-11-01T17:52:08.976767Z 01E    Compiling tinystr v0.8.5
+2026-11-01T17:52:09.021249Z 01E    Compiling potential_utf v0.1.6
+2026-11-01T17:52:09.050821Z 01E    Compiling icu_locale_core v2.4.0
+2026-11-01T17:52:09.083124Z 01E    Compiling icu_collections v2.4.0
+2026-11-01T17:52:09.449845Z 01E    Compiling futures-util v0.3.34
+2026-11-01T17:52:10.094739Z 01E    Compiling icu_provider v2.4.0
+2026-11-01T17:52:10.404610Z 01E    Compiling zeroize v1.9.1
+2026-11-01T17:52:10.471768Z 01E    Compiling percent-encoding v2.3.2
+2026-11-01T17:52:10.592912Z 01E    Compiling version_check v0.9.5
+2026-11-01T17:52:10.791074Z 01E    Compiling generic-array v0.14.7
+2026-11-01T17:52:10.841251Z 01E    Compiling rustls-pki-types v1.15.1
+2026-11-01T17:52:10.888091Z 01E    Compiling http-body v1.1.0
+2026-11-01T17:52:10.973314Z 01E    Compiling getrandom v0.2.17
+2026-11-01T17:52:10.984824Z 01E    Compiling httparse v1.10.1
+2026-11-01T17:52:11.068387Z 01E    Compiling zmij v1.0.23
+2026-11-01T17:52:11.077270Z 01E    Compiling untrusted v0.9.0
+2026-11-01T17:52:11.117955Z 01E    Compiling hashbrown v0.17.1
+2026-11-01T17:52:11.143234Z 01E    Compiling equivalent v1.0.3
+2026-11-01T17:52:11.164195Z 01E    Compiling bitflags v2.13.2
+2026-11-01T17:52:11.345255Z 01E    Compiling indexmap v2.14.2
+2026-11-01T17:52:11.370529Z 01E    Compiling icu_properties v2.4.0
+2026-11-01T17:52:11.734809Z 01E    Compiling icu_normalizer v2.4.0
+2026-11-01T17:52:12.495641Z 01E    Compiling syn v2.0.119
+2026-11-01T17:52:12.621151Z 01E    Compiling linux-raw-sys v0.12.1
+2026-11-01T17:52:12.752634Z 01E    Compiling serde_json v1.0.154
+2026-11-01T17:52:12.802547Z 01E    Compiling try-lock v0.2.5
+2026-11-01T17:52:12.840223Z 01E    Compiling rustls v0.23.46
+2026-11-01T17:52:12.887187Z 01E    Compiling tower-service v0.3.3
+2026-11-01T17:52:12.990808Z 01E    Compiling typenum v1.20.1
+2026-11-01T17:52:13.522918Z 01E    Compiling want v0.3.2
+2026-11-01T17:52:13.782950Z 01E    Compiling rustls-webpki v0.103.16
+2026-11-01T17:52:13.897682Z 01E    Compiling idna_adapter v1.2.2
+2026-11-01T17:52:14.125452Z 01E    Compiling form_urlencoded v1.2.2
+2026-11-01T17:52:14.170332Z 01E    Compiling tracing-core v0.1.36
+2026-11-01T17:52:14.310966Z 01E    Compiling atomic-waker v1.1.2
+2026-11-01T17:52:14.350467Z 01E    Compiling fastrand v2.5.0
+2026-11-01T17:52:14.423543Z 01E    Compiling uniffi_internal_macros v0.32.2
+2026-11-01T17:52:14.427425Z 01E    Compiling subtle v2.6.1
+2026-11-01T17:52:14.477798Z 01E    Compiling autocfg v1.5.1
+2026-11-01T17:52:14.617472Z 01E    Compiling fs-err v3.3.2
+2026-11-01T17:52:14.719539Z 01E    Compiling tempfile v3.27.0
+2026-11-01T17:52:14.782045Z 01E    Compiling tracing v0.1.44
+2026-11-01T17:52:14.860897Z 01E    Compiling hyper v1.12.0
+2026-11-01T17:52:15.241179Z 01E    Compiling idna v1.1.0
+2026-11-01T17:52:16.501469Z 01E    Compiling sync_wrapper v1.0.2
+2026-11-01T17:52:16.529564Z 01E    Compiling errno v0.3.14
+2026-11-01T17:52:16.550547Z 01E    Compiling winnow v1.0.4
+2026-11-01T17:52:16.594319Z 01E    Compiling heck v0.5.0
+2026-11-01T17:52:16.658012Z 01E    Compiling thiserror v2.0.21
+2026-11-01T17:52:16.663946Z 01E    Compiling camino v1.2.6
+2026-11-01T17:52:16.691977Z 01E    Compiling base64 v0.23.1
+2026-11-01T17:52:16.835647Z 01E    Compiling tower-layer v0.3.3
+2026-11-01T17:52:16.887315Z 01E    Compiling ipnet v2.12.2
+2026-11-01T17:52:16.914466Z 01E    Compiling tower v0.5.3
+2026-11-01T17:52:17.018445Z 01E    Compiling hyper-util v0.1.21
+2026-11-01T17:52:17.673070Z 01E    Compiling toml_parser v1.1.5+spec-1.1.0
+2026-11-01T17:52:17.927642Z 01E    Compiling uniffi_pipeline v0.32.2
+2026-11-01T17:52:18.024986Z 01E    Compiling tokio-rustls v0.26.6
+2026-11-01T17:52:18.420262Z 01E    Compiling url v2.5.8
+2026-11-01T17:52:18.493902Z 01E    Compiling block-buffer v0.10.4
+2026-11-01T17:52:18.545252Z 01E    Compiling crypto-common v0.1.7
+2026-11-01T17:52:18.586224Z 01E    Compiling toml_datetime v1.1.2+spec-1.1.0
+2026-11-01T17:52:18.685304Z 01E    Compiling serde_spanned v1.1.2
+2026-11-01T17:52:18.727334Z 01E    Compiling webpki-roots v1.0.11
+2026-11-01T17:52:18.743976Z 01E    Compiling thiserror-impl v2.0.21
+2026-11-01T17:52:18.777159Z 01E    Compiling aho-corasick v1.1.5
+2026-11-01T17:52:19.208969Z 01E    Compiling ryu v1.0.23
+2026-11-01T17:52:19.352571Z 01E    Compiling regex-syntax v0.8.11
+2026-11-01T17:52:19.883471Z 01E    Compiling toml_writer v1.1.3+spec-1.1.0
+2026-11-01T17:52:20.456661Z 01E    Compiling siphasher v1.0.4
+2026-11-01T17:52:20.520761Z 01E    Compiling uniffi_meta v0.32.2
+2026-11-01T17:52:21.201076Z 01E    Compiling regex-automata v0.4.18
+2026-11-01T17:52:21.820338Z 01E    Compiling toml v1.1.8+spec-1.1.0
+2026-11-01T17:52:22.355029Z 01E    Compiling serde_urlencoded v0.7.1
+2026-11-01T17:52:22.712791Z 01E    Compiling hyper-rustls v0.27.10
+2026-11-01T17:52:22.976656Z 01E    Compiling tower-http v0.6.11
+2026-11-01T17:52:23.291351Z 01E    Compiling digest v0.10.7
+2026-11-01T17:52:23.852664Z 01E    Compiling http-body-util v0.1.5
+2026-11-01T17:52:23.895662Z 01E    Compiling semver v1.0.28
+2026-11-01T17:52:23.966625Z 01E    Compiling cargo-platform v0.3.3
+2026-11-01T17:52:24.252644Z 01E    Compiling cpufeatures v0.2.17
+2026-11-01T17:52:24.281013Z 01E    Compiling base64 v0.22.1
+2026-11-01T17:52:24.526114Z 01E    Compiling log v0.4.35
+2026-11-01T17:52:24.611854Z 01E    Compiling static_assertions v1.1.0
+2026-11-01T17:52:24.633129Z 01E    Compiling uniffi_core v0.32.2
+2026-11-01T17:52:24.820647Z 01E    Compiling reqwest v0.12.28
+2026-11-01T17:52:25.145364Z 01E    Compiling sha2 v0.10.9
+2026-11-01T17:52:25.748258Z 01E    Compiling cargo_metadata v0.23.1
+2026-11-01T17:52:26.344999Z 01E    Compiling uniffi_macros v0.32.2
+2026-11-01T17:52:27.673636Z 01E    Compiling regex v1.13.1
+2026-11-01T17:52:28.366173Z 01E    Compiling futures-executor v0.3.34
+2026-11-01T17:52:28.479780Z 01E    Compiling futures v0.3.34
+2026-11-01T17:52:28.503399Z 01E    Compiling rustclipsync-core v0.3.0 (https://github.com/Infinifar/rustclipsync-core.git?rev=1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e#1a8ec6b9)
+2026-11-01T17:52:28.634329Z 01E    Compiling uniffi v0.32.2
+2026-11-01T17:52:30.928717Z 01E    Compiling rustclipsync-mobile-ffi v0.1.0 (/builds/Cassius/rustclipsync-mobile/crates/rustclipsync-mobile-ffi)
+2026-11-01T17:52:32.151719Z 01E     Finished `release` profile [optimized] target(s) in 27.15s
+2026-11-01T17:52:32.175741Z 01O   LOAD           0x000000 0x0000000000000000 0x0000000000000000 0x1d8d78 0x1d8d78 R   0x4000
+2026-11-01T17:52:32.175743Z 01O   LOAD           0x1d8d80 0x00000000001dcd80 0x00000000001dcd80 0x2cad70 0x2cad70 R E 0x4000
+2026-11-01T17:52:32.175744Z 01O   LOAD           0x4a3af0 0x00000000004abaf0 0x00000000004abaf0 0x04fc68 0x050510 RW  0x4000
+2026-11-01T17:52:32.175745Z 01O   LOAD           0x4f3758 0x00000000004ff758 0x00000000004ff758 0x001028 0x001978 RW  0x4000
+2026-11-01T17:52:32.262001Z 01E    Compiling stable_deref_trait v1.2.1
+2026-11-01T17:52:32.262017Z 01E    Compiling libc v0.2.191
+2026-11-01T17:52:32.262041Z 01E    Compiling memchr v2.8.3
+2026-11-01T17:52:32.262279Z 01E    Compiling zerofrom v0.1.8
+2026-11-01T17:52:32.285841Z 01E    Compiling bytes v1.12.1
+2026-11-01T17:52:32.302277Z 01E    Compiling yoke v0.8.4
+2026-11-01T17:52:32.369411Z 01E    Compiling pin-project-lite v0.2.17
+2026-11-01T17:52:32.397246Z 01E    Compiling zerovec v0.11.9
+2026-11-01T17:52:32.503519Z 01E    Compiling itoa v1.0.18
+2026-11-01T17:52:32.606985Z 01E    Compiling futures-core v0.3.34
+2026-11-01T17:52:32.654358Z 01E    Compiling cfg-if v1.0.5
+2026-11-01T17:52:32.671952Z 01E    Compiling once_cell v1.21.4
+2026-11-01T17:52:32.675709Z 01E    Compiling serde_core v1.0.229
+2026-11-01T17:52:32.710367Z 01E    Compiling tinystr v0.8.5
+2026-11-01T17:52:32.764557Z 01E    Compiling writeable v0.6.4
+2026-11-01T17:52:32.789753Z 01E    Compiling smallvec v1.16.4
+2026-11-01T17:52:32.884814Z 01E    Compiling litemap v0.8.3
+2026-11-01T17:52:32.888746Z 01E    Compiling utf_types v1.0.0
+2026-11-01T17:52:32.895621Z 01E    Compiling futures-sink v0.3.34
+2026-11-01T17:52:32.924952Z 01E    Compiling futures-channel v0.3.34
+2026-11-01T17:52:32.966203Z 01E    Compiling icu_locale_core v2.4.0
+2026-11-01T17:52:32.983737Z 01E    Compiling utf8_iter v1.1.0
+2026-11-01T17:52:33.026569Z 01E    Compiling potential_utf v0.1.6
+2026-11-01T17:52:33.050725Z 01E    Compiling zerotrie v0.2.5
+2026-11-01T17:52:33.081038Z 01E    Compiling socket2 v0.6.5
+2026-11-01T17:52:33.252222Z 01E    Compiling mio v1.2.4
+2026-11-01T17:52:33.531978Z 01E    Compiling slab v0.4.12
+2026-11-01T17:52:33.572480Z 01E    Compiling futures-task v0.3.34
+2026-11-01T17:52:33.606149Z 01E    Compiling futures-io v0.3.34
+2026-11-01T17:52:33.624322Z 01E    Compiling icu_normalizer_data v2.4.0
+2026-11-01T17:52:33.626722Z 01E    Compiling icu_properties_data v2.4.0
+2026-11-01T17:52:33.629040Z 01E    Compiling tokio v1.54.1
+2026-11-01T17:52:33.680643Z 01E    Compiling futures-util v0.3.34
+2026-11-01T17:52:33.742522Z 01E    Compiling icu_provider v2.4.0
+2026-11-01T17:52:34.033094Z 01E    Compiling icu_collections v2.4.0
+2026-11-01T17:52:34.405929Z 01E    Compiling ring v0.17.14
+2026-11-01T17:52:34.640782Z 01E    Compiling http v1.5.0
+2026-11-01T17:52:35.089037Z 01E    Compiling zeroize v1.9.1
+2026-11-01T17:52:35.153173Z 01E    Compiling percent-encoding v2.3.2
+2026-11-01T17:52:35.263204Z 01E    Compiling rustls-pki-types v1.15.1
+2026-11-01T17:52:35.705769Z 01E    Compiling http-body v1.1.0
+2026-11-01T17:52:35.772808Z 01E    Compiling getrandom v0.2.17
+2026-11-01T17:52:35.786806Z 01E    Compiling untrusted v0.9.0
+2026-11-01T17:52:35.828449Z 01E    Compiling bitflags v2.13.2
+2026-11-01T17:52:35.854162Z 01E    Compiling httparse v1.10.1
+2026-11-01T17:52:35.865414Z 01E    Compiling zmij v1.0.23
+2026-11-01T17:52:35.877022Z 01E    Compiling icu_properties v2.4.0
+2026-11-01T17:52:36.004259Z 01E    Compiling icu_normalizer v2.4.0
+2026-11-01T17:52:36.675753Z 01E    Compiling generic-array v0.14.7
+2026-11-01T17:52:36.687942Z 01E    Compiling serde v1.0.229
+2026-11-01T17:52:36.700598Z 01E    Compiling try-lock v0.2.5
+2026-11-01T17:52:36.702318Z 01E    Compiling typenum v1.20.1
+2026-11-01T17:52:36.735649Z 01E    Compiling tower-service v0.3.3
+2026-11-01T17:52:36.760862Z 01E    Compiling serde_json v1.0.154
+2026-11-01T17:52:36.763157Z 01E    Compiling rustls v0.23.46
+2026-11-01T17:52:36.765502Z 01E    Compiling want v0.3.2
+2026-11-01T17:52:37.123348Z 01E    Compiling rustls-webpki v0.103.16
+2026-11-01T17:52:37.212825Z 01E    Compiling idna_adapter v1.2.2
+2026-11-01T17:52:37.622198Z 01E    Compiling form_urlencoded v1.2.2
+2026-11-01T17:52:37.728963Z 01E    Compiling tracing-core v0.1.36
+2026-11-01T17:52:38.236249Z 01E    Compiling subtle v2.6.1
+2026-11-01T17:52:38.285951Z 01E    Compiling atomic-waker v1.1.2
+2026-11-01T17:52:38.324539Z 01E    Compiling hyper v1.12.0
+2026-11-01T17:52:38.519597Z 01E    Compiling tracing v0.1.44
+2026-11-01T17:52:38.890643Z 01E    Compiling idna v1.1.0
+2026-11-01T17:52:40.062547Z 01E    Compiling getrandom v0.4.3
+2026-11-01T17:52:40.066679Z 01E    Compiling anyhow v1.0.104
+2026-11-01T17:52:40.100389Z 01E    Compiling rustix v1.1.6
+2026-11-01T17:52:40.108881Z 01E    Compiling sync_wrapper v1.0.2
+2026-11-01T17:52:40.134075Z 01E    Compiling errno v0.3.14
+2026-11-01T17:52:40.138017Z 01E    Compiling base64 v0.23.1
+2026-11-01T17:52:40.164483Z 01E    Compiling linux-raw-sys v0.12.1
+2026-11-01T17:52:40.190051Z 01E    Compiling ipnet v2.12.2
+2026-11-01T17:52:40.292471Z 01E    Compiling tower-layer v0.3.3
+2026-11-01T17:52:40.372272Z 01E    Compiling thiserror v2.0.21
+2026-11-01T17:52:40.399484Z 01E    Compiling tower v0.5.3
+2026-11-01T17:52:40.496426Z 01E    Compiling tokio-rustls v0.26.6
+2026-11-01T17:52:40.614858Z 01E    Compiling hyper-util v0.1.21
+2026-11-01T17:52:40.867376Z 01E    Compiling camino v1.2.6
+2026-11-01T17:52:41.277722Z 01E    Compiling url v2.5.8
+2026-11-01T17:52:41.896928Z 01E    Compiling block-buffer v0.10.4
+2026-11-01T17:52:41.945770Z 01E    Compiling crypto-common v0.1.7
+2026-11-01T17:52:41.980877Z 01E    Compiling webpki-roots v1.0.11
+2026-11-01T17:52:42.017827Z 01E    Compiling aho-corasick v1.1.5
+2026-11-01T17:52:42.141470Z 01E    Compiling fastrand v2.5.0
+2026-11-01T17:52:42.293262Z 01E    Compiling equivalent v1.0.3
+2026-11-01T17:52:42.319249Z 01E    Compiling hashbrown v0.17.1
+2026-11-01T17:52:42.652076Z 01E    Compiling regex-syntax v0.8.11
+2026-11-01T17:52:42.721835Z 01E    Compiling ryu v1.0.23
+2026-11-01T17:52:42.865280Z 01E    Compiling serde_urlencoded v0.7.1
+2026-11-01T17:52:42.974966Z 01E    Compiling indexmap v2.14.2
+2026-11-01T17:52:43.356473Z 01E    Compiling tempfile v3.27.0
+2026-11-01T17:52:43.817662Z 01E    Compiling regex-automata v0.4.18
+2026-11-01T17:52:45.367440Z 01E    Compiling hyper-rustls v0.27.10
+2026-11-01T17:52:45.618743Z 01E    Compiling digest v0.10.7
+2026-11-01T17:52:45.703148Z 01E    Compiling tower-http v0.6.11
+2026-11-01T17:52:46.256865Z 01E    Compiling http-body-util v0.1.5
+2026-11-01T17:52:46.374061Z 01E    Compiling cargo-platform v0.3.3
+2026-11-01T17:52:46.647976Z 01E    Compiling semver v1.0.28
+2026-11-01T17:52:46.994734Z 01E    Compiling base64 v0.22.1
+2026-11-01T17:52:47.018276Z 01E    Compiling heck v0.5.0
+2026-11-01T17:52:47.232506Z 01E    Compiling cpufeatures v0.2.17
+2026-11-01T17:52:47.256340Z 01E    Compiling static_assertions v1.1.0
+2026-11-01T17:52:47.277299Z 01E    Compiling log v0.4.35
+2026-11-01T17:52:47.360408Z 01E    Compiling reqwest v0.12.28
+2026-11-01T17:52:47.502018Z 01E    Compiling uniffi_core v0.32.2
+2026-11-01T17:52:47.787521Z 01E    Compiling sha2 v0.10.9
+2026-11-01T17:52:48.600825Z 01E    Compiling uniffi_pipeline v0.32.2
+2026-11-01T17:52:48.804134Z 01E    Compiling cargo_metadata v0.23.1
+2026-11-01T17:52:49.402040Z 01E    Compiling regex v1.13.1
+2026-11-01T17:52:50.160893Z 01E    Compiling futures-executor v0.3.34
+2026-11-01T17:52:50.403531Z 01E    Compiling futures v0.3.34
+2026-11-01T17:52:50.428774Z 01E    Compiling rustclipsync-core v0.3.0 (https://github.com/Infinifar/rustclipsync-core.git?rev=1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e#1a8ec6b9)
+2026-11-01T17:52:50.626300Z 01E    Compiling uniffi v0.32.2
+2026-11-01T17:52:53.222090Z 01E    Compiling rustclipsync-mobile-ffi v0.1.0 (/builds/Cassius/rustclipsync-mobile/crates/rustclipsync-mobile-ffi)
+2026-11-01T17:52:54.388131Z 01E     Finished `release` profile [optimized] target(s) in 22.19s
+2026-11-01T17:52:54.409807Z 01O   LOAD           0x000000 0x0000000000000000 0x0000000000000000 0x1e8874 0x1e8874 R   0x4000
+2026-11-01T17:52:54.409808Z 01O   LOAD           0x1e8880 0x00000000001ec880 0x00000000001ec880 0x340510 0x340510 R E 0x4000
+2026-11-01T17:52:54.409809Z 01O   LOAD           0x528d90 0x0000000000530d90 0x0000000000530d90 0x053520 0x054270 RW  0x4000
+2026-11-01T17:52:54.409810Z 01O   LOAD           0x57c2b0 0x00000000005882b0 0x00000000005882b0 0x001018 0x001980 RW  0x4000
+2026-11-01T17:52:54.743370Z 01O To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.13/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+2026-11-01T17:52:55.341815Z 01O Daemon will be stopped at the end of the build 
+2026-11-01T17:52:59.442427Z 01O > Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+2026-11-01T17:52:59.442447Z 01O > Task :app:preBuild UP-TO-DATE
+2026-11-01T17:52:59.442453Z 01O > Task :app:preDebugBuild UP-TO-DATE
+2026-11-01T17:52:59.541673Z 01O > Task :app:generateDebugBuildConfig
+2026-11-01T17:53:22.341803Z 01O > Task :app:checkDebugAarMetadata
+2026-11-01T17:53:22.341815Z 01O > Task :app:processDebugNavigationResources
+2026-11-01T17:53:23.041672Z 01O > Task :app:generateDebugResValues
+2026-11-01T17:53:23.041674Z 01O > Task :app:compileDebugNavigationResources
+2026-11-01T17:53:23.141711Z 01O > Task :app:mapDebugSourceSetPaths
+2026-11-01T17:53:23.141712Z 01O > Task :app:generateDebugResources
+2026-11-01T17:53:23.558685Z 01O > Task :app:packageDebugResources
+2026-11-01T17:53:23.841625Z 01O > Task :app:createDebugCompatibleScreenManifests
+2026-11-01T17:53:23.841629Z 01O > Task :app:extractDeepLinksDebug
+2026-11-01T17:53:23.941599Z 01O > Task :app:parseDebugLocalResources
+2026-11-01T17:53:24.041660Z 01O > Task :app:mergeDebugResources
+2026-11-01T17:53:24.141624Z 01O > Task :app:processDebugMainManifest
+2026-11-01T17:53:24.141642Z 01O > Task :app:processDebugManifest
+2026-11-01T17:53:24.141644Z 01O > Task :app:processDebugManifestForPackage
+2026-11-01T17:53:24.141654Z 01O > Task :app:javaPreCompileDebug
+2026-11-01T17:53:24.241671Z 01O > Task :app:preDebugAndroidTestBuild SKIPPED
+2026-11-01T17:53:24.241672Z 01O > Task :app:generateDebugAndroidTestResValues
+2026-11-01T17:53:24.241695Z 01O > Task :app:extractProguardFiles
+2026-11-01T17:53:24.241695Z 01O > Task :app:preDebugUnitTestBuild UP-TO-DATE
+2026-11-01T17:53:24.241715Z 01O > Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+2026-11-01T17:53:24.341723Z 01O > Task :app:mergeDebugShaders
+2026-11-01T17:53:24.341724Z 01O > Task :app:compileDebugShaders NO-SOURCE
+2026-11-01T17:53:24.341725Z 01O > Task :app:generateDebugAssets UP-TO-DATE
+2026-11-01T17:53:24.341752Z 01O > Task :app:mergeDebugAssets
+2026-11-01T17:53:24.341795Z 01O > Task :app:compressDebugAssets
+2026-11-01T17:53:24.341797Z 01O > Task :app:desugarDebugFileDependencies
+2026-11-01T17:53:24.441681Z 01O > Task :app:processDebugResources
+2026-11-01T17:53:25.041703Z 01O > Task :app:checkDebugDuplicateClasses
+2026-11-01T17:53:44.241825Z 01O > Task :app:compileDebugKotlin
+2026-11-01T17:53:49.541819Z 01O > Task :app:compileDebugJavaWithJavac
+2026-11-01T17:53:49.541824Z 01O > Task :app:bundleDebugClassesToCompileJar
+2026-11-01T17:53:49.641627Z 01O > Task :app:mergeExtDexDebug
+2026-11-01T17:53:50.641650Z 01O > Task :app:generateDebugLintReportModel
+2026-11-01T17:53:53.041663Z 01O > Task :app:generateDebugAndroidTestLintModel
+2026-11-01T17:53:53.041665Z 01O > Task :app:generateDebugUnitTestLintModel
+2026-11-01T17:53:59.941810Z 01O > Task :app:dexBuilderDebug
+2026-11-01T17:53:59.941813Z 01O > Task :app:mergeDebugGlobalSynthetics
+2026-11-01T17:53:59.941814Z 01O > Task :app:processDebugJavaRes
+2026-11-01T17:54:00.241755Z 01O > Task :app:mergeLibDexDebug
+2026-11-01T17:54:00.341649Z 01O > Task :app:mergeProjectDexDebug
+2026-11-01T17:54:00.341650Z 01O > Task :app:mergeDebugJniLibFolders
+2026-11-01T17:54:00.441602Z 01O > Task :app:mergeDebugNativeLibs
+2026-11-01T17:54:00.641636Z 01O > Task :app:mergeDebugJavaResource
+2026-11-01T17:54:00.641638Z 01O > Task :app:validateSigningDebug
+2026-11-01T17:54:00.641665Z 01O > Task :app:writeDebugAppMetadata
+2026-11-01T17:54:00.741649Z 01O > Task :app:writeDebugSigningConfigVersions
+2026-11-01T17:54:00.741649Z 01O > Task :app:processDebugAndroidTestManifest
+2026-11-01T17:54:00.741663Z 01O > Task :app:generateDebugAndroidTestBuildConfig
+2026-11-01T17:54:00.744568Z 01O > Task :app:checkDebugAndroidTestAarMetadata
+2026-11-01T17:54:00.744610Z 01O > Task :app:processDebugAndroidTestNavigationResources
+2026-11-01T17:54:00.744639Z 01O 
+2026-11-01T17:54:00.744639Z 01O > Task :app:stripDebugDebugSymbols
+2026-11-01T17:54:00.744670Z 01O Unable to strip the following libraries, packaging them as they are: libjnidispatch.so. Run with --info option to learn more.
+2026-11-01T17:54:00.744712Z 01O 
+2026-11-01T17:54:00.744748Z 01O > Task :app:compileDebugAndroidTestNavigationResources
+2026-11-01T17:54:00.744780Z 01O > Task :app:mapDebugAndroidTestSourceSetPaths
+2026-11-01T17:54:00.744803Z 01O > Task :app:generateDebugAndroidTestResources
+2026-11-01T17:54:00.841779Z 01O > Task :app:javaPreCompileDebugAndroidTest
+2026-11-01T17:54:00.841784Z 01O > Task :app:mergeDebugAndroidTestResources
+2026-11-01T17:54:00.841790Z 01O > Task :app:mergeDebugAndroidTestShaders
+2026-11-01T17:54:00.841810Z 01O > Task :app:compileDebugAndroidTestShaders NO-SOURCE
+2026-11-01T17:54:00.841832Z 01O > Task :app:generateDebugAndroidTestAssets UP-TO-DATE
+2026-11-01T17:54:00.841856Z 01O > Task :app:mergeDebugAndroidTestAssets
+2026-11-01T17:54:00.841873Z 01O > Task :app:compressDebugAndroidTestAssets
+2026-11-01T17:54:00.841895Z 01O > Task :app:desugarDebugAndroidTestFileDependencies
+2026-11-01T17:54:00.841906Z 01O > Task :app:checkDebugAndroidTestDuplicateClasses
+2026-11-01T17:54:00.841921Z 01O > Task :app:mergeDebugAndroidTestJniLibFolders
+2026-11-01T17:54:00.841944Z 01O > Task :app:processDebugAndroidTestResources
+2026-11-01T17:54:01.441744Z 01O > Task :app:packageDebug
+2026-11-01T17:54:01.441748Z 01O > Task :app:createDebugApkListingFileRedirect
+2026-11-01T17:54:01.441748Z 01O > Task :app:assembleDebug
+2026-11-01T17:54:01.541668Z 01O > Task :app:mergeExtDexDebugAndroidTest
+2026-11-01T17:54:01.541668Z 01O > Task :app:mergeLibDexDebugAndroidTest
+2026-11-01T17:54:01.541683Z 01O > Task :app:mergeDebugAndroidTestNativeLibs NO-SOURCE
+2026-11-01T17:54:01.541703Z 01O > Task :app:stripDebugAndroidTestDebugSymbols NO-SOURCE
+2026-11-01T17:54:01.541726Z 01O > Task :app:validateSigningDebugAndroidTest
+2026-11-01T17:54:01.541727Z 01O > Task :app:writeDebugAndroidTestSigningConfigVersions
+2026-11-01T17:54:02.241742Z 01O > Task :app:compileDebugAndroidTestKotlin
+2026-11-01T17:54:02.441736Z 01O > Task :app:compileDebugAndroidTestJavaWithJavac
+2026-11-01T17:54:02.541695Z 01O > Task :app:dexBuilderDebugAndroidTest
+2026-11-01T17:54:02.541697Z 01O > Task :app:mergeDebugAndroidTestGlobalSynthetics
+2026-11-01T17:54:02.541699Z 01O > Task :app:processDebugAndroidTestJavaRes
+2026-11-01T17:54:02.541704Z 01O > Task :app:mergeProjectDexDebugAndroidTest
+2026-11-01T17:54:02.541735Z 01O > Task :app:mergeDebugAndroidTestJavaResource
+2026-11-01T17:54:02.541776Z 01O > Task :app:packageDebugAndroidTest
+2026-11-01T17:54:02.541777Z 01O > Task :app:createDebugAndroidTestApkListingFileRedirect
+2026-11-01T17:54:02.541779Z 01O > Task :app:assembleDebugAndroidTest
+2026-11-01T17:54:03.541763Z 01O > Task :app:lintAnalyzeDebugUnitTest
+2026-11-01T17:54:05.841749Z 01O > Task :app:lintAnalyzeDebugAndroidTest
+2026-11-01T17:54:23.041762Z 01O > Task :app:lintAnalyzeDebug
+2026-11-01T17:54:32.031392Z 01O 
+2026-11-01T17:54:32.031397Z 01O > Task :app:lintReportDebug
+2026-11-01T17:54:32.031398Z 01O Wrote HTML report to file:///builds/Cassius/rustclipsync-mobile/android/app/build/reports/lint-results-debug.html
+2026-11-01T17:54:32.031405Z 01O 
+2026-11-01T17:54:32.031406Z 01O > Task :app:lintDebug
+2026-11-01T17:54:32.031426Z 01O 
+2026-11-01T17:54:32.031426Z 01O BUILD SUCCESSFUL in 1m 37s
+2026-11-01T17:54:32.031459Z 01O 79 actionable tasks: 79 executed
+2026-11-01T17:54:32.405585Z 01O $ python3 scripts/build-disposable-server.py
+2026-11-01T17:54:34.179764Z 01E     Updating crates.io index
+2026-11-01T17:54:36.650256Z 01E  Downloading crates ...
+2026-11-01T17:54:37.741651Z 01E   Downloaded foldhash v0.1.5
+2026-11-01T17:54:37.754408Z 01E   Downloaded fallible-streaming-iterator v0.1.9
+2026-11-01T17:54:38.019584Z 01E   Downloaded mime v0.3.17
+2026-11-01T17:54:38.031542Z 01E   Downloaded httpdate v1.0.3
+2026-11-01T17:54:38.045629Z 01E   Downloaded tokio-macros v2.7.2
+2026-11-01T17:54:38.253089Z 01E   Downloaded pkg-config v0.3.34
+2026-11-01T17:54:38.267799Z 01E   Downloaded hashlink v0.10.0
+2026-11-01T17:54:38.358493Z 01E   Downloaded matchit v0.8.4
+2026-11-01T17:54:38.367590Z 01E   Downloaded axum-core v0.5.6
+2026-11-01T17:54:38.368533Z 01E   Downloaded fallible-iterator v0.3.0
+2026-11-01T17:54:38.369027Z 01E   Downloaded serde_path_to_error v0.1.20
+2026-11-01T17:54:38.429474Z 01E   Downloaded log v0.4.34
+2026-11-01T17:54:38.452882Z 01E   Downloaded openssl-sys v0.9.117
+2026-11-01T17:54:38.455028Z 01E   Downloaded uuid v1.29.0
+2026-11-01T17:54:38.634659Z 01E   Downloaded hashbrown v0.15.5
+2026-11-01T17:54:38.642654Z 01E   Downloaded axum v0.8.9
+2026-11-01T17:54:38.655937Z 01E   Downloaded rusqlite v0.37.0
+2026-11-01T17:54:38.676855Z 01E   Downloaded vcpkg v0.2.15
+2026-11-01T17:54:39.534770Z 01E   Downloaded libsqlite3-sys v0.35.0
+2026-11-01T17:54:39.624275Z 01E   Downloaded openssl-src v300.6.1+3.6.3
+2026-11-01T17:54:39.756779Z 01E    Compiling libc v0.2.191
+2026-11-01T17:54:39.756789Z 01E    Compiling proc-macro2 v1.0.107
+2026-11-01T17:54:39.756927Z 01E    Compiling quote v1.0.47
+2026-11-01T17:54:39.756929Z 01E    Compiling unicode-ident v1.0.27
+2026-11-01T17:54:39.795520Z 01E    Compiling itoa v1.0.18
+2026-11-01T17:54:39.842061Z 01E    Compiling shlex v2.0.1
+2026-11-01T17:54:39.894468Z 01E    Compiling find-msvc-tools v0.1.15
+2026-11-01T17:54:39.901651Z 01E    Compiling bytes v1.12.1
+2026-11-01T17:54:39.974508Z 01E    Compiling pin-project-lite v0.2.17
+2026-11-01T17:54:39.999521Z 01E    Compiling cc v1.10.0
+2026-11-01T17:54:40.253611Z 01E    Compiling syn v3.0.9
+2026-11-01T17:54:40.314629Z 01E    Compiling pkg-config v0.3.34
+2026-11-01T17:54:40.317246Z 01E    Compiling version_check v0.9.5
+2026-11-01T17:54:40.418011Z 01E    Compiling futures-core v0.3.34
+2026-11-01T17:54:40.466477Z 01E    Compiling serde_core v1.0.229
+2026-11-01T17:54:40.505139Z 01E    Compiling vcpkg v0.2.15
+2026-11-01T17:54:40.554897Z 01E    Compiling generic-array v0.14.7
+2026-11-01T17:54:40.599945Z 01E    Compiling openssl-src v300.6.1+3.6.3
+2026-11-01T17:54:40.694418Z 01E    Compiling http v1.5.0
+2026-11-01T17:54:40.756011Z 01E    Compiling openssl-sys v0.9.117
+2026-11-01T17:54:40.918411Z 01E    Compiling socket2 v0.6.5
+2026-11-01T17:54:41.392282Z 01E    Compiling http-body v1.1.0
+2026-11-01T17:54:41.440145Z 01E    Compiling mio v1.2.4
+2026-11-01T17:54:41.705238Z 01E    Compiling once_cell v1.21.4
+2026-11-01T17:54:41.748872Z 01E    Compiling typenum v1.20.1
+2026-11-01T17:54:41.755362Z 01E    Compiling httparse v1.10.1
+2026-11-01T17:54:41.765423Z 01E    Compiling tokio-macros v2.7.2
+2026-11-01T17:54:41.799427Z 01E    Compiling tracing-core v0.1.36
+2026-11-01T17:54:41.984636Z 01E    Compiling tokio v1.54.1
+2026-11-01T17:54:42.270275Z 01E    Compiling zmij v1.0.23
+2026-11-01T17:54:42.283137Z 01E    Compiling smallvec v1.16.4
+2026-11-01T17:54:42.345279Z 01E    Compiling tower-service v0.3.3
+2026-11-01T17:54:42.371842Z 01E    Compiling log v0.4.34
+2026-11-01T17:54:42.384229Z 01E    Compiling serde v1.0.229
+2026-11-01T17:54:42.460450Z 01E    Compiling tracing v0.1.44
+2026-11-01T17:54:42.638948Z 01E    Compiling serde_derive v1.0.229
+2026-11-01T17:54:42.721333Z 01E    Compiling libsqlite3-sys v0.35.0
+2026-11-01T17:54:42.827031Z 01E    Compiling cfg-if v1.0.5
+2026-11-01T17:54:42.845688Z 01E    Compiling httpdate v1.0.3
+2026-11-01T17:54:43.006950Z 01E    Compiling atomic-waker v1.1.2
+2026-11-01T17:54:43.043723Z 01E    Compiling getrandom v0.4.3
+2026-11-01T17:54:43.110087Z 01E    Compiling serde_json v1.0.154
+2026-11-01T17:54:43.159063Z 01E    Compiling slab v0.4.12
+2026-11-01T17:54:43.226839Z 01E    Compiling futures-task v0.3.34
+2026-11-01T17:54:43.281985Z 01E    Compiling foldhash v0.1.5
+2026-11-01T17:54:43.368353Z 01E    Compiling percent-encoding v2.3.2
+2026-11-01T17:54:43.480775Z 01E    Compiling tower-layer v0.3.3
+2026-11-01T17:54:43.557430Z 01E    Compiling sync_wrapper v1.0.2
+2026-11-01T17:54:43.583533Z 01E    Compiling form_urlencoded v1.2.2
+2026-11-01T17:54:43.692367Z 01E    Compiling hashbrown v0.15.5
+2026-11-01T17:54:43.997088Z 01E    Compiling futures-util v0.3.34
+2026-11-01T17:54:44.110592Z 01E    Compiling hyper v1.12.0
+2026-11-01T17:54:44.997799Z 01E    Compiling block-buffer v0.10.4
+2026-11-01T17:54:45.046816Z 01E    Compiling crypto-common v0.1.7
+2026-11-01T17:54:45.084605Z 01E    Compiling http-body-util v0.1.5
+2026-11-01T17:54:45.201730Z 01E    Compiling ryu v1.0.23
+2026-11-01T17:54:45.339489Z 01E    Compiling memchr v2.8.3
+2026-11-01T17:54:45.862223Z 01E    Compiling mime v0.3.17
+2026-11-01T17:54:45.957734Z 01E    Compiling axum-core v0.5.6
+2026-11-01T17:54:47.055128Z 01E    Compiling serde_urlencoded v0.7.1
+2026-11-01T17:54:47.163162Z 01E    Compiling digest v0.10.7
+2026-11-01T17:54:47.320372Z 01E    Compiling tower v0.5.3
+2026-11-01T17:54:47.507595Z 01E    Compiling hyper-util v0.1.21
+2026-11-01T17:54:47.528664Z 01E    Compiling hashlink v0.10.0
+2026-11-01T17:54:47.660482Z 01E    Compiling serde_path_to_error v0.1.20
+2026-11-01T17:54:47.674506Z 01E    Compiling matchit v0.8.4
+2026-11-01T17:54:47.679049Z 01E    Compiling bitflags v2.13.2
+2026-11-01T17:54:47.839406Z 01E    Compiling fallible-streaming-iterator v0.1.9
+2026-11-01T17:54:47.867639Z 01E    Compiling fallible-iterator v0.3.0
+2026-11-01T17:54:47.889673Z 01E    Compiling cpufeatures v0.2.17
+2026-11-01T17:54:47.910726Z 01E    Compiling sha2 v0.10.9
+2026-11-01T17:54:47.984416Z 01E    Compiling axum v0.8.9
+2026-11-01T17:54:48.017870Z 01E    Compiling uuid v1.29.0
+2026-11-01T17:54:48.275093Z 01E    Compiling subtle v2.6.1
+2026-11-01T17:54:48.326735Z 01E    Compiling base64 v0.22.1
+2026-11-01T17:55:46.947157Z 01E    Compiling rusqlite v0.37.0
+2026-11-01T17:55:47.647669Z 01E    Compiling rustclipsync-server v2.0.0 (/tmp/rcs-disposable-server-build-dbyfoj7j/source)
+2026-11-01T17:55:49.849702Z 01E     Finished `release` profile [optimized] target(s) in 1m 15s
+2026-11-01T17:55:49.877749Z 01O Built disposable server: c0e1774adef185ee7e2979cb6ad20c1c244acbed 63934ff512c97dd802d4efc198fc56045fb4f0cbf01251d479dad30f49e99782
+2026-11-01T17:55:49.885039Z 01O $ scripts/check-disposable-android.sh | tee build/disposable-artifacts.txt
+2026-11-01T17:55:50.002083Z 01E    Compiling rustclipsync-mobile-ffi v0.1.0 (/builds/Cassius/rustclipsync-mobile/crates/rustclipsync-mobile-ffi)
+2026-11-01T17:55:50.904569Z 01E     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.97s
+2026-11-01T17:55:50.982215Z 01E     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s
+2026-11-01T17:55:50.984037Z 01E      Running `target/debug/mobile-bindgen generate --library target/debug/librustclipsync_mobile_ffi.so --language kotlin --language swift --no-format --out-dir build/bindings`
+2026-11-01T17:55:51.391146Z 01E    Compiling rustclipsync-mobile-ffi v0.1.0 (/builds/Cassius/rustclipsync-mobile/crates/rustclipsync-mobile-ffi)
+2026-11-01T17:55:52.668540Z 01E     Finished `release` profile [optimized] target(s) in 1.33s
+2026-11-01T17:55:52.694743Z 01O   LOAD           0x000000 0x0000000000000000 0x0000000000000000 0x1da02c 0x1da02c R   0x4000
+2026-11-01T17:55:52.694745Z 01O   LOAD           0x1da040 0x00000000001de040 0x00000000001de040 0x2cd2e0 0x2cd2e0 R E 0x4000
+2026-11-01T17:55:52.694746Z 01O   LOAD           0x4a7320 0x00000000004af320 0x00000000004af320 0x04fca8 0x04fce0 RW  0x4000
+2026-11-01T17:55:52.694747Z 01O   LOAD           0x4f6fc8 0x0000000000502fc8 0x0000000000502fc8 0x001028 0x001978 RW  0x4000
+2026-11-01T17:55:52.771037Z 01E    Compiling rustclipsync-mobile-ffi v0.1.0 (/builds/Cassius/rustclipsync-mobile/crates/rustclipsync-mobile-ffi)
+2026-11-01T17:55:53.998180Z 01E     Finished `release` profile [optimized] target(s) in 1.28s
+2026-11-01T17:55:54.023325Z 01O   LOAD           0x000000 0x0000000000000000 0x0000000000000000 0x1e8b10 0x1e8b10 R   0x4000
+2026-11-01T17:55:54.023327Z 01O   LOAD           0x1e8b40 0x00000000001ecb40 0x00000000001ecb40 0x342ec0 0x342ec0 R E 0x4000
+2026-11-01T17:55:54.023328Z 01O   LOAD           0x52ba00 0x0000000000533a00 0x0000000000533a00 0x053580 0x053600 RW  0x4000
+2026-11-01T17:55:54.023328Z 01O   LOAD           0x57ef80 0x000000000058af80 0x000000000058af80 0x001018 0x001980 RW  0x4000
+2026-11-01T17:55:54.364184Z 01O To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.13/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+2026-11-01T17:55:54.962645Z 01O Daemon will be stopped at the end of the build 
+2026-11-01T17:55:59.063348Z 01O > Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+2026-11-01T17:55:59.063359Z 01O > Task :app:preBuild UP-TO-DATE
+2026-11-01T17:55:59.063362Z 01O > Task :app:preDebugBuild UP-TO-DATE
+2026-11-01T17:55:59.063372Z 01O > Task :app:generateDebugBuildConfig
+2026-11-01T17:55:59.262596Z 01O > Task :app:checkDebugAarMetadata UP-TO-DATE
+2026-11-01T17:55:59.262601Z 01O > Task :app:processDebugNavigationResources
+2026-11-01T17:55:59.262605Z 01O > Task :app:compileDebugNavigationResources UP-TO-DATE
+2026-11-01T17:55:59.262615Z 01O > Task :app:generateDebugResValues UP-TO-DATE
+2026-11-01T17:55:59.262640Z 01O > Task :app:mapDebugSourceSetPaths UP-TO-DATE
+2026-11-01T17:55:59.262676Z 01O > Task :app:generateDebugResources UP-TO-DATE
+2026-11-01T17:55:59.262709Z 01O > Task :app:mergeDebugResources UP-TO-DATE
+2026-11-01T17:55:59.262737Z 01O > Task :app:packageDebugResources UP-TO-DATE
+2026-11-01T17:55:59.262796Z 01O > Task :app:parseDebugLocalResources UP-TO-DATE
+2026-11-01T17:55:59.262839Z 01O > Task :app:createDebugCompatibleScreenManifests
+2026-11-01T17:55:59.262919Z 01O > Task :app:extractDeepLinksDebug
+2026-11-01T17:55:59.462611Z 01O > Task :app:processDebugMainManifest
+2026-11-01T17:55:59.462620Z 01O > Task :app:processDebugManifest
+2026-11-01T17:55:59.562627Z 01O > Task :app:javaPreCompileDebug UP-TO-DATE
+2026-11-01T17:55:59.562640Z 01O > Task :app:preDebugAndroidTestBuild SKIPPED
+2026-11-01T17:55:59.562642Z 01O > Task :app:generateDebugAndroidTestResValues UP-TO-DATE
+2026-11-01T17:55:59.562650Z 01O > Task :app:extractProguardFiles UP-TO-DATE
+2026-11-01T17:55:59.562663Z 01O > Task :app:preDebugUnitTestBuild UP-TO-DATE
+2026-11-01T17:55:59.562683Z 01O > Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+2026-11-01T17:55:59.562715Z 01O > Task :app:mergeDebugShaders UP-TO-DATE
+2026-11-01T17:55:59.562795Z 01O > Task :app:compileDebugShaders NO-SOURCE
+2026-11-01T17:55:59.562825Z 01O > Task :app:generateDebugAssets UP-TO-DATE
+2026-11-01T17:55:59.562861Z 01O > Task :app:mergeDebugAssets UP-TO-DATE
+2026-11-01T17:55:59.562895Z 01O > Task :app:compressDebugAssets UP-TO-DATE
+2026-11-01T17:55:59.562948Z 01O > Task :app:desugarDebugFileDependencies UP-TO-DATE
+2026-11-01T17:55:59.562993Z 01O > Task :app:checkDebugDuplicateClasses UP-TO-DATE
+2026-11-01T17:55:59.563075Z 01O > Task :app:mergeExtDexDebug UP-TO-DATE
+2026-11-01T17:55:59.563076Z 01O > Task :app:mergeLibDexDebug UP-TO-DATE
+2026-11-01T17:55:59.662497Z 01O > Task :app:mergeDebugJniLibFolders
+2026-11-01T17:55:59.762563Z 01O > Task :app:validateSigningDebug UP-TO-DATE
+2026-11-01T17:55:59.762568Z 01O > Task :app:writeDebugAppMetadata UP-TO-DATE
+2026-11-01T17:55:59.762571Z 01O > Task :app:writeDebugSigningConfigVersions UP-TO-DATE
+2026-11-01T17:55:59.762607Z 01O > Task :app:mergeDebugNativeLibs
+2026-11-01T17:55:59.862623Z 01O > Task :app:processDebugAndroidTestManifest
+2026-11-01T17:55:59.862628Z 01O > Task :app:generateDebugAndroidTestBuildConfig
+2026-11-01T17:55:59.862632Z 01O > Task :app:checkDebugAndroidTestAarMetadata UP-TO-DATE
+2026-11-01T17:55:59.862667Z 01O > Task :app:processDebugAndroidTestNavigationResources UP-TO-DATE
+2026-11-01T17:55:59.862670Z 01O > Task :app:compileDebugAndroidTestNavigationResources UP-TO-DATE
+2026-11-01T17:55:59.862716Z 01O > Task :app:mapDebugAndroidTestSourceSetPaths UP-TO-DATE
+2026-11-01T17:55:59.862732Z 01O > Task :app:generateDebugAndroidTestResources UP-TO-DATE
+2026-11-01T17:55:59.862844Z 01O > Task :app:mergeDebugAndroidTestResources UP-TO-DATE
+2026-11-01T17:55:59.862902Z 01O > Task :app:processDebugManifestForPackage
+2026-11-01T17:55:59.862935Z 01O > Task :app:stripDebugDebugSymbols
+2026-11-01T17:55:59.962557Z 01O > Task :app:javaPreCompileDebugAndroidTest UP-TO-DATE
+2026-11-01T17:55:59.962559Z 01O > Task :app:mergeDebugAndroidTestShaders UP-TO-DATE
+2026-11-01T17:55:59.962560Z 01O > Task :app:compileDebugAndroidTestShaders NO-SOURCE
+2026-11-01T17:55:59.962562Z 01O > Task :app:generateDebugAndroidTestAssets UP-TO-DATE
+2026-11-01T17:55:59.962582Z 01O > Task :app:mergeDebugAndroidTestAssets UP-TO-DATE
+2026-11-01T17:55:59.962583Z 01O > Task :app:compressDebugAndroidTestAssets UP-TO-DATE
+2026-11-01T17:55:59.962635Z 01O > Task :app:desugarDebugAndroidTestFileDependencies UP-TO-DATE
+2026-11-01T17:55:59.962665Z 01O > Task :app:checkDebugAndroidTestDuplicateClasses UP-TO-DATE
+2026-11-01T17:55:59.962691Z 01O > Task :app:mergeExtDexDebugAndroidTest UP-TO-DATE
+2026-11-01T17:55:59.962708Z 01O > Task :app:mergeLibDexDebugAndroidTest UP-TO-DATE
+2026-11-01T17:55:59.962737Z 01O > Task :app:mergeDebugAndroidTestJniLibFolders UP-TO-DATE
+2026-11-01T17:55:59.962765Z 01O > Task :app:mergeDebugAndroidTestNativeLibs NO-SOURCE
+2026-11-01T17:55:59.962766Z 01O > Task :app:stripDebugAndroidTestDebugSymbols NO-SOURCE
+2026-11-01T17:55:59.962788Z 01O > Task :app:validateSigningDebugAndroidTest UP-TO-DATE
+2026-11-01T17:55:59.962828Z 01O > Task :app:writeDebugAndroidTestSigningConfigVersions UP-TO-DATE
+2026-11-01T17:56:00.062555Z 01O > Task :app:processDebugAndroidTestResources
+2026-11-01T17:56:00.062561Z 01O > Task :app:processDebugResources
+2026-11-01T17:56:07.262667Z 01O > Task :app:compileDebugKotlin
+2026-11-01T17:56:07.662607Z 01O > Task :app:compileDebugJavaWithJavac
+2026-11-01T17:56:07.662613Z 01O > Task :app:bundleDebugClassesToCompileJar
+2026-11-01T17:56:07.762523Z 01O > Task :app:generateDebugLintReportModel
+2026-11-01T17:56:07.762546Z 01O > Task :app:generateDebugAndroidTestLintModel
+2026-11-01T17:56:07.762603Z 01O > Task :app:generateDebugUnitTestLintModel
+2026-11-01T17:56:08.962671Z 01O > Task :app:dexBuilderDebug
+2026-11-01T17:56:08.962690Z 01O > Task :app:mergeDebugGlobalSynthetics UP-TO-DATE
+2026-11-01T17:56:08.962693Z 01O > Task :app:processDebugJavaRes UP-TO-DATE
+2026-11-01T17:56:08.962695Z 01O > Task :app:mergeDebugJavaResource UP-TO-DATE
+2026-11-01T17:56:09.162671Z 01O > Task :app:mergeProjectDexDebug
+2026-11-01T17:56:09.662687Z 01O > Task :app:packageDebug
+2026-11-01T17:56:09.662694Z 01O > Task :app:createDebugApkListingFileRedirect
+2026-11-01T17:56:09.662698Z 01O > Task :app:assembleDebug
+2026-11-01T17:56:10.662690Z 01O > Task :app:lintAnalyzeDebugUnitTest
+2026-11-01T17:56:10.962593Z 01O > Task :app:compileDebugAndroidTestKotlin
+2026-11-01T17:56:11.162497Z 01O > Task :app:compileDebugAndroidTestJavaWithJavac
+2026-11-01T17:56:11.562624Z 01O > Task :app:dexBuilderDebugAndroidTest
+2026-11-01T17:56:11.562633Z 01O > Task :app:mergeDebugAndroidTestGlobalSynthetics UP-TO-DATE
+2026-11-01T17:56:11.562634Z 01O > Task :app:processDebugAndroidTestJavaRes UP-TO-DATE
+2026-11-01T17:56:11.562635Z 01O > Task :app:mergeDebugAndroidTestJavaResource UP-TO-DATE
+2026-11-01T17:56:11.662577Z 01O > Task :app:mergeProjectDexDebugAndroidTest
+2026-11-01T17:56:11.662582Z 01O > Task :app:packageDebugAndroidTest
+2026-11-01T17:56:11.662583Z 01O > Task :app:createDebugAndroidTestApkListingFileRedirect
+2026-11-01T17:56:11.662584Z 01O > Task :app:assembleDebugAndroidTest
+2026-11-01T17:56:14.462671Z 01O > Task :app:lintAnalyzeDebugAndroidTest
+2026-11-01T17:56:37.762622Z 01O > Task :app:lintAnalyzeDebug
+2026-11-01T17:56:37.952725Z 01O 
+2026-11-01T17:56:37.952727Z 01O > Task :app:lintReportDebug
+2026-11-01T17:56:37.952729Z 01O Wrote HTML report to file:///builds/Cassius/rustclipsync-mobile/android/app/build/reports/lint-results-debug.html
+2026-11-01T17:56:37.952785Z 01O 
+2026-11-01T17:56:37.952786Z 01O > Task :app:lintDebug
+2026-11-01T17:56:37.952787Z 01O 
+2026-11-01T17:56:37.952788Z 01O BUILD SUCCESSFUL in 43s
+2026-11-01T17:56:37.952800Z 01O 79 actionable tasks: 35 executed, 44 up-to-date
+2026-11-01T17:56:38.456061Z 01O production test constructor present: False sha256: ebd546d29a504ba764a7a0ef97c573d6ae48d70c7e9eb4a92dd06a79d9cd1158
+2026-11-01T17:56:38.456071Z 01O disposable test constructor present: True sha256: 7bb10910507e1a1c04f0af69c23902b7f4165eaf08218f03e8033771551ac644
+2026-11-01T17:56:38.531840Z 01O $ sha256sum android/app/build/outputs/apk/debug/app-debug.apk > build/APK-SHA256SUMS
+2026-11-01T17:56:38.827386Z 00O section_end:1793555798:step_script
+2026-11-01T17:56:38.827596Z 00O+section_start:1793555798:after_script
+2026-11-01T17:56:38.827600Z 00O+Running after_script
+2026-11-01T17:56:38.972386Z 01O Running after script...
+2026-11-01T17:56:38.972417Z 01O $ rm -rf .ci-tools target build/python build/apk-inspect
+2026-11-01T17:56:40.433687Z 00O section_end:1793555800:after_script
+2026-11-01T17:56:40.434067Z 00O+section_start:1793555800:upload_artifacts_on_success
+2026-11-01T17:56:40.434073Z 00O+Uploading artifacts for successful job
+2026-11-01T17:56:40.630644Z 01O Uploading artifacts...
+2026-11-01T17:56:40.668765Z 01E android/app/build/outputs/apk/debug/app-debug.apk: found 1 matching artifact files and directories 
+2026-11-01T17:56:40.668768Z 01E android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk: found 1 matching artifact files and directories 
+2026-11-01T17:56:40.668861Z 01E android/app/build/reports/: found 4 matching artifact files and directories 
+2026-11-01T17:56:40.668863Z 01E build/android-zipalign.txt: found 1 matching artifact files and directories 
+2026-11-01T17:56:40.668864Z 01E build/android-elf-alignment.txt: found 1 matching artifact files and directories 
+2026-11-01T17:56:40.668869Z 01E build/APK-SHA256SUMS: found 1 matching artifact files and directories 
+2026-11-01T17:56:40.668912Z 01E build/core-api-routes.txt: found 1 matching artifact files and directories 
+2026-11-01T17:56:40.668955Z 01E build/disposable/: found 3 matching artifact files and directories 
+2026-11-01T17:56:40.668967Z 01E build/disposable-server/: found 3 matching artifact files and directories 
+2026-11-01T17:56:40.668979Z 01E build/disposable-artifacts.txt: found 1 matching artifact files and directories 
+2026-11-01T17:56:40.669384Z 01E build/bindings/: found 10 matching artifact files and directories 
+2026-11-01T17:56:43.999276Z 01E Uploading artifacts as "archive" to coordinator... 201 Created  correlation_id=01M6C4396HMMTQCEFP9371QWYD id=292 status=201 token=[redacted]
+2026-11-01T17:56:44.241359Z 00O section_end:1793555804:upload_artifacts_on_success
+2026-11-01T17:56:44.241669Z 00O+section_start:1793555804:cleanup_file_variables
+2026-11-01T17:56:44.241682Z 00O+Cleaning up project directory and file based variables
+2026-11-01T17:56:44.572237Z 00O section_end:1793555804:cleanup_file_variables
+2026-11-01T17:56:44.979067Z 00O Job succeeded
