@@ -109,4 +109,4 @@ jobs:
         env:
           APK_URL: ${{ steps.apk.outputs.artifact-url }}
         run: |
-          printf 'Android 0.1.5 · %s\n\n[Download APK and checksums](%s)\n\nNo simulator or physical-device result is implied by this build.\n' "$CI_COMMIT_SHORT_SHA" "$APK_URL" >> "$GITHUB_STEP_SUMMARY"
+          printf 'Android 1.0.0 · %s\n\n[Download APK and checksums](%s)\n\nNo simulator or physical-device result is implied by this build.\n' "$CI_COMMIT_SHORT_SHA" "$APK_URL" >> "$GITHUB_STEP_SUMMARY"

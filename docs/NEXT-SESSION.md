@@ -108,3 +108,7 @@ MobileSession.setPaused，两个层级不要一并重命名。0.1.5 首次签名
 冲突失败，修复后从新 main 重新启动签名发布；旧的失败 run 不能直接重跑旧源码。
 本机缓存 JDK 已按用户要求删除，仅用 /usr/bin/java 和 /usr/bin/keytool（系统 JRE）；
 不要重新安装本机 JDK，完整 Android 编译使用 GitHub Actions。
+
+用户授权公开独立 App 仓库、清理该仓库失败 Actions 记录并发布 1.0.0。0.1.5 已成功发布，
+1.0.0 沿用其正式证书，versionCode 7。成功构建和原有 Release 保留，失败记录删除前
+已记录编译原因；当前 README 默认英文，下载链接指向 v1.0.0。不要重新生成签名密钥。

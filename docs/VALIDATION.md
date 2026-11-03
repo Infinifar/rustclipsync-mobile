@@ -465,3 +465,14 @@ setPaused(Z)V。修正 Android 控制入口为 configurePause，更新 UI 和 in
 使用系统 JRE 与既有缓存 Kotlin compiler 复现旧名冲突，并验证改名后的最小委托属性
 用例可编译；未重新安装 JDK，不把该验证当成完整 Android APK 编译或设备测试。
 完整 APK 与正式签名发布重新从修复后的 main 触发，成功后仍发布 0.1.5。
+
+## 2026-11-03：仓库公开及 1.0.0
+
+用户要求公开 Infinifar/rustclipsync-mobile，删除该仓库失败构建记录并发布独立 Android
+1.0.0。发布前扫描 633 个历史 blob，未检出私钥块、常见 GitHub token、已生成的
+当前签名密码/密钥库 Base64，未发现被跟踪的 .env 或 p12/pfx/jks/keystore 文件。
+该检查不是对所有类型凭据的完整安全审计；签名私钥仍只在私有备份和 Actions Secrets。
+成功的 0.1.5 Release/构建保留，失败记录按用户要求删除，旧失败 run 链接可能失效。
+1.0.0 仅更新版本与发布说明，versionCode 6 → 7，沿用同一证书；发布工作流仍会对照
+上一正式版证书及内部版本递增，完整检查和回下载校验后自动发布。本轮本地运行 shell
+语法、翻译与版本一致性检查，未为版本号变化重复运行未改动的 Rust 测试或安装本机 JDK。
