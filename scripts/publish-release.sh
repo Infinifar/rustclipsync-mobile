@@ -4,7 +4,7 @@ cd "$(dirname "$0")/.."
 : "${GITHUB_SHA:?Missing source revision}"
 : "${RUNNER_TEMP:?Missing temporary directory}"
 test "${GITHUB_REF:-}" = refs/heads/main
-version=0.2.0
+version=0.2.1
 tag="v$version"
 apk="rustclipsync-mobile-$version-android.apk"
 previous=$(gh release list --exclude-drafts --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName // empty')
@@ -19,7 +19,7 @@ if [[ -n "$previous" ]]; then
   previous_cert=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/previous-mobile-cert.txt")
   test "$previous_cert" = "$(tr -d '\r\n' < android/release-signing.sha256)"
   old_code=$("$tools/aapt" dump badging "${old[0]}" | sed -n "s/^package: .*versionCode='\([0-9]*\)'.*/\1/p")
-  [[ "$old_code" =~ ^[0-9]+$ ]] && (( old_code < 7 ))
+  [[ "$old_code" =~ ^[0-9]+$ ]] && (( old_code < 8 ))
 fi
 gh release create "$tag" release-output/* --draft --target "$GITHUB_SHA" \
   --title "RustClipSync Mobile $version" --notes-file "releases/$version.md"

@@ -6,8 +6,8 @@
 [rustclipsync-core](https://github.com/Infinifar/rustclipsync-core)。
 Swift/SwiftUI iPhone/iPad 客户端仍在开发，本次只发布 Android APK。
 
-[下载 Android 0.2.0](https://github.com/Infinifar/rustclipsync-mobile/releases/tag/v0.2.0)
-· [发布说明](releases/0.2.0.md)
+[下载 Android 0.2.1](https://github.com/Infinifar/rustclipsync-mobile/releases/tag/v0.2.1)
+· [发布说明](releases/0.2.1.md)
 · [服务端](https://github.com/Infinifar/rustclipsync-server)
 · [桌面客户端](https://github.com/Infinifar/rustclipsync-desktop)
 · [Omaclipsync 插件](https://github.com/Infinifar/omaclipsync)
@@ -52,8 +52,8 @@ RustClipSync 模块，避免两个客户端互相写入。
 连接凭据与 core RCS1 状态分别加密存入不参与备份的私有文件。HTTPS 保护传输，
 当前不提供端到端加密；不要公开凭据、设备令牌、状态密钥或剪贴板正文。
 
-**升级**：0.2.0 与 0.1.5 沿用同一正式签名，可直接覆盖升级。此前同包名临时调试 APK 的签名不同，不能直接覆盖。请先阅读
-[迁移说明](releases/0.2.0.md)，自行保留所需内容；本工具不会自动卸载或删除数据。
+**升级**：0.2.1 与 0.2.0 沿用同一正式签名，可直接覆盖升级。此前同包名临时调试 APK 的签名不同，不能直接覆盖。请先阅读
+[迁移说明](releases/0.2.1.md)，自行保留所需内容；本工具不会自动卸载或删除数据。
 后续正式版沿用同一证书覆盖升级。[签名及公钥证书](SIGNING.md)。
 
 ## 开发与验证
