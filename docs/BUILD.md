@@ -65,7 +65,7 @@ BindingSmokeTest 只用内存 Platform，通过 Kotlin → Rust → Kotlin 验�
 使用行为：输入 HTTPS 地址与账户，点击连接（首次注册以当前服务端版本为基线），然后
 显式发送/接收。敏感默认跳过；加密收件箱与自动写入分开选择，自动写入有确认。
 后台运行默认关闭，此时离开前台立即请求关闭，回到前台需重新连接。
-开启后按同步方向继续收发，普通接收写入剪贴板；后台捕获新复制需要显式 Shizuku 授权。
+开启后按同步方向继续收发，普通接收写入剪贴板；后台捕获新复制需要显式 Porter 或 Shizuku 授权。Porter SDK 与 shizuku-compat 固定为 0.9.0，JitPack 仅用于该 SDK 的依赖组。
 SDK API/provider 固定 13.1.5，AIDL 通过 Gradle 生成。授权、故障降级和时限见 BACKGROUND.md。
 Android 会在连接成功后以独立 Keystore 密钥加密保存凭据；不写入普通设置。
 更换服务器不会静默清空旧身份，现有状态与服务器不匹配会报错；多账户/显式重新配对 UI 待做。

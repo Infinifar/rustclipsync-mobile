@@ -478,3 +478,14 @@ setPaused(Z)V。修正 Android 控制入口为 configurePause，更新 UI 和 in
 语法、翻译与版本一致性检查，未为版本号变化重复运行未改动的 Rust 测试或安装本机 JDK。
 
 用户调整发布编号为 0.2.0：取消未发布的 1.0.0 构建 run 41584395772，保留正式签名和 versionCode 7，更新 APK/标签/说明及下载链接后重新触发。0.1.5 是升级校验基线。
+
+## 2026-11-13 Android Porter
+
+基于主分支 35c84d6 接入 Porter SDK 0.9.0 及同版本 shizuku-compat，复用现有剪贴板
+UserService。原 Shizuku 回调状态机随旧 SDK 移除，授权结果由 Porter SDK 的连接及
+权限流提供。两条接入路径保持 shell UID 和应用调用者校验。合并后的清单确认两个
+Binder Provider 均受 INTERACT_ACROSS_USERS_FULL 保护，后台服务保持私有。
+
+使用本机已有 SDK 36 和 JDK 17 执行 Gradle，Kotlin/AIDL 编译、9 项 JVM 测试、lint、
+调试及测试 APK 打包通过。本地打包未编译 Rust Android ABI，完整产物以 GitHub Android
+工作流为准。Porter / Shizuku 授权和后台读取尚未在真机验证。

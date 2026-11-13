@@ -59,7 +59,7 @@ facade 作为独立 crate，避免给 core 加入 Android、iOS 或 UI 依赖。
 - Worker 的 shutdown 请求与 join 等待分开安排。自定义 Transport 的整个操作
   包括长轮询必须有有限超时；核心当前内置请求超时为 30 秒。
 - Android 以一个后台运行开关保留同一应用级会话，前后台统一遵守同步方向。
-  新后台复制来源需显式 Shizuku 授权；普通接收可写入，敏感内容独立三选一。
+  新后台复制来源需显式 Porter 或 Shizuku 授权；普通接收可写入，敏感内容独立三选一。
   facade 仅串行组合 core 的 record/flush/pull，协议、重试、冲突和确认仍在 core。
 - 加密收件箱通知默认 **，显示 / 隐藏与复制需要显式操作，依据当前消息票据撤销迟到结果。
 - 后台服务受系统运行时限约束；iOS 后续配套推送，目前保持前台会话。详见 BACKGROUND.md。

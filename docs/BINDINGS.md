@@ -58,7 +58,7 @@ pull_background，不读快照；后者先请求已授权平台快照并在变�
 轮询重复生成复制事件或回传自身写入；不改变协议去重、UUID、RCS1 或 core 重试。
 前台显式发送仍可重新发送相同内容。所有网络/存储/冲突处理均来自 core。
 
-Shizuku RPC 在独立工作线程等待 1.5 秒，主线程只收元数据唤醒；Binder 断开、拒绝、撤销、
+Porter / Shizuku 的剪贴板 RPC 在独立工作线程等待 1.5 秒，主线程只收元数据唤醒；Binder 断开、拒绝、撤销、
 锁屏、超限均显示不可用并降级已有事务续传。绑定非 daemon 来源仅在后台运行、发送方向、
 应用在后台时存在；回前台、方向切换和关闭立即 unbind/remove。Android 普通前台服务不
 赋予后台读取权限；iOS 未接入该来源。详情见 BACKGROUND.md。
@@ -153,7 +153,7 @@ InvalidInput，保留原规则；敏感策略更新保留当前过滤器。过�
 UUID 直接从 core.persisted.state.device_id 返回，不返回 token、密码或密钥。
 
 Android 对没有本应用写入 origin 的本地文本使用系统 ClipDescription.timestamp 观察标记，
-前台与 Shizuku 来源一致；同一快照不会重记，用户再次复制相同文本仍可成为新事件。
+前台与后台来源一致；同一快照不会重记，用户再次复制相同文本仍可成为新事件。
 此标记只用于平台事件观察，不改变 core 的消息 UUID 或协议。
 
 ## 暂停接口

@@ -13,9 +13,9 @@ core 固定 6a1ccd37b8ca3e515610d48bfa47f20b7c9b0ca4，通过完整未改动 ven
   升级需重新开启。敏感策略写入 sync-settings，界面直接观察 controller，避免副本与会话错位。
 - 已标记敏感内容三选一：跳过、加密收件箱、直接写入（不进收件箱）。不能要求“全开”。
   策略持久保存，不重放旧消息。未标记内容不能承诺自动识别敏感。
-- 用户明确要求 Shizuku 特权来源。固定 SDK API/provider 13.1.5，显式请求授权；仅在后台
-  服务存活、方向含发送、应用离开前台时绑定非 daemon UserService。当前要求无线调试 /
-  ADB shell UID 2000；root 模式提示切换，不尝试 su 或冒用 Binder 身份。
+- 后台来源支持原生 Porter 和 Shizuku 兼容协议，SDK 与 shizuku-compat 固定为 0.9.0。
+  两者都安装时 SDK 优先 Porter。只有明确授予所选管理器权限且后台方向包含发送时
+  才绑定来源。两条路径均要求无线调试 / ADB shell UID 2000。
 - UserService snapshot/observe/destroy 核对实际 Binder UID，Provider 受平台权限保护。
   无账号/密钥/网络/落盘。每秒观察变化，回调只带唤醒信号；锁屏/熄屏不读，RPC 上限
   256 KiB，超限不截断。读失败降级已有事务续传，接收按 core 状态继续。

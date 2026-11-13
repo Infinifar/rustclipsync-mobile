@@ -17,7 +17,7 @@ The Swift/SwiftUI iPhone/iPad client is in development; this release contains An
 - Two-way, send-only and receive-only directions, reported to the server before data access.
 - **Pause / Resume** on the Sync page: stops both directions, invalidates in-flight clipboard operations, preserves pairing and the encrypted inbox, and stays paused after reopening. Failed pause reports still block local access; resume waits for confirmation.
 - Encrypted saved connection credentials protected by an independent Android Keystore key.
-- Optional background operation, including automatic receiving while the app is open. New background copies require **Shizuku 13+ started through wireless debugging / ADB shell mode**; receiving does not require Shizuku.
+- Optional background operation, including automatic receiving while the app is open. New background copies require **Porter 0.7.0-rc0+ or Shizuku 13+ in wireless debugging / ADB shell mode**. Porter takes priority when both are installed and works directly without its compatibility companion. Receiving works without this access.
 - Three exclusive policies for marked sensitive content: skip, encrypted inbox, or explicitly enabled clipboard auto-write. Inbox notifications are masked by default, with unlocked Show/Hide and Copy actions.
 - Shared core regex filters, safe recovery of stale uploads, English/Chinese and system/light/dark themes. Launcher uses the Omaclipsync S icon and white/black backgrounds.
 
@@ -27,7 +27,7 @@ Android **12+**; the signed APK contains **ARM64 and x86_64**. Requires **Server
 
 Choose direction and sensitive policy in Settings. Enable Run in background to receive automatically; ordinary incoming messages write the system clipboard, while marked sensitive messages obey the selected policy. Foreground sending remains manual. Pause disables both automatic and manual transfers; explicit copying from the existing inbox remains available. Pause discards unsent local candidates through core; committed requests cannot be recalled.
 
-Removing the recent task retains the background preference and attempts to keep the live service. Android/OEM service limits still apply. Process death, force-stop or reboot requires foreground reconnection; neither saved credentials nor Shizuku authorization starts a connection on its own.
+Removing the recent task retains the background preference and attempts to keep the live service. Android/OEM service limits still apply. Process death, force-stop or reboot requires foreground reconnection; neither saved credentials nor clipboard source authorization starts a connection on its own.
 
 Run one sync client per Android clipboard. If using the standalone app, disable the separate RustClipSync module in the Fcitx5 keyboard to avoid competing writers.
 

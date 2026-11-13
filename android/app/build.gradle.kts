@@ -29,8 +29,8 @@ android {
 }
 kotlin { jvmToolchain(17) }
 dependencies {
-    implementation("dev.rikka.shizuku:api:13.1.5")
-    implementation("dev.rikka.shizuku:provider:13.1.5")
+    implementation("com.github.d4rken-org.porter-api:sdk:0.9.0")
+    implementation("com.github.d4rken-org.porter-api:shizuku-compat:0.9.0")
     implementation(platform("androidx.compose:compose-bom:2026.02.01"))
     implementation("androidx.compose.material3:material3")
     implementation("androidx.activity:activity-compose:1.12.4")

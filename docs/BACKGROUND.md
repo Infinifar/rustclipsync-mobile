@@ -1,4 +1,4 @@
-# 后台运行、Shizuku 与加密收件箱通知
+# 后台运行、Porter / Shizuku 与加密收件箱通知
 
 Android 0.1.4 使用一个默认关闭的“后台运行”开关。它只决定离开应用后是否继续当前
 会话；双向 / 仅发送 / 仅接收统一控制前后台方向，不再另设后台写入开关。
@@ -7,7 +7,7 @@ Android 0.1.4 使用一个默认关闭的“后台运行”开关。它只决定
 
 | 方向 | 后台发送 | 后台接收 |
 | --- | --- | --- |
-| 双向 | 新内容需 Shizuku；已取得内容可续传 | 普通文本写入；敏感内容按策略处理 |
+| 双向 | 新内容需 Porter 或 Shizuku；已取得内容可续传 | 普通文本写入；敏感内容按策略处理 |
 | 仅发送 | 同上 | 不接收，不产生新收件箱消息 |
 | 仅接收 | 不读取、不推送；通过 core 清除旧上传候选 | 普通文本写入；敏感内容按策略处理 |
 
@@ -17,10 +17,11 @@ Android 0.1.4 使用一个默认关闭的“后台运行”开关。它只决定
 
 ## 后台剪贴板来源
 
-用户安装并启动 Shizuku 13+（无线调试 / ADB shell 模式），在应用设置中显式“请求 Shizuku 授权”。SDK API/provider
-固定 13.1.5。拒绝不反复弹窗；可在 Shizuku 管理中重新授权。连接/授权/读取不可用状态
-在设置展示。授权状态与来源状态分开展示；授权结果按请求码匹配，成功后立即更新，
-来源空闲不会覆盖授权成功。拒绝后指引 Shizuku 应用管理，不反复弹窗。Shizuku 不可用时不伪造快照，不取消已有上传，仍可续传应用已取得内容并接收。
+以无线调试或 ADB shell 模式启动 Porter 0.7.0-rc0 或以上版本，或 Shizuku 13 或以上版本，
+然后在“设置 → 同步 → 后台剪贴板来源”点击“请求剪贴板来源授权”。Porter 使用原生
+协议，无需兼容伴侣。SDK 与 shizuku-compat 固定为 0.9.0；两者都安装时 SDK 优先使用 Porter。
+设置页分别显示当前管理器授权和剪贴板服务状态。拒绝后可在对应管理器中改授权；
+来源不可用时仍可接收和续传已取得的内容。
 
 仅在后台运行、会话已连接、方向包含发送且应用离开前台时绑定非 daemon UserService。
 设备锁定或熄屏不读取；切仅接收、回前台、停止、关闭、超时和进程退出均撤销来源。
@@ -29,9 +30,9 @@ UserService 每秒检查一次本机剪贴板变化，只通过 oneway 回调发
 后台 RPC 文本上限 256 KiB，超过时报告不可用，不截断发送；前台仍沿用 core 上限。
 
 UserService 只有 snapshot/observe/destroy 三个方法，所有入口核对 Binder UID；
-不运行任意命令、不持有账号、状态密钥、不联网、不落盘。Shizuku Provider 按官方契约用
+不运行任意命令、不持有账号、状态密钥、不联网、不落盘。Porter 和 Shizuku Binder Provider 按官方契约用
 INTERACT_ACROSS_USERS_FULL 保护；普通应用不能通过该 Provider 获取接口。
-隐藏 IClipboard 的反射仅在 Shizuku 进程内，按方法签名适配 API 31/新版 deviceId 参数，
+隐藏 IClipboard 的反射仅在 shell UserService 进程内，按方法签名适配 API 31/新版 deviceId 参数，
 无固定 transact 编号。当前仅支持 ADB shell UID 2000；root 模式明确提示改用 ADB，不将失败当作空剪贴板。
 这是 AOSP 校验 UID 与调用包所有权的限制；不冒用身份或执行 su 命令。厂商兼容性仍需设备验证。
 
@@ -71,8 +72,7 @@ MyUI 最终交互由用户验收。显示仅读取当前项最多 2,000 字符�
 
 ## 系统边界
 
-Android 15+ dataSync 累计运行时限仍适用（每 24 小时 6 小时；回前台重置）；Shizuku
-不解除服务时限。Doze、断网、厂商限制可能延迟服务，不承诺实时或无限常驻。
+Android 15+ dataSync 累计运行时限仍适用（每 24 小时 6 小时；回前台重置）。Doze、断网、厂商限制可能延迟服务，不承诺实时或无限常驻。
 停止、划掉任务、超时立即撤销来源与 native 入口，再异步等待 core；UI 不 join。
 服务 START_NOT_STICKY；划掉任务保留后台设置和仍有效的当前服务，系统超时停止当前会话但保留设置；系统杀死进程、强行停止或重启后仍需在前台重新连接。凭据独立加密保存。
 
@@ -81,7 +81,7 @@ iOS 仅移动端，当前保持前台手动同步，后续需要 APNs、令牌�
 
 官方依据（实施时核对）：
 
-- [Shizuku SDK、授权和 UserService 官方说明](https://github.com/RikkaApps/Shizuku-API)。
+- [Porter SDK 授权、UserService 和 Shizuku 兼容接入](https://porter.darken.eu/developers)。
 - [Android 16 IClipboard 参数契约](https://android.googlesource.com/platform/frameworks/base/+/android-16.0.0_r1/core/java/android/content/IClipboard.aidl)。
 - [ClipboardManager：读取需要输入焦点，setPrimaryClip 写入](https://developer.android.com/reference/android/content/ClipboardManager)。
 - [Android 16 ClipboardService：OP_WRITE_CLIPBOARD 分支明确允许无焦点写入](https://android.googlesource.com/platform/frameworks/base/+/android-16.0.0_r1/services/core/java/com/android/server/clipboard/ClipboardService.java)。
@@ -100,7 +100,7 @@ core 来源固定为 `1a8ec6b97cc925fcbbbf51f9b8c8e31f97f1ea4e`，在 core 仓�
 重新导出尚未公开的提交需使用包含该对象的 core 克隆；此步骤属于维护，不是构建前提。
 
 Android 对没有本应用写入 origin 的本地文本使用系统 ClipDescription.timestamp 观察标记，
-前台与 Shizuku 来源一致；同一快照不会重记，用户再次复制相同文本仍可成为新事件。
+前台与后台来源一致；同一快照不会重记，用户再次复制相同文本仍可成为新事件。
 此标记只用于平台事件观察，不改变 core 的消息 UUID 或协议。
 
 ### 后台生命周期与接收调度修复
@@ -109,7 +109,7 @@ Android 对没有本应用写入 origin 的本地文本使用系统 ClipDescript
 只停止本次会话并保留开关，不循环重启。进程被杀、强行停止或重启后仍需前台重新连接。
 开启后台运行且连接成功后，App 前台有焦点时也自动接收；前台发送仍使用发送按钮。
 服务每个已完成的 tick 后等待 3 秒，网络请求时间另计，不保证固定延迟。
-连接结束和窗口重新获得焦点会唤醒接收。Shizuku 授权与服务端连接是独立条件。
+连接结束和窗口重新获得焦点会唤醒接收。剪贴板来源授权与服务端连接是独立条件。
 
 遇到旧上传冲突或超过重试期限时，后台同步与重试入口调用 core 的持久化安全跳过：
 取消旧上传及当时排队项、保留系统剪贴板、跳过当时远端消息，继续处理后续新消息。

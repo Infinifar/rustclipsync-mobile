@@ -246,15 +246,20 @@ private fun SyncScreen(session: SessionController, theme: ThemeMode, changeTheme
                             }
                             Note(context.translated(R.string.background_limits))
                         }
-                        if (settingsPage == 0 && session.direction.sends) Panel(context.translated(R.string.shizuku_title)) {
-                            Text(context.translated(session.privilegedClipboard.access.message))
+                        if (settingsPage == 0 && session.direction.sends) Panel(context.translated(R.string.clipboard_title)) {
+                            Text(session.privilegedClipboard.access.resolve(context))
                             Text(session.privilegedClipboard.status.resolve(context))
-                            Note(context.translated(R.string.shizuku_note))
-                            if (session.captureUnavailable) Note(context.translated(R.string.shizuku_capture_failed))
-                            OutlinedButton(onClick = session.privilegedClipboard::requestPermission, modifier = Modifier.fillMaxWidth()) {
-                                Text(context.translated(R.string.shizuku_authorize))
+                            Note(context.translated(R.string.clipboard_note))
+                            if (session.captureUnavailable) Note(context.translated(R.string.clipboard_capture_failed))
+                            OutlinedButton(
+                                onClick = session.privilegedClipboard::requestPermission,
+                                enabled = session.privilegedClipboard.canRequest,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text(context.translated(R.string.clipboard_authorize))
                             }
-                            TextButton(onClick = { openProject("https://shizuku.rikka.app/download/") }) { Text(context.translated(R.string.shizuku_setup)) }
+                            TextButton(onClick = { openProject("https://porter.darken.eu/setup") }) { Text(context.translated(R.string.clipboard_porter_setup)) }
+                            TextButton(onClick = { openProject("https://shizuku.rikka.app/download/") }) { Text(context.translated(R.string.clipboard_shizuku_setup)) }
                         }
                         if (settingsPage == 3) Panel(context.translated(R.string.settings_about)) {
                             Text("RustClipSync ${BuildConfig.VERSION_NAME}")

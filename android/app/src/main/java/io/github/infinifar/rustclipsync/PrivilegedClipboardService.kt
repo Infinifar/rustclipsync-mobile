@@ -13,14 +13,14 @@ import java.security.MessageDigest
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-/** Shizuku UserService: clipboard-only RPC, no shell execution, credentials, storage or networking. */
+/** Porter or Shizuku UserService: clipboard-only RPC, no shell execution, credentials, storage or networking. */
 @Keep
 class PrivilegedClipboardService @Keep constructor(context: Context) : IPrivilegedClipboard.Stub() {
     private val keyguard = context.getSystemService(android.app.KeyguardManager::class.java)
     private val power = context.getSystemService(android.os.PowerManager::class.java)
     private var failed = false
     private val ownerUid = context.applicationInfo.uid.also {
-        check(Process.myUid() == 2000) { "ADB Shizuku mode required" }
+        check(Process.myUid() == 2000) { "ADB shell mode required" }
     }
     private val userId = ownerUid / 100000
     private val monitor = Executors.newSingleThreadScheduledExecutor()
@@ -32,9 +32,9 @@ class PrivilegedClipboardService @Keep constructor(context: Context) : IPrivileg
         if (Binder.getCallingUid() != ownerUid) throw SecurityException("Private clipboard bridge")
     }
 
-    // Reflection stays inside the shell/root process, where Shizuku permits non-SDK APIs.
+    // Reflection stays inside the shell process, where the manager permits non-SDK APIs.
     // Select signatures by type/arity rather than hardcoding changing Binder transaction numbers.
-    @SuppressLint("PrivateApi") // Runs only in an authorized Shizuku shell UserService, never the app process.
+    @SuppressLint("PrivateApi") // Runs only in an authorized shell UserService, never the app process.
     private fun readClipboard(): Bundle {
         if (keyguard.isDeviceLocked || !power.isInteractive) throw RemoteException("Device locked")
         val serviceManager = Class.forName("android.os.ServiceManager")
